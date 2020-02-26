@@ -165,7 +165,7 @@ void Receipt::Request_Set_Group_Number(void)
 	/*设备路数*/
 	RequestFrame[FrameLength++] = 0x01;
 	/*CRC8*/
-	RequestFrame[FrameLength++] = Get0000000000000000000000000000000000Crc8(&RequestFrame[4], 0x05);
+	RequestFrame[FrameLength++] = GetCrc8(&RequestFrame[4], 0x05);
 	/*帧尾*/
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? RequestFrame[FrameLength++] = 0x0D : RequestFrame[FrameLength++] = 0x0A;
