@@ -241,30 +241,31 @@ void Receipt::Request_Device_SN_and_Channel(void)
 void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2)
 {
   /*| 字节索引	| 0			| 1-2		| 3			| 4-5			| 6-7		| 8			| 9-10	| 11-12	| 13	| 14	| 15-22	| 23-30	| 31-46	| 47-62	| 63-64	| 65		| 66	| 67-73			|
-	| 数据域		| frameHead	| frameId	| dataLen	| DeviceTypeId	| randomId	| status	| swVer	| hwVer	| rssi	| csq	| DI	| DO	| AI	| AO	| VOL	| LoraMode	| CRC8	| frameEnd      |
+	| 数据域	| frameHead	| frameId	| dataLen	| DeviceTypeId	| randomId	| status	| swVer	| hwVer	| rssi	| csq	| DI	| DO	| AI	| AO	| VOL	| LoraMode	| CRC8	| frameEnd      |
 	| 长度		| 1			| 2			| 1			| 2				| 2			| 1			| 2		| 2		| 1		| 1		| 8		| 8		| 16	| 16	| 2		| 1			| 1		| 6				|
 	| 示例数据	| FE		| E014		| 3E		| C003			| 1234		|			|       |       |		|		|		|		|		|		|		| F1		| D6	| 0D0A0D0A0D0A	|*/
-
+	iwdg_feed();
 	Serial.println("上报实时详细工作状态 <Working_Parameter_Receipt>");
-	unsigned char ReceiptFrame[64] = { 0 };
+	Serial.flush();
+	unsigned char ReceiptFrame[74] = { 0x00 };
 	unsigned char ReceiptLength = 0;
 	// unsigned char RandomSeed;
 	unsigned long int RandomSendInterval = 0;
 
 	iwdg_feed();
-	//if (use_random_wait)
-	//{
-	//	//随机等待一段时间后再发送，避免大量设备发送堵塞。
-	//	Receipt_Random_Wait_Value(&RandomSendInterval);
-	//	delayMicroseconds(RandomSendInterval);
-	//}
+	if (use_random_wait)
+	{
+		//随机等待一段时间后再发送，避免大量设备发送堵塞。
+		Receipt_Random_Wait_Value(&RandomSendInterval);
+		delayMicroseconds(RandomSendInterval);
+	}
 	iwdg_feed();
 
-	if (gLoRaCSQ[0] == 0 || gLoRaCSQ[1] == 0)
-	{
-		Serial.println("开始查询信号质量");
-		LoRa_MHL9LF.LoRa_AT(gLoRaCSQ, true, AT_CSQ_, 0);
-	}
+	// if (gLoRaCSQ[0] == 0 || gLoRaCSQ[1] == 0)
+	// {
+	// 	Serial.println("开始查询信号质量");
+	// 	LoRa_MHL9LF.LoRa_AT(gLoRaCSQ, true, AT_CSQ_, 0);
+	// }
 
 #if CLEAR_BUFFER_FLAG
 	Clear_Server_LoRa_Buffer();
@@ -285,6 +286,7 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
 
 	/*status*/
 	Serial.println(String("gStatus_E014 = ") + gStatus_E014);
+	Serial.flush();
 	ReceiptFrame[ReceiptLength++] = gStatus_E014;
 
 	/*swVer*/
@@ -346,7 +348,7 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
 	ReceiptFrame[ReceiptLength++] = LoRa_Para_Config.Read_LoRa_Com_Mode();
 
 	/*CRC8*/
-	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], 0x37);
+	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
 	/*帧尾*/
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
@@ -363,35 +365,35 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
 		//Some_Peripheral.Start_LED();
 	}
 
-	unsigned long T = millis(); unsigned long T1 = millis();//T是改变的，T1是用来计超时的
-	unsigned long E014Interval = InitState.Read_E014Interval() * 1000;
-	unsigned long Timeout = InitState.Read_Timeout() * 1000;
-	Serial.println(String("E014Interval = ") + E014Interval / 1000 + "S <Control_command_Receipt>");
-	Serial.println(String("Timeout = ") + Timeout / 1000 + "S <Control_command_Receipt>");
+	// unsigned long T = millis(); unsigned long T1 = millis();//T是改变的，T1是用来计超时的
+	// unsigned long E014Interval = InitState.Read_E014Interval() * 1000;
+	// unsigned long Timeout = InitState.Read_Timeout() * 1000;
+	// Serial.println(String("E014Interval = ") + E014Interval / 1000 + "S <Control_command_Receipt>");
+	// Serial.println(String("Timeout = ") + Timeout / 1000 + "S <Control_command_Receipt>");
 
-	while (Get_receipt == false)
-	{
-		Serial.println("************1");
-		delay(500);
-		LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
-		Irrigation_time_sharing_onV3();	//灌溉分时打开
-		Key_cycle_irrigationV3();		//按键启动循环灌溉
+	// while (Get_receipt == false)
+	// {
+	// 	Serial.println("************1");
+	// 	delay(500);
+	// 	LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
+	// 	Irrigation_time_sharing_onV3();	//灌溉分时打开
+	// 	Key_cycle_irrigationV3();		//按键启动循环灌溉
 
-		iwdg_feed();
-		if (millis() - T >= E014Interval)
-		{
-			T = millis();
-			Serial.println("~~~~~~~~~~~~1");
-			Serial.println("LoRa parameter retry receipt... <Working_Parameter_Receipt>");
-			LoRa_Serial.write(ReceiptFrame, ReceiptLength);
-		}
-		if (millis() - T1 >= Timeout)
-		{
-			//达到超时时间，复位单片机
-			// nvic_sys_reset();
-			Get_receipt = true;
-		}
-	}
+	// 	iwdg_feed();
+	// 	if (millis() - T >= E014Interval)
+	// 	{
+	// 		T = millis();
+	// 		Serial.println("~~~~~~~~~~~~1");
+	// 		Serial.println("LoRa parameter retry receipt... <Working_Parameter_Receipt>");
+	// 		LoRa_Serial.write(ReceiptFrame, ReceiptLength);
+	// 	}
+	// 	if (millis() - T1 >= Timeout)
+	// 	{
+	// 		//达到超时时间，复位单片机
+	// 		// nvic_sys_reset();
+	// 		Get_receipt = true;
+	// 	}
+	// }
 
 #elif PLC_V2
 
@@ -482,14 +484,14 @@ void Receipt::General_Receipt(unsigned char status, unsigned char send_times)
 void Receipt::Control_command_Receipt(unsigned char interval_1, unsigned char interval_2, unsigned char send_times, unsigned char randomId_1, unsigned char randomId_2/*, unsigned char * R_Modbus_Instructions, int R_Modbus_Length*/)
 {
 	  /*| 字节索引	| 0			| 1-2		| 3			| 4 - 5			| 6				| 7			| 8			| 9			| 10		| 11~(11 + n)	|		|               |
-		| 数据域		| frameHead	| frameId	| dataLen	| DeviceTypeId	| isBroadcast	| zoneId	| groupId	| random	| interval	| modbusPacket	| CRC8	| frameEnd		|
+		| 数据域	| frameHead	| frameId	| dataLen	| DeviceTypeId	| isBroadcast	| zoneId	| groupId	| random	| interval	| modbusPacket	| CRC8	| frameEnd		|
 		| 长度		| 1			| 2			| 1			| 2				| 1				| 1			| 1			| 2			| 2			| n				| 1		| 6				|
 		| 示例数据	| FE		| E000		| 9 + N		| C003			| 00			| 01		| 01		| 1234		| 0000		| XXXXXXXX		| 00	| 0D0A0D0A0D0A	|*/
 
-	unsigned char ReceiptFrame[25] = { 0 };
+	unsigned char ReceiptFrame[38] = { 0 };
 	unsigned char ReceiptLength = 0;
 	// unsigned char RandomSeed;
-	unsigned long int RandomSendInterval = 0;
+	// unsigned long int RandomSendInterval = 0;
 
 	//Receipt_Random_Wait_Value(&RandomSendInterval);
 	//delayMicroseconds(RandomSendInterval);
@@ -541,35 +543,35 @@ void Receipt::Control_command_Receipt(unsigned char interval_1, unsigned char in
 		delay(SEND_DATA_DELAY);
 	}
 
-	unsigned long T = millis(); unsigned long T1 = millis();//T是改变的，T1是用来计超时的
-	unsigned long E000Interval = InitState.Read_E000Interval() * 1000;
-	unsigned long Timeout = InitState.Read_Timeout() * 1000;
-	Serial.println(String("E000Interval = ") + E000Interval/1000 + " <Control_command_Receipt>");
-	Serial.println(String("Timeout = ") + Timeout/1000 + "S <Control_command_Receipt>");
+	// unsigned long T = millis(); unsigned long T1 = millis();//T是改变的，T1是用来计超时的
+	// unsigned long E000Interval = InitState.Read_E000Interval() * 1000;
+	// unsigned long Timeout = InitState.Read_Timeout() * 1000;
+	// Serial.println(String("E000Interval = ") + E000Interval/1000 + " <Control_command_Receipt>");
+	// Serial.println(String("Timeout = ") + Timeout/1000 + "S <Control_command_Receipt>");
 
-	while (Get_receipt == false)
-	{
-		Serial.println("************2");
-		delay(500);
-		LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
-		Irrigation_time_sharing_onV3();	//灌溉分时打开
-		Key_cycle_irrigationV3();		//按键启动循环灌溉
+	// while (Get_receipt == false)
+	// {
+	// 	Serial.println("************2");
+	// 	delay(500);
+	// 	LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
+	// 	Irrigation_time_sharing_onV3();	//灌溉分时打开
+	// 	Key_cycle_irrigationV3();		//按键启动循环灌溉
 
-		iwdg_feed();
-		if (millis() - T >= E000Interval)
-		{
-			T = millis();
-			Serial.println("~~~~~~~~~~~~2");
-			Serial.println("LoRa parameter retry receipt... <Working_Parameter_Receipt>");
-			LoRa_Serial.write(ReceiptFrame, ReceiptLength);
-		}
-		if (millis() - T1 >= Timeout)
-		{
-			//达到超时时间，复位单片机
-			// nvic_sys_reset();
-			Get_receipt = true;
-		}
-	}
+	// 	iwdg_feed();
+	// 	if (millis() - T >= E000Interval)
+	// 	{
+	// 		T = millis();
+	// 		Serial.println("~~~~~~~~~~~~2");
+	// 		Serial.println("LoRa parameter retry receipt... <Working_Parameter_Receipt>");
+	// 		LoRa_Serial.write(ReceiptFrame, ReceiptLength);
+	// 	}
+	// 	if (millis() - T1 >= Timeout)
+	// 	{
+	// 		//达到超时时间，复位单片机
+	// 		// nvic_sys_reset();
+	// 		Get_receipt = true;
+	// 	}
+	// }
 }
 
 /*
@@ -586,12 +588,12 @@ void Receipt::Output_init_Receipt(unsigned char status, unsigned char send_times
 {
   /*|字节索引	| 0			| 1 - 2		| 3			| 4 - 5		| 6			| 7-n	|		|				|
 	|数据域		| frameHead | frameId	| dataLen	| randomId	| status	| RS485	| CRC8	| frameEnd		|
-	|长度(byte)	| 1			| 2			| 1			| 2			| 1			| n		| 1		| 2				|
+	|长度(byte)	| 1			| 2			| 1			| 2			| 1			| n		| 1		| 6				|
 	|示例数据	| FE		| E002		|			| 1234		|			| xxxx	| 00	| 0D0A0D0A0D0A	|*/
-	unsigned char ReceiptFrame[25] = { 0 };
+	unsigned char ReceiptFrame[34] = { 0 };
 	unsigned char ReceiptLength = 0;
 	// unsigned char RandomSeed;
-	unsigned long int RandomSendInterval = 0;
+	// unsigned long int RandomSendInterval = 0;
 
 	//Receipt_Random_Wait_Value(&RandomSendInterval);
 	//delayMicroseconds(RandomSendInterval);
@@ -647,14 +649,14 @@ void Receipt::Output_init_Receipt(unsigned char status, unsigned char send_times
 void Receipt::Irrigation_control_Receipt(unsigned char send_times, unsigned char* gReceiveCmd/*unsigned char randomId_1, unsigned char randomId_2*/)
 {
 	  /*| 字节索引	| 0			| 1 - 2		| 3			| 4 - 5			| 6				| 7			| 8-9		| 10 - 41	| 42 - 71	| 72-73		| 74-75	| 76-107	| 108	| 109 - 114     |
-		| 数据域		| FrameHead | FrameId	| DataLen	| DeviceTypeId	| IsBroadcast	| zoneId	| randomId	| openSec	| interval	| timeout	| DOUsed| retryCnt	| CRC8	| FrameEnd      |
+		| 数据域	| FrameHead | FrameId	| DataLen	| DeviceTypeId	| IsBroadcast	| zoneId	| randomId	| openSec	| interval	| timeout	| DOUsed| retryCnt	| CRC8	| FrameEnd      |
 		| 长度		| 1			| 2			| 1			| 2				| 1				| 1			| 2			| 32		| 30		| 2			| 2		| 32		| 1		| 6				|
 		| 示例数据	| FE		| E003		| 0x68(104)	| C003			| 00			| 01		| 1234		| 0005		| 0003		| 001e		| FF00	| 0005		| D6	| 0D0A0D0A0D0A	|*/
 	unsigned char ReceiptFrame[115] = { 0 };
 	unsigned char ReceiptLength = 0;
 	unsigned char x = 8;
 	// unsigned char RandomSeed;
-	unsigned long int RandomSendInterval = 0;
+	// unsigned long int RandomSendInterval = 0;
 
 	//Receipt_Random_Wait_Value(&RandomSendInterval);
 	//delayMicroseconds(RandomSendInterval);
@@ -738,7 +740,7 @@ void Receipt::Irrigation_control_Receipt(unsigned char send_times, unsigned char
 void Receipt::Irrigation_loop_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2)
 {
 	  /*| 字节索引		| 0			| 1 - 2		| 3			| 4 - 5			| 6 - 7		| 8 - 39			| 40	| 41 - 46		|
-		| 数据域			| frameHead | frameId	| dataLen	| DeviceTypeId	| randomId	| Surplus retryCnt	| CRC8	| frameEnd		|
+		| 数据域		| frameHead | frameId	| dataLen	| DeviceTypeId	| randomId	| Surplus retryCnt	| CRC8	| frameEnd		|
 		| 长度（byte）	| 1			| 2			| 1			| 2				| 2			| 32				| 1		| 6				|
 		| 示例数据		| FE		| E001		| 0x24(36)	| C003			| 1234		| 00640000000		| D6	| 0D0A0D0A0D0A	|*/
 	Serial.println("上报灌溉循环状态 <Working_Parameter_Receipt>");
@@ -748,12 +750,12 @@ void Receipt::Irrigation_loop_Receipt(bool use_random_wait, unsigned char times,
 	unsigned long int RandomSendInterval = 0;
 
 	iwdg_feed();
-	//if (use_random_wait)
-	//{
-	//	//随机等待一段时间后再发送，避免大量设备发送堵塞。
-	//	Receipt_Random_Wait_Value(&RandomSendInterval);
-	//	delayMicroseconds(RandomSendInterval);
-	//}
+	if (use_random_wait)
+	{
+		//随机等待一段时间后再发送，避免大量设备发送堵塞。
+		Receipt_Random_Wait_Value(&RandomSendInterval);
+		delayMicroseconds(RandomSendInterval);
+	}
 	iwdg_feed();
 
 #if CLEAR_BUFFER_FLAG
@@ -798,35 +800,107 @@ void Receipt::Irrigation_loop_Receipt(bool use_random_wait, unsigned char times,
 		//Some_Peripheral.Start_LED();
 	}
 
-	unsigned long T = millis(); unsigned long T1 = millis();//T是改变的，T1是用来计超时的
-	unsigned long E014Interval = InitState.Read_E014Interval() * 1000;
-	unsigned long Timeout = InitState.Read_Timeout() * 1000;
-	Serial.println(String("E014Interval = ") + E014Interval / 1000 + "S <Control_command_Receipt>");
-	Serial.println(String("Timeout = ") + Timeout / 1000 + "S <Control_command_Receipt>");
+	// unsigned long T = millis(); unsigned long T1 = millis();//T是改变的，T1是用来计超时的
+	// unsigned long E014Interval = InitState.Read_E014Interval() * 1000;
+	// unsigned long Timeout = InitState.Read_Timeout() * 1000;
+	// Serial.println(String("E014Interval = ") + E014Interval / 1000 + "S <Control_command_Receipt>");
+	// Serial.println(String("Timeout = ") + Timeout / 1000 + "S <Control_command_Receipt>");
 
-	while (Get_receipt == false)
+	// while (Get_receipt == false)
+	// {
+	// 	iwdg_feed();
+	// 	Serial.println("************3");
+	// 	delay(500);
+	// 	LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
+	// 	Irrigation_time_sharing_onV3();	//灌溉分时打开
+	// 	Key_cycle_irrigationV3();		//按键启动循环灌溉
+
+	// 	if (millis() - T >= E014Interval)
+	// 	{
+	// 		T = millis();
+	// 		Serial.println("~~~~~~~~~~~~3");
+	// 		Serial.println("LoRa parameter retry receipt... <Working_Parameter_Receipt>");
+	// 		LoRa_Serial.write(ReceiptFrame, ReceiptLength);
+	// 	}
+	// 	if (millis() - T1 >= Timeout)
+	// 	{
+	// 		//达到超时时间，复位单片机
+	// 		// nvic_sys_reset();
+	// 		Get_receipt = true;
+	// 	}
+	// }
+}
+
+/*
+ @brief   : 发送上线状态回执信息给服务器。（本设备 ---> 服务器）
+ @param   :	1.是否需要随机时间延时发送
+			2.回执次数，send_times
+			3.随机ID第1位，randomId_1
+			4.随机ID第2位，randomId_2
+ @return  : 无
+ */
+void Receipt::OnLine_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2)
+{
+	  /*| 字节索引		| 0			| 1 - 2		| 3			| 4 - 5			| 6 - 7		| 8 - 15	| 16	| 17 - 22		|
+		| 数据域		| frameHead | frameId	| dataLen	| DeviceTypeId	| randomId	| allocate	| CRC8	| frameEnd		|
+		| 长度（byte）	| 1			| 2			| 1			| 2				| 2			| 8			| 1		| 6				|
+		| 示例数据		| FE		| E002		| 0x0C(12)	| C003			| 1234		| 0000		| D6	| 0D0A0D0A0D0A	|*/
+	Serial.println("上线状态报告 <Working_Parameter_Receipt>");
+	unsigned char ReceiptFrame[23] = { 0 };
+	unsigned char ReceiptLength = 0;
+	// unsigned char RandomSeed;
+	unsigned long int RandomSendInterval = 0;
+
+	iwdg_feed();
+	if (use_random_wait)
 	{
-		Serial.println("************3");
-		delay(500);
-		LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
-		Irrigation_time_sharing_onV3();	//灌溉分时打开
-		Key_cycle_irrigationV3();		//按键启动循环灌溉
-
-		iwdg_feed();
-		if (millis() - T >= E014Interval)
-		{
-			T = millis();
-			Serial.println("~~~~~~~~~~~~3");
-			Serial.println("LoRa parameter retry receipt... <Working_Parameter_Receipt>");
-			LoRa_Serial.write(ReceiptFrame, ReceiptLength);
-		}
-		if (millis() - T1 >= Timeout)
-		{
-			//达到超时时间，复位单片机
-			// nvic_sys_reset();
-			Get_receipt = true;
-		}
+		//随机等待一段时间后再发送，避免大量设备发送堵塞。
+		Receipt_Random_Wait_Value(&RandomSendInterval);
+		delayMicroseconds(RandomSendInterval);
 	}
+	iwdg_feed();
+
+#if CLEAR_BUFFER_FLAG
+	Clear_Server_LoRa_Buffer();
+#endif
+
+	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
+	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
+	ReceiptFrame[ReceiptLength++] = 0x02; //
+	ReceiptFrame[ReceiptLength++] = 0x0C; //数据长度
+
+	/*设备类型*/
+	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
+	ReceiptFrame[ReceiptLength++] = lowByte(DEVICE_TYPE_ID);
+
+	/*randomId*/
+	ReceiptFrame[ReceiptLength++] = randomId_1;
+	ReceiptFrame[ReceiptLength++] = randomId_2;
+
+	/* allocate */
+	for (size_t i = 0; i < 8; i++)
+	{
+		ReceiptFrame[ReceiptLength++] = 0x00;
+	}
+	
+
+	/*CRC8*/
+	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
+	/*帧尾*/
+	for (unsigned char i = 0; i < 6; i++)
+		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
+
+	Serial.println("LoRa parameter receipt...");
+	Print_Debug(&ReceiptFrame[0], ReceiptLength);
+
+	for (unsigned char i = 0; i < times; i++)
+	{
+		iwdg_feed();
+		//Some_Peripheral.Stop_LED();
+		LoRa_Serial.write(&ReceiptFrame[0], ReceiptLength);
+		delayMicroseconds(SEND_DATA_DELAY * 1000);
+		//Some_Peripheral.Start_LED();
+	}	
 }
 
 /*

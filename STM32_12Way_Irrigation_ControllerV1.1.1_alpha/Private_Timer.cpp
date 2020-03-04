@@ -171,16 +171,16 @@ void Stop_Timer4(void)
  */
 void Timer2_Interrupt(void)
 {
-	gStateReportNum++;
-	/*大于0秒 && 小于1800秒（30分钟）才能开启自动上报*/
-	if (InitState.Read_E014Auto_report() > 0 && InitState.Read_E014Auto_report() <= 1800)
-	{
-		if (gStateReportNum >= InitState.Read_E014Auto_report()) //
-		{
-			gStateReportNum = 0;
-			gStateReportFlag = true;
-		}
-	}
+	// gStateReportNum++;
+	// /*大于0秒 && 小于1800秒（30分钟）才能开启自动上报*/
+	// if (InitState.Read_E014Auto_report() > 0 && InitState.Read_E014Auto_report() <= 1800)
+	// {
+	// 	if (gStateReportNum >= InitState.Read_E014Auto_report()) //
+	// 	{
+	// 		gStateReportNum = 0;
+	// 		gStateReportFlag = true;
+	// 	}
+	// }
 }
 
 /*
@@ -190,12 +190,22 @@ void Timer2_Interrupt(void)
  */
 void Timer3_Interrupt(void)
 {
-	gSelfCheckNum++;
-	if (gSelfCheckNum >= 14400) //4 hours	14400
-	{
-		gSelfCheckNum = 0;
-		gCheckStoreParamFlag = true;
-	}
+	// gSelfCheckNum++;
+	// gStateReportNum++;
+	// if (gSelfCheckNum >= 14400) //4 hours	14400
+	// {
+	// 	gSelfCheckNum = 0;
+	// 	gCheckStoreParamFlag = true;
+	// }
+	// /*大于0秒 && 小于1800秒（30分钟）才能开启自动上报*/
+	// if (InitState.Read_E014Auto_report() > 0 && InitState.Read_E014Auto_report() <= 1800)
+	// {
+	// 	if (gStateReportNum >= InitState.Read_E014Auto_report()) //
+	// 	{
+	// 		gStateReportNum = 0;
+	// 		gStateReportFlag = true;
+	// 	}
+	// }
 }
 
 /*
@@ -205,6 +215,22 @@ void Timer3_Interrupt(void)
  */
 void Timer4_Interrupt(void)
 {
+	gSelfCheckNum++;
+	gStateReportNum++;
+	if (gSelfCheckNum >= 14400) //4 hours	14400
+	{
+		gSelfCheckNum = 0;
+		gCheckStoreParamFlag = true;
+	}
+	/*大于0秒 && 小于1800秒（30分钟）才能开启自动上报*/
+	if (InitState.Read_E014Auto_report() > 0 && InitState.Read_E014Auto_report() <= 1800)
+	{
+		if (gStateReportNum >= InitState.Read_E014Auto_report()) //
+		{
+			gStateReportNum = 0;
+			gStateReportFlag = true;
+		}
+	}
 	gIrrigationNum++;
 	Serial.println(String("gIrrigationNum = ") + gIrrigationNum);
 }

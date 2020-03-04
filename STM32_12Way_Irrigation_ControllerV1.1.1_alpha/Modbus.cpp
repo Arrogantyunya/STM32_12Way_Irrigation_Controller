@@ -89,7 +89,7 @@ word Modbus::Hreg(word offset) {
 
     bool Modbus::Coil(word offset, bool value) {
 		//Serial.println("----");
-		Serial.println(String(offset + 1) + " := " + value);
+		// Serial.println(String(offset + 1) + " := " + value);
         return Reg(offset + 1, value?0xFF00:0x0000);
     }
 
@@ -121,54 +121,54 @@ word Modbus::Hreg(word offset) {
 
 void Modbus::receivePDU(byte* frame) {
     byte fcode  = frame[0];
-    word field1 = (word)frame[1] << 8 | (word)frame[2];//½«ÆðÊ¼µØÖ·¸ßµÍ×Ö½Ú²¢µ½Ò»Æð
-    word field2 = (word)frame[3] << 8 | (word)frame[4];//½«Êý¾ÝÁ¿¸ßµÍ×Ö½Ú²¢µ½Ò»Æð
+    word field1 = (word)frame[1] << 8 | (word)frame[2];//ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½Ö·ï¿½ßµï¿½ï¿½Ö½Ú²ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
+    word field2 = (word)frame[3] << 8 | (word)frame[4];//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ßµï¿½ï¿½Ö½Ú²ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
 
 	Serial.println(String("frame[0] = ") + String(frame[0], HEX));//0f
-	Serial.println(String("field1 = ") + String(field1, HEX));//0000,ÆðÊ¼µØÖ·
-	Serial.println(String("field2 = ") + String(field2, HEX));//0040,Êý¾ÝÁ¿
+	Serial.println(String("field1 = ") + String(field1, HEX));//0000,ï¿½ï¿½Ê¼ï¿½ï¿½Ö·
+	Serial.println(String("field2 = ") + String(field2, HEX));//0040,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
     switch (fcode) {
 
         case MB_FC_WRITE_REG:
             //field1 = reg, field2 = value
-            this->writeSingleRegister(field1, field2);//0x06Ð´µ¥¸ö±£³Ö¼Ä´æÆ÷
+            this->writeSingleRegister(field1, field2);//0x06Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¼Ä´ï¿½ï¿½ï¿½
         break;
 
         case MB_FC_READ_REGS:
             //field1 = startreg, field2 = numregs
-            this->readRegisters(field1, field2);//0x03¶Á±£³Ö¼Ä´æÆ÷
+            this->readRegisters(field1, field2);//0x03ï¿½ï¿½ï¿½ï¿½ï¿½Ö¼Ä´ï¿½ï¿½ï¿½
         break;
 
         case MB_FC_WRITE_REGS:
             //field1 = startreg, field2 = status
-            this->writeMultipleRegisters(frame,field1, field2, frame[5]);//0x10Ð´¶à¸ö±£³Ö¼Ä´æÆ÷
+            this->writeMultipleRegisters(frame,field1, field2, frame[5]);//0x10Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¼Ä´ï¿½ï¿½ï¿½
         break;
 
         #ifndef USE_HOLDING_REGISTERS_ONLY
         case MB_FC_READ_COILS:
             //field1 = startreg, field2 = numregs
-            this->readCoils(field1, field2);//0x01¶ÁÏßÈ¦¼Ä´æÆ÷
+            this->readCoils(field1, field2);//0x01ï¿½ï¿½ï¿½ï¿½È¦ï¿½Ä´ï¿½ï¿½ï¿½
         break;
 
         case MB_FC_READ_INPUT_STAT:
             //field1 = startreg, field2 = numregs
-            this->readInputStatus(field1, field2);//0x02¶ÁÀëÉ¢ÊäÈë¼Ä´æÆ÷
+            this->readInputStatus(field1, field2);//0x02ï¿½ï¿½ï¿½ï¿½É¢ï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½
         break;
 
         case MB_FC_READ_INPUT_REGS:
             //field1 = startreg, field2 = numregs
-            this->readInputRegisters(field1, field2);//0x04¶ÁÊäÈë¼Ä´æÆ÷
+            this->readInputRegisters(field1, field2);//0x04ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½
         break;
 
         case MB_FC_WRITE_COIL:
             //field1 = reg, field2 = status
-            this->writeSingleCoil(field1, field2);//0x05Ð´µ¥¸öÏßÈ¦¼Ä´æÆ÷
+            this->writeSingleCoil(field1, field2);//0x05Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¦ï¿½Ä´ï¿½ï¿½ï¿½
         break;
 
         case MB_FC_WRITE_COILS:
             //field1 = startreg, field2 = numoutputs
-            this->writeMultipleCoils(frame,field1, field2, frame[5]);//0x0FÐ´¶à¸öÏßÈ¦¼Ä´æÆ÷
+            this->writeMultipleCoils(frame,field1, field2, frame[5]);//0x0FÐ´ï¿½ï¿½ï¿½ï¿½ï¿½È¦ï¿½Ä´ï¿½ï¿½ï¿½
 			//0F,0000,0040,08
         break;
 
@@ -179,7 +179,7 @@ void Modbus::receivePDU(byte* frame) {
 }
 
 void Modbus::exceptionResponse(byte fcode, byte excode) {
-	Serial.println("Òì³£ÏìÓ¦!!!<exceptionResponse>");
+	Serial.println("ï¿½ì³£ï¿½ï¿½Ó¦!!!<exceptionResponse>");
     //Clean frame buffer
     free(_frame);
     _len = 2;
@@ -262,7 +262,7 @@ void Modbus::writeMultipleRegisters(byte* frame,word startreg, word numoutputs, 
     }
 
     //Check Address (startreg...startreg + numregs)
-    for (int k = 0; k < numoutputs; k++) {
+    for (unsigned int k = 0; k < numoutputs; k++) {
         if (!this->searchRegister(startreg + 40001 + k)) {
             this->exceptionResponse(MB_FC_WRITE_REGS, MB_EX_ILLEGAL_ADDRESS);
             return;
@@ -479,13 +479,13 @@ void Modbus::writeMultipleCoils(byte* frame,word startreg, word numoutputs, byte
 
     if (numoutputs%8) bytecount_calc++;
     if (numoutputs < 0x0001 || numoutputs > 0x07B0 || bytecount != bytecount_calc) {
-		Serial.println("²»Ó¦¸Ã½øÀ´µÄµØ·½");
+		Serial.println("ï¿½ï¿½Ó¦ï¿½Ã½ï¿½ï¿½ï¿½ï¿½ÄµØ·ï¿½");
         this->exceptionResponse(MB_FC_WRITE_COILS, MB_EX_ILLEGAL_VALUE);
         return;
     }
 
     //Check Address (startreg...startreg + numregs)
-    for (int k = 0; k < numoutputs; k++) {
+    for (unsigned int k = 0; k < numoutputs; k++) {
         if (!this->searchRegister(startreg + 1 + k)) {
             this->exceptionResponse(MB_FC_WRITE_COILS, MB_EX_ILLEGAL_ADDRESS);
             return;

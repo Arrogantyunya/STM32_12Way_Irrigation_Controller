@@ -17,7 +17,7 @@ enum E014_ReceiptStatus
 enum ReceiptStatus {
 	FactoryMode = 0, AskUploadParamsOk, AskUploadParamsErr, AssignGroupIdArrayOk, AssignGroupIdArrayErr, SetSnAndSlaverCountOk,
 	SetSnAndSlaverCountErr, TrunOffOk, TrunOffErr, RestRollerOk, ResetRollerErr, OpenRollerOk, OpenRollerErr, LimitRollerOk,
-	LimitRollerErr, SetLoRaModeOk, SetLoRaModeErr
+	LimitRollerErr, SetLoRaModeOk, SetLoRaModeErr,SetLoRaTFREQOk,SetLoRaTFREQErr,SetLoRaRFREQOk,SetLoRaRFREQErr
 };
 
 // /*电机状态*/
@@ -55,6 +55,7 @@ public:
 	void Output_init_Receipt(unsigned char status, unsigned char send_times, unsigned char randomId_1, unsigned char randomId_2, unsigned char* R_Modbus_Instructions, int R_Modbus_Length);
 	void Irrigation_control_Receipt(unsigned char send_times, unsigned char* gReceiveCmd /*unsigned char randomId_1, unsigned char randomId_2*/);
 	void Irrigation_loop_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2);
+	void OnLine_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2);
 private:
 	void Receipt_Random_Wait_Value(unsigned long int *random_value);
 	void Clear_Server_LoRa_Buffer(void);

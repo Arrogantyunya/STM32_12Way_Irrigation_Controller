@@ -651,18 +651,18 @@ bool LoRa_Config::Save_LoRa_Config_Flag(void)
 		return false;
 }
 
-// /*
-//  @brief     : 验证是否已经配置了LoRa参数
-//  @para      : 无
-//  @return    : true or false
-//  */
-// bool LoRa_Config::Verify_LoRa_Config_Flag(void)
-// {
-// 	if (AT24CXX_ReadOneByte(LORA_PARA_CONFIG_FLAG_ADDR) == 0x55)
-// 		return true;
-// 	else
-// 		return false;
-// }
+/*
+ @brief     : 验证是否已经配置了LoRa参数
+ @para      : 无
+ @return    : true or false
+ */
+bool LoRa_Config::Verify_LoRa_Config_Flag(void)
+{
+	if (AT24CXX_ReadOneByte(LORA_PARA_CONFIG_FLAG_ADDR) == 0x55)
+		return true;
+	else
+		return false;
+}
 
 /*
  @brief     : 清除配置LoRa成功标志位
@@ -699,20 +699,20 @@ bool LoRa_Config::Save_LoRa_Com_Mode_Flag(void)
 		return false;
 }
 
-// bool LoRa_Config::Clear_LoRa_Com_Mode_Flag(void)
-// {
-// 	if (AT24CXX_ReadOneByte(LORA_COM_MODE_FLAG_ADDR) == 0x00)
-// 		return true;
+bool LoRa_Config::Clear_LoRa_Com_Mode_Flag(void)
+{
+	if (AT24CXX_ReadOneByte(LORA_COM_MODE_FLAG_ADDR) == 0x00)
+		return true;
 
-// 	EEPROM_Write_Enable();
-// 	AT24CXX_WriteOneByte(LORA_COM_MODE_FLAG_ADDR, 0x00);
-// 	EEPROM_Write_Disable();
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(LORA_COM_MODE_FLAG_ADDR, 0x00);
+	EEPROM_Write_Disable();
 
-// 	if (AT24CXX_ReadOneByte(LORA_COM_MODE_FLAG_ADDR == 0x00))
-// 		return true;
-// 	else
-// 		return false;
-// }
+	if (AT24CXX_ReadOneByte(LORA_COM_MODE_FLAG_ADDR == 0x00))
+		return true;
+	else
+		return false;
+}
 
 bool LoRa_Config::Save_LoRa_Com_Mode(unsigned char mode)
 {

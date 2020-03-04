@@ -261,52 +261,52 @@ void Modbus_Coils::Modbus_Realization(unsigned char* modbusPacket, int Length)
 bool Modbus_Coils::Init_DO_1to8(unsigned char num)
 {
 	Serial.println("开始设置线圈值<Init_DO_1to8>");
-	unsigned char n1, n = 0; unsigned char count = 0;
+	unsigned char n1 = 0;unsigned char n2 = 1; unsigned char count = 0;
 	String DO_Init_1 = String(num, BIN);/* String DO_Init_2 = String(DO_Init[1], BIN);*/
 	Serial.println(String("DO_Init_1 = ") + DO_Init_1); /*Serial.println(String("DO_Init_2 = ") + DO_Init_2);*/
 	if (DO_Init_1.length() == 8)
 	{
-		if (mb.Coil(KCZJ1_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ2_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ3_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ4_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ5_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ6_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ1_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ2_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ3_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ4_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ5_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ6_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_1.length() == 7)
 	{
 		if (mb.Coil(KCZJ1_COIL, 0x0000) == true)	count++;
-		if (mb.Coil(KCZJ2_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ3_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ4_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ5_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ6_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ2_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ3_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ4_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ5_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ6_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_1.length() == 6)
 	{
 		if (mb.Coil(KCZJ1_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ2_COIL, 0x0000) == true)	count++;
-		if (mb.Coil(KCZJ3_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ4_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ5_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ6_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ3_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ4_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ5_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ6_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_1.length() == 5)
 	{
 		if (mb.Coil(KCZJ1_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ2_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ3_COIL, 0x0000) == true)	count++;
-		if (mb.Coil(KCZJ4_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ5_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ6_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ4_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ5_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ6_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_1.length() == 4)
 	{
@@ -314,10 +314,10 @@ bool Modbus_Coils::Init_DO_1to8(unsigned char num)
 		if (mb.Coil(KCZJ2_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ3_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ4_COIL, 0x0000) == true)	count++;
-		if (mb.Coil(KCZJ5_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ6_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ5_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ6_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_1.length() == 3)
 	{
@@ -326,9 +326,9 @@ bool Modbus_Coils::Init_DO_1to8(unsigned char num)
 		if (mb.Coil(KCZJ3_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ4_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ5_COIL, 0x0000) == true)	count++;
-		if (mb.Coil(KCZJ6_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ6_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_1.length() == 2)
 	{
@@ -338,8 +338,8 @@ bool Modbus_Coils::Init_DO_1to8(unsigned char num)
 		if (mb.Coil(KCZJ4_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ5_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ6_COIL, 0x0000) == true)	count++;
-		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ7_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_1.length() == 1)
 	{
@@ -350,7 +350,7 @@ bool Modbus_Coils::Init_DO_1to8(unsigned char num)
 		if (mb.Coil(KCZJ5_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ6_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ7_COIL, 0x0000) == true)	count++;
-		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ8_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else
 	{
@@ -375,52 +375,52 @@ bool Modbus_Coils::Init_DO_1to8(unsigned char num)
 bool Modbus_Coils::Init_DO_9to16(unsigned char num)
 {
 	Serial.println("开始设置线圈值<Init_DO_9to16>");
-	unsigned char n1, n = 0; unsigned char count = 0;
+	unsigned char n1 = 0;unsigned char n2 = 1; unsigned char count = 0;
 	String DO_Init_2 = String(num, BIN);
 	Serial.println(String("DO_Init_2 = ") + DO_Init_2);
 	if (DO_Init_2.length() == 8)
 	{
-		if (mb.Coil(KCZJ9_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)		count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ10_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ11_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ12_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ13_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ14_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ9_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ10_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ11_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ12_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ13_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ14_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_2.length() == 7)
 	{
 		if (mb.Coil(KCZJ9_COIL, 0x0000) == true)	count++;
-		if (mb.Coil(KCZJ10_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ11_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ12_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ13_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ14_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ10_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ11_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ12_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ13_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ14_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_2.length() == 6)
 	{
 		if (mb.Coil(KCZJ9_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ10_COIL, 0x0000) == true)	count++;
-		if (mb.Coil(KCZJ11_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		if (mb.Coil(KCZJ12_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ13_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ14_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ11_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ12_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ13_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ14_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_2.length() == 5)
 	{
 		if (mb.Coil(KCZJ9_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ10_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ11_COIL, 0x0000) == true)	count++;
-		if (mb.Coil(KCZJ12_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ13_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ14_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		if (mb.Coil(KCZJ12_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ13_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ14_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_2.length() == 4)
 	{
@@ -428,10 +428,10 @@ bool Modbus_Coils::Init_DO_9to16(unsigned char num)
 		if (mb.Coil(KCZJ10_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ11_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ12_COIL, 0x0000) == true)	count++;
-		//if (mb.Coil(KCZJ13_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ14_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ13_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ14_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_2.length() == 3)
 	{
@@ -440,9 +440,9 @@ bool Modbus_Coils::Init_DO_9to16(unsigned char num)
 		if (mb.Coil(KCZJ11_COIL, 0x0000) == true)	count++;
 		if (mb.Coil(KCZJ12_COIL, 0x0000) == true)	count++;
 		//if (mb.Coil(KCZJ13_COIL, 0x0000) == true)	count++;
-		//if (mb.Coil(KCZJ14_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ14_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_2.length() == 2)
 	{
@@ -452,8 +452,8 @@ bool Modbus_Coils::Init_DO_9to16(unsigned char num)
 		if (mb.Coil(KCZJ12_COIL, 0xFF00) == true)	count++;
 		//if (mb.Coil(KCZJ13_COIL, 0xFF00) == true)	count++;
 		//if (mb.Coil(KCZJ14_COIL, 0xFF00) == true)	count++;
-		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
-		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ15_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else if (DO_Init_2.length() == 1)
 	{
@@ -464,7 +464,7 @@ bool Modbus_Coils::Init_DO_9to16(unsigned char num)
 		//if (mb.Coil(KCZJ13_COIL, 0x0000) == true)	count++;
 		//if (mb.Coil(KCZJ14_COIL, 0x0000) == true)	count++;
 		//if (mb.Coil(KCZJ15_COIL, 0x0000) == true)	count++;
-		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1++, n1) > String(0) ? 0xFF00 : 0x0000)) == true)	count++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
+		//if (mb.Coil(KCZJ16_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
 	}
 	else
 	{
@@ -489,6 +489,7 @@ bool Modbus_Coils::Init_DO_9to16(unsigned char num)
 bool Modbus_Coils::Init_DO_17to24(unsigned char num)
 {
 	Serial.println("<Init_DO_9to16>");
+	return true;
 }
 
 /*
@@ -499,6 +500,7 @@ bool Modbus_Coils::Init_DO_17to24(unsigned char num)
 bool Modbus_Coils::Init_DO_25to32(unsigned char num)
 {
 	Serial.println("<Init_DO_9to16>");
+	return true;
 }
 
 /*
@@ -509,6 +511,7 @@ bool Modbus_Coils::Init_DO_25to32(unsigned char num)
 bool Modbus_Coils::Init_DO_33to40(unsigned char num)
 {
 	Serial.println("<Init_DO_9to16>");
+	return true;
 }
 
 /*
@@ -519,6 +522,7 @@ bool Modbus_Coils::Init_DO_33to40(unsigned char num)
 bool Modbus_Coils::Init_DO_41to48(unsigned char num)
 {
 	Serial.println("<Init_DO_9to16>");
+	return true;
 }
 
 /*
@@ -529,6 +533,7 @@ bool Modbus_Coils::Init_DO_41to48(unsigned char num)
 bool Modbus_Coils::Init_DO_49to56(unsigned char num)
 {
 	Serial.println("<Init_DO_49to56>");
+	return true;
 }
 
 /*
@@ -539,6 +544,7 @@ bool Modbus_Coils::Init_DO_49to56(unsigned char num)
 bool Modbus_Coils::Init_AO_1to8()
 {
 	Serial.println("<Init_AO_1to8>");
+	return true;
 }
 
 /*

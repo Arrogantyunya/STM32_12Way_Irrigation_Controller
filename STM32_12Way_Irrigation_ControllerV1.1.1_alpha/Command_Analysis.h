@@ -8,7 +8,7 @@
 
 enum Frame_ID {
 	Modbus_Control, R_Modbus_Control,Output_default,Work_Para, Set_Group_Num, SN_Area_Channel, Work_Status
-	/* , ResetRoll, Opening, Work_Limit*/, Stop_Work , Irrigation_Control
+	/* , ResetRoll, Opening, Work_Limit, Stop_Work  */, Irrigation_Control,Non_existent
 };
 
 class Command_Analysis {
@@ -26,19 +26,19 @@ private:
 
 private:
 	void Receive_Data_Analysis(void);
-	void Query_Current_Work_Param(void);//·þÎñÆ÷²éÑ¯µ±Ç°Èº¿ØÏà¹Ø²ÎÊý£¬ÈçËùÔÚÇøÓò¡¢SNÂë¡¢Â·Êý¡¢¹¤×÷×é¡¢µÈ
-	void Set_Group_Number(void);//ÉèÖÃ±¾Éè±¸µÄ¹¤×÷×éºÅ£¬²»ÐèÒªÑéÖ¤±¾Éè±¸Ô­ÓÐ¹¤×÷×éºÅ
-	void Set_SN_Area_Channel(void);//ÉèÖÃ±¾Éè±¸µÄSNÂë¡¢ÇøÓòºÅ¡¢Éè±¸Â·ÊýµÈ²ÎÊý
-	void Detailed_Work_Status(void);//²éÑ¯±¾Éè±¸ÏêÏ¸¹¤×÷×´Ì¬
-	// void ResetRoll_Command(void);//ÖØÖÃ¾íÄ¤²âÁ¿ÐÐ³Ì
-	// void Opening_Command(void);//ÉèÖÃ¾íÄ¤¿ª¶È
-	// void Working_Limit_Command(void);//µç»ú¹¤×÷µçÑ¹ãÐÖµ¡¢ÉÏ±¨×´Ì¬¼ä¸ôÖµÉèÖÃ
-	void Stop_Work_Command(void);//Ç¿ÖÆÍ£Ö¹µ±Ç°Éè±¸µÄ¹¤×÷
-	void General_controller_control_command(void);//·þÎñÆ÷·¢ËÍÍ¨ÓÃ¿ØÖÆÆ÷Modbus¿ØÖÆÖ¸Áî
-	void R_General_controller_control_command(void);//·þÎñÆ÷·¢ËÍÍ¨ÓÃ¿ØÖÆÆ÷Modbus¿ØÖÆÖ¸Áî½ÓÊÕ»ØÖ´
-	void Set_General_controller_output_init(void);//·þÎñÆ÷ÉèÖÃÍ¨ÓÃ¿ØÖÆÆ÷Êä³öÄ¬ÈÏ×´Ì¬
+	void Query_Current_Work_Param(void);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½Ç°Èºï¿½ï¿½ï¿½ï¿½Ø²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½SNï¿½ë¡¢Â·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¡¢ï¿½ï¿½
+	void Set_Group_Number(void);//ï¿½ï¿½ï¿½Ã±ï¿½ï¿½è±¸ï¿½Ä¹ï¿½ï¿½ï¿½ï¿½ï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ö¤ï¿½ï¿½ï¿½è±¸Ô­ï¿½Ð¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	void Set_SN_Area_Channel(void);//ï¿½ï¿½ï¿½Ã±ï¿½ï¿½è±¸ï¿½ï¿½SNï¿½ë¡¢ï¿½ï¿½ï¿½ï¿½Å¡ï¿½ï¿½è±¸Â·ï¿½ï¿½ï¿½È²ï¿½ï¿½ï¿½
+	void Detailed_Work_Status(void);//ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½è±¸ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ï¿½×´Ì¬
+	// void ResetRoll_Command(void);//ï¿½ï¿½ï¿½Ã¾ï¿½Ä¤ï¿½ï¿½ï¿½ï¿½ï¿½Ð³ï¿½
+	// void Opening_Command(void);//ï¿½ï¿½ï¿½Ã¾ï¿½Ä¤ï¿½ï¿½ï¿½ï¿½
+	// void Working_Limit_Command(void);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½Öµï¿½ï¿½ï¿½Ï±ï¿½×´Ì¬ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½
+	void Stop_Work_Command(void);//Ç¿ï¿½ï¿½Í£Ö¹ï¿½ï¿½Ç°ï¿½è±¸ï¿½Ä¹ï¿½ï¿½ï¿½
+	void General_controller_control_command(void);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½Modbusï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
+	void R_General_controller_control_command(void);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½Modbusï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Õ»ï¿½Ö´
+	void Set_General_controller_output_init(void);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½×´Ì¬
 
-	void Irrigation_Controllor_control_command(void);//·þÎñÆ÷·¢ËÍ¹à¸È¿ØÖÆÆ÷¿ØÖÆÖ¸Áî(A025)
+	void Irrigation_Controllor_control_command(void);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¹ï¿½È¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½(A025)
 };
 
 
@@ -54,29 +54,29 @@ extern bool gIsHandleMsgFlag;
 //
 extern bool Get_receipt;
 
-extern unsigned int Worktime[16]; //16¸ö¿ªÆôÊ±¼ä
-extern unsigned int Worktime_backups[16];//16¸ö¿ªÆôÊ±¼ä
-extern unsigned int WorkInterval[16];//16¸ö¼ä¸ôÊ±¼ä
-extern unsigned int WorkInterval_backups[16];//16¸ö¼ä¸ôÊ±¼äµÄ±¸·Ý
-extern unsigned int retryCnt[16];//Ñ­»·´ÎÊý£¨£©
-extern unsigned int DO_WayOpentime[16];//16Â·DOµÄ¿ªÊ¼Ê±¼ä
-extern unsigned int DO_WayClosetime[16];//16Â·DOµÄ¹Ø±ÕÊ±¼ä
-extern unsigned int DO_WayIntervalBengin[16];//16Â·DOµÄ¼ä¸ô¿ªÊ¼Ê±¼ä
-extern unsigned int DO_WayIntervalEnd[16];//16Â·DOµÄ¼ä¸ô½áÊøÊ±¼ä
-extern bool DO_WayOpen[16];//16Â·DO´ò¿ªµÄ±êÖ¾Î»
-extern bool DO_WayInterval[16];//16Â·DO¼ä¸ô±êÖ¾Î»
-extern bool DO_WayComplete[16];//16Â·DOÍê³ÉµÄ±êÖ¾Î»
-extern bool Irrigation_use;//ÕýÔÚ¹à¸ÈµÄ±êÖ¾Î»
-extern bool DO_Set[16];//DOÉèÖÃµÄ±êÖ¾Î»
-//extern unsigned int OpenSec;//¿ªÆôµÄÊ±¼ä
-//extern unsigned int DO_Interval;//µ¥¸öµÄ¼ä¸ôÊ±¼ä
-//extern unsigned int DO_Num;//Ò»´ÎÐÔ¿ªÆôµÄDOÊýÁ¿
-extern unsigned char Need_Num;//Ò»ÂÖÑ­»·ÐèÒª¿ªÆôµÄDOÊýÁ¿
-extern unsigned char Complete_Num;//Ò»ÂÖÑ­»·Íê³É¿ªÆôµÄDOÊýÁ¿
-extern unsigned int Cyclic_interval;//Ñ­»·¼ä¸ôÊ±¼ä
-//extern unsigned char fornum;//Ò»ÂÖÑ­»·ÐèÒªµÄÑ­»·´ÎÊý£¬£¨ÀýÈç¿ª4Â·£¬Ã¿´Î¿ª2Â·£¬fornum=2£©
-//extern unsigned char fornum_backups;//Ò»ÂÖÑ­»·ÐèÒªµÄÑ­»·´ÎÊýµÄ±¸·Ý£¬£¨ÀýÈç¿ª4Â·£¬Ã¿´Î¿ª2Â·£¬fornum=2£©
-//extern bool Last_full;//×îºóÒ»ÂÖÑ­»·ÊÇ·ñÄÜ¿ªÂú£¬£¨ÀýÈç¿ª5Â·£¬Ã¿´Î¿ª2Â·£¬×îºóÒ»ÂÖ¿ª²»Âú£©
-//extern unsigned char Last_num;//×îºóÒ»ÂÖÑ­»·¿ª²»ÂúÊ±ÐèÒª¿ªÆôµÄ¸öÊý
+extern unsigned int Worktime[16]; //16ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+extern unsigned int Worktime_backups[16];//16ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+extern unsigned int WorkInterval[16];//16ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+extern unsigned int WorkInterval_backups[16];//16ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ä±ï¿½ï¿½ï¿½
+extern unsigned int retryCnt[16];//Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+extern unsigned int DO_WayOpentime[16];//16Â·DOï¿½Ä¿ï¿½Ê¼Ê±ï¿½ï¿½
+extern unsigned int DO_WayClosetime[16];//16Â·DOï¿½Ä¹Ø±ï¿½Ê±ï¿½ï¿½
+extern unsigned int DO_WayIntervalBengin[16];//16Â·DOï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ê¼Ê±ï¿½ï¿½
+extern unsigned int DO_WayIntervalEnd[16];//16Â·DOï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+extern bool DO_WayOpen[16];//16Â·DOï¿½ò¿ªµÄ±ï¿½Ö¾Î»
+extern bool DO_WayInterval[16];//16Â·DOï¿½ï¿½ï¿½ï¿½ï¿½Ö¾Î»
+extern bool DO_WayComplete[16];//16Â·DOï¿½ï¿½ÉµÄ±ï¿½Ö¾Î»
+extern bool Irrigation_use;//ï¿½ï¿½ï¿½Ú¹ï¿½ÈµÄ±ï¿½Ö¾Î»
+extern bool DO_Set[16];//DOï¿½ï¿½ï¿½ÃµÄ±ï¿½Ö¾Î»
+//extern unsigned int OpenSec;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+//extern unsigned int DO_Interval;//ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ê±ï¿½ï¿½
+//extern unsigned int DO_Num;//Ò»ï¿½ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½ï¿½ï¿½DOï¿½ï¿½ï¿½ï¿½
+extern unsigned char Need_Num;//Ò»ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½DOï¿½ï¿½ï¿½ï¿½
+extern unsigned char Complete_Num;//Ò»ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½É¿ï¿½ï¿½ï¿½ï¿½ï¿½DOï¿½ï¿½ï¿½ï¿½
+extern unsigned int Cyclic_interval;//Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+//extern unsigned char fornum;//Ò»ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç¿ª4Â·ï¿½ï¿½Ã¿ï¿½Î¿ï¿½2Â·ï¿½ï¿½fornum=2ï¿½ï¿½
+//extern unsigned char fornum_backups;//Ò»ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½Ý£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç¿ª4Â·ï¿½ï¿½Ã¿ï¿½Î¿ï¿½2Â·ï¿½ï¿½fornum=2ï¿½ï¿½
+//extern bool Last_full;//ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Ü¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç¿ª5Â·ï¿½ï¿½Ã¿ï¿½Î¿ï¿½2Â·ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Ö¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//extern unsigned char Last_num;//ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½
 
 #endif

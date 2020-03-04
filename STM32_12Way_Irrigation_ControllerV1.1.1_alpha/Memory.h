@@ -187,11 +187,11 @@ public:
 class LoRa_Config : public EEPROM_Operations {
 public:
 	bool Save_LoRa_Config_Flag(void);
-	// bool Verify_LoRa_Config_Flag(void);
+	bool Verify_LoRa_Config_Flag(void);
 	bool Clear_LoRa_Config_Flag(void);
 
 	bool Save_LoRa_Com_Mode_Flag(void);
-	// bool Clear_LoRa_Com_Mode_Flag(void);
+	bool Clear_LoRa_Com_Mode_Flag(void);
 	bool Save_LoRa_Com_Mode(unsigned char mode);
 	unsigned char Read_LoRa_Com_Mode(void);
 

@@ -99,7 +99,10 @@ void Command_Analysis::Receive_LoRa_Cmd(void)
 		/*数据超出可以接收的范围*/
 		if (gReceiveLength >= 128)
 		{
+			iwdg_feed();
 			gReceiveLength = 0;
+			Serial.println("数据超出可以接收的范围");
+			delay(1000);
 			memset(gReceiveCmd, 0x00, sizeof(gReceiveCmd));
 		}
 
@@ -136,6 +139,7 @@ void Command_Analysis::Receive_LoRa_Cmd(void)
 			EndNumFlag = false;
 			ReceiveEndFlag = true;
 			Serial.println("Get frame end... <Receive_LoRa_Cmd>");
+			Serial.flush();
 			break;
 		}
 
@@ -159,7 +163,9 @@ void Command_Analysis::Receive_LoRa_Cmd(void)
 
 	if (ReceiveEndFlag)
 	{
+		iwdg_feed();
 		Serial.println("Parsing LoRa command... <Receive_LoRa_Cmd>");
+		Serial.flush();
 		ReceiveEndFlag = false;
 
 		if (FrameHeadDex != 0)  //第一个字节不是0xFE，说明有噪音干扰，重新从0xFE开始组合出一帧
@@ -205,7 +211,7 @@ Frame_ID Command_Analysis::FrameID_Analysis(void)
 	//case 0xA021: return Opening;			break;
 	//case 0xA022: return Work_Limit;			break;
 
-	default: memset(gReceiveCmd, 0x00, sizeof(gReceiveCmd)); break;
+	default: memset(gReceiveCmd, 0x00, sizeof(gReceiveCmd));return Non_existent; break;
 	}
 }
 
@@ -356,7 +362,8 @@ void Command_Analysis::Receive_Data_Analysis(void)
 	case Set_Group_Num: Set_Group_Number();			break;//设置本设备的工作组号，不需要验证本设备原有工作组号(A012)
 	case SN_Area_Channel: Set_SN_Area_Channel();	break;//基地服务器设置设备（主/子）SN及子设备总路数(A013)
 	case Work_Status: Detailed_Work_Status();		break;//查询本设备详细工作状态(A014)
-	case Stop_Work: Stop_Work_Command();			break;//强制停止当前设备的工作(A015)
+	// case Stop_Work: Stop_Work_Command();			break;//强制停止当前设备的工作(A015)
+	case Non_existent: Serial.println("不存在于本设备帧ID!!!");break;//异常处理
 	///*卷膜机私有指令*/
 	//case ResetRoll: ResetRoll_Command();			break;//重置卷膜测量行程(A020)
 	//case Opening: Opening_Command();				break;//设置卷膜开度(A021)
@@ -387,6 +394,9 @@ void Command_Analysis::Query_Current_Work_Param(void)
 
 	if (Verify_Frame_Validity(4, 23, true, false) == true)
 	{
+		Serial.println("A011 <Query_Current_Work_Param>");
+		Serial.flush();
+		delay(200);
 		if (gReceiveCmd[8] == 0x01) //配置参数标志（LoRa大棚传感器是0x00配置采集时间）
 		{
 			Get_receipt = true;
@@ -426,6 +436,9 @@ void Command_Analysis::Set_Group_Number(void)
 
 	if (Verify_Frame_Validity(4, 10, true, false) == true)
 	{
+		Serial.println("A012 <Set_Group_Number>");
+		Serial.flush();
+		delay(200);
 		Get_receipt = true;
 		if (SN.Save_Group_Number(&gReceiveCmd[8]) == true)
 		{
@@ -455,6 +468,9 @@ void Command_Analysis::Set_SN_Area_Channel(void)
 
 	if (Verify_Frame_Validity(4, 15, false, false) == true)
 	{
+		Serial.println("A013 <Set_SN_Area_Channel>");
+		Serial.flush();
+		delay(200);
 		Get_receipt = true;
 		if (SN.Save_SN_Code(&gReceiveCmd[10]) == true && SN.Save_BKP_SN_Code(&gReceiveCmd[10]) == true)
 		{
@@ -497,6 +513,9 @@ void Command_Analysis::Detailed_Work_Status(void)
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true) 
 	{
+		Serial.println("A014 <Detailed_Work_Status>");
+		Serial.flush();
+		delay(200);
 		Get_receipt = false;//每次进入至该函数，将该值置为false
 
 		Serial.println("查询本设备详细工作状态 <Detailed_Work_Status>");
@@ -516,7 +535,7 @@ void Command_Analysis::Detailed_Work_Status(void)
 			Serial.println("保存E014Interval失败!!! <General_controller_control_command>");
 		}
 
-		Message_Receipt.Working_Parameter_Receipt(true, 1, gReceiveCmd[12], gReceiveCmd[13]);
+		Message_Receipt.Working_Parameter_Receipt(false, 1, gReceiveCmd[12], gReceiveCmd[13]);
 	}
 
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -821,6 +840,9 @@ void Command_Analysis::General_controller_control_command(void)
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)
 	{
+		Serial.println("A000 <General_controller_control_command>");
+		Serial.flush();
+		delay(200);
 		Get_receipt = false;//每次进入至该函数，现将该值置为false
 		randomId_1 = gReceiveCmd[9]; randomId_2 = gReceiveCmd[10];//
 
@@ -841,11 +863,11 @@ void Command_Analysis::General_controller_control_command(void)
 			Serial.println(String("random_2 = ") + String(random_2, HEX));
 
 			/*这里上报实时状态*/
-			//Message_Receipt.Working_Parameter_Receipt(true, 1, random_1, random_2);
+			//Message_Receipt.Working_Parameter_Receipt(false, 1, random_1, random_2);
 		}
 
-		unsigned char modbusPacket[20] = { 0x00 };int modbusPacket_Length = gReceiveCmd[3] - 9;
-		unsigned char R_modbusPacket[20] = { 0x00 }; int R_modbusPacket_Length = 0;
+		unsigned char modbusPacket[20] = { 0x00 };unsigned int modbusPacket_Length = gReceiveCmd[3] - 9;
+		// unsigned char R_modbusPacket[20] = { 0x00 };unsigned int R_modbusPacket_Length = 0;
 		if (modbusPacket_Length > 20)
 		{
 			//此处应该有异常处理！！！
@@ -859,7 +881,7 @@ void Command_Analysis::General_controller_control_command(void)
 			Serial.println(String("random_2 = ") + String(random_2, HEX));
 
 			/*这里上报实时状态*/
-			//Message_Receipt.Working_Parameter_Receipt(true, 1, random_1, random_2);
+			//Message_Receipt.Working_Parameter_Receipt(false, 1, random_1, random_2);
 		}
 		else
 		{
@@ -877,7 +899,7 @@ void Command_Analysis::General_controller_control_command(void)
 			Serial.println(String("random_2 = ") + String(random_2, HEX));
 
 			/*这里上报实时状态*/
-			//Message_Receipt.Working_Parameter_Receipt(true, 1, random_1, random_2);
+			//Message_Receipt.Working_Parameter_Receipt(false, 1, random_1, random_2);
 		}
 
 		Modbus_Coil.Modbus_Realization(modbusPacket, modbusPacket_Length);//设置输出线圈状态，modbus实现
@@ -894,17 +916,27 @@ void Command_Analysis::General_controller_control_command(void)
   */
 void Command_Analysis::R_General_controller_control_command(void)
 {
-  /*| 字节索引	| 0			| 1 - 2		| 3			| 4 - 5			| 6				| 7			| 8			| 9 - 10	| 11 - 12	| 13-19				| 20	| 21-26			|
-	| 数据域		| frameHead | frameId	| dataLen	| DeviceTypeId	| isBroadcast	| zoneId	| groupId	| random	| interval	| RTC				| CRC8	| frameEnd		|
-	| 长度		| 1			| 2			| 1			| 2				| 1				| 1			| 1			| 2			| 2			| 7					| 1		| 6				|
-	| 示例数据	| FE		| A001		| 09		| C003			| 00			| 01		| 01		| 1234		| 0000		| 20200225133601	| 00	| 0D0A0D0A0D0A	|*/
+  /*| 字节索引	| 0			| 1 - 2		| 3			| 4 - 5			| 6				| 7			| 8			| 9 - 10	| 11 - 12	| 13-19				| 20	| 21-28		| 20	| 21-26			|
+	| 数据域	| frameHead | frameId	| dataLen	| DeviceTypeId	| isBroadcast	| zoneId	| groupId	| random	| interval	| RTC				| Mode	| TF/RFREQ	| CRC8	| frameEnd		|
+	| 长度		| 1			| 2			| 1			| 2				| 1				| 1			| 1			| 2			| 2			| 7					| 1		| 8			| 1		| 6				|
+	| 示例数据	| FE		| A001		| 09		| C003			| 00			| 01		| 01		| 1234		| 0000		| 20200225133601	| F1	| XXXXXXXX	| 00	| 0D0A0D0A0D0A	|*/
 	//备注：A001的interval用来指E014的上报时间间隔
 
 	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		if ((gReceiveCmd[9] == randomId_1) && (gReceiveCmd[10] == randomId_2));
+		Serial.println("A001 <R_General_controller_control_command>");
+		Serial.flush();
+		delay(200);
+
+		if (gLoRaCSQ[0] == 0 || gLoRaCSQ[1] == 0)
+		{
+			Serial.println("开始查询信号质量");
+			LoRa_MHL9LF.LoRa_AT(gLoRaCSQ, true, AT_CSQ_, 0);
+		}
+
+		if ((gReceiveCmd[9] == randomId_1) && (gReceiveCmd[10] == randomId_2))
 		{
 			Get_receipt = true;
 			Serial.println("服务器发送通用控制器Modbus控制指令回执 <R_General_controller_control_command>");
@@ -927,6 +959,51 @@ void Command_Analysis::R_General_controller_control_command(void)
 				RTC[i] = gReceiveCmd[13 + i];
 			}
 			Private_RTC.Update_RTC(&RTC[0]);
+
+			// /* 预留位第一字节用来设置LoRa的通信模式 */
+			// if(LoRa_Para_Config.Save_LoRa_Com_Mode(gReceiveCmd[20]))
+			// {
+			// 	Message_Receipt.General_Receipt(SetLoRaModeOk, 1);
+			// 	LoRa_MHL9LF.Parameter_Init(true);
+			// 	// Message_Receipt.Working_Parameter_Receipt(true, 2);
+			// }
+			// else 
+			// {
+			// 	Message_Receipt.General_Receipt(SetLoRaModeErr, 2);
+			// 	Serial.println("Set LoRa Mode Err! <Query_Current_Work_Param>");
+			// }
+
+			// /* 前4位为发送频点，后4位为接收频点，若是全为0则表示不更改 */
+			// if (!(gReceiveCmd[21] == 0x00 && gReceiveCmd[22] == 0x00 && gReceiveCmd[23] == 0x00 && gReceiveCmd[24] == 0x00))
+			// {
+			// 	String TFREQ = String(gReceiveCmd[21],HEX)+String(gReceiveCmd[22],HEX)+String(gReceiveCmd[23],HEX)+String(gReceiveCmd[24],HEX);
+			// 	Serial.println(String("TFREQ = ") + TFREQ);
+			// 	// if (LoRa_MHL9LF.Param_Check(AT_TFREQ_, "1C578DE0", false))
+			// 	// {
+			// 	// 	// Message_Receipt.Working_Parameter_Receipt(true, 2);
+			// 	// }
+			// 	// else
+			// 	// {
+			// 	// 	Message_Receipt.General_Receipt(SetLoRaTFREQErr, 2);
+			// 	// 	Serial.println("Set LoRa TFREQ Err! <Query_Current_Work_Param>");
+			// 	// }
+			// }
+			// /* 前4位为发送频点，后4位为接收频点，若是全为0则表示不更改 */
+			// if (!(gReceiveCmd[24] == 0x00 && gReceiveCmd[25] == 0x00 && gReceiveCmd[26] == 0x00 && gReceiveCmd[27] == 0x00))
+			// {
+			// 	String RFREQ = String(gReceiveCmd[24],HEX)+String(gReceiveCmd[25],HEX)+String(gReceiveCmd[26],HEX)+String(gReceiveCmd[27],HEX);
+			// 	Serial.println(String("RFREQ = ") + RFREQ);
+			// 	// if (LoRa_MHL9LF.Param_Check(AT_RFREQ_, "1C578DE0", false))
+			// 	// {
+			// 	// 	// Message_Receipt.Working_Parameter_Receipt(true, 2);
+			// 	// }
+			// 	// else
+			// 	// {
+			// 	// 	Message_Receipt.General_Receipt(SetLoRaTFREQErr, 2);
+			// 	// 	Serial.println("Set LoRa TFREQ Err! <Query_Current_Work_Param>");
+			// 	// }
+			// }
+
 			return;
 		}
 		
@@ -943,7 +1020,7 @@ void Command_Analysis::R_General_controller_control_command(void)
 void Command_Analysis::Set_General_controller_output_init(void)
 {
 	/*	| 字节索引		| 0			| 1-2		| 3			|4-5			|6			|7		|8-9		|	10-17	| 18-33		| 34-35		| 36-N	|		|				|
-		| 数据域			| frameHead | frameId	| dataLen	|DeviceTypeId	|IsBroadcast|ZoneId	|randomId	| DOInit	| AOInit	| timeout	| RS485 | CRC8	| frameEnd		|
+		| 数据域		| frameHead | frameId	| dataLen	|DeviceTypeId	|IsBroadcast|ZoneId	|randomId	| DOInit	| AOInit	| timeout	| RS485 | CRC8	| frameEnd		|
 		| 长度（byte）	| 1			| 2			| 1			|2				|1			|1		|2			| 8			| 16		| 2			| n		| 1		| 6				|
 		| 示例数据		| FE		| A002		| 26		|C003			|00			|01		|1234		| FFFFFF..	|FFFF...	| 012C		|       | 00	| 0D0A0D0A0D0A	|*/
 
@@ -954,6 +1031,9 @@ void Command_Analysis::Set_General_controller_output_init(void)
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
+		Serial.println("A002 <Set_General_controller_output_init>");
+		Serial.flush();
+		delay(200);
 		Get_receipt = true;
 		unsigned char Status_E002 = 0x00;//状态
 
@@ -1013,7 +1093,7 @@ void Command_Analysis::Set_General_controller_output_init(void)
 		
 		iwdg_feed();
 		delay(1000);//等待回执
-		unsigned char R_Modbus_Instructions[10]; int R_Modbus_Length = 0;
+		unsigned char R_Modbus_Instructions[20]; unsigned int R_Modbus_Length = 0;
 		bool Overflow_485 = false;
 		//unsigned char ceshi[8] = { 0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08 };
 		while (Serial2.available() > 0)
@@ -1074,13 +1154,16 @@ void Command_Analysis::Set_General_controller_output_init(void)
 void Command_Analysis::Irrigation_Controllor_control_command(void)
 {
 	  /*| 字节索引	| 0			| 1 - 2		| 3			| 4 - 5			| 6				| 7			| 8-9		| 10 - 41	| 42 - 71	| 72-73		| 74-75	| 76-107	| 108	| 109 - 114     |
-		| 数据域		| FrameHead | FrameId	| DataLen	| DeviceTypeId	| IsBroadcast	| zoneId	| randomId	| openSec	| interval	| timeout	| DOUsed| retryCnt	| CRC8	| FrameEnd      |
+		| 数据域	| FrameHead | FrameId	| DataLen	| DeviceTypeId	| IsBroadcast	| zoneId	| randomId	| openSec	| interval	| timeout	| DOUsed| retryCnt	| CRC8	| FrameEnd      |
 		| 长度		| 1			| 2			| 1			| 2				| 1				| 1			| 2			| 32		| 30		| 2			| 2		| 32		| 1		| 6				|
 		| 示例数据	| FE		| A003		| 0x68(104)	| C003			| 00			| 01		| 1234		| 0005		| 0003		| 001e		| FF00	| 0005		| D6	| 0D0A0D0A0D0A	|*/
 	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
+		Serial.println("A003 <Irrigation_Controllor_control_command>");
+		Serial.flush();
+		delay(200);
 		Get_receipt = true;
 		iwdg_feed();
 		Stop_Timer4();//先停止计时
@@ -1125,7 +1208,7 @@ void Command_Analysis::Irrigation_Controllor_control_command(void)
 			DO_WayClosetime[i] = 0;//16路DO的关闭时间
 			DO_WayIntervalBengin[i] = 0;//16路DO的间隔开始时间
 			DO_WayIntervalEnd[i] = 0;//16路DO的间隔结束时间
-			DO_WayOpen[16] = false; //16路DO打开的标志位
+			DO_WayOpen[i] = false; //16路DO打开的标志位
 			DO_WayInterval[i] = false;//16路DO间隔标志位
 			DO_WayComplete[i] = false;//16路DO完成的标志位
 			DO_Set[i] = false;//DO设置的标志位

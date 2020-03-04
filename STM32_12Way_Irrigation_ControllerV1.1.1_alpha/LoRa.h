@@ -99,6 +99,7 @@ public:
 
 	bool Rewrite_ID(void);
 	void Parameter_Init(bool only_net);
+	bool Param_Check(const char *cmd, const char *para, bool only_set);
 
 private:
 	unsigned char Detect_Error_Receipt(unsigned char *verify_data);
@@ -111,8 +112,6 @@ private:
 	//SNR and RSSI
 	void Get_CSQ(unsigned char *addr_temp, unsigned char len, unsigned char *data_buffer);
 	// bool String_to_Hex(unsigned char *str, unsigned char len);
-
-	bool Param_Check(const char *cmd, const char *para, bool only_set);
 };
 
 /*Create LoRa object*/

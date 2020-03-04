@@ -214,7 +214,7 @@ void FloatStringToIntString(char *fstring, char *Istring, unsigned char *NumOfDo
 {
 	unsigned char L1, L2, Slen;
 	unsigned char i, j;
-	int offset = 0;
+	// int offset = 0;
 	Slen = strlen((char*)fstring);
 	j = 0;
 	for (i = 0; i <= Slen; i++)
@@ -369,7 +369,7 @@ int FindDecimal(char *str)
 
 void long_to_bcd(unsigned long sec)
 {
-	unsigned char a[10];
+	unsigned char a[10] = {0x00};
 	a[0] = sec % 10; // 获得个位
 	a[1] = sec / 10 % 10; // 获得十位
 	a[2] = sec / 100 % 10; // 获得百位

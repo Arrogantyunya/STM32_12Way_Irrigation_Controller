@@ -99,7 +99,7 @@ void setup()
 	afio_cfg_debug_ports(AFIO_DEBUG_NONE);//设置为JTAG和SW禁用
 
 	/*配置IWDG*/
-	iwdg_init(IWDG_PRE_256, 1000); //6.5ms * 1000 = 6500ms.
+	iwdg_init(IWDG_PRE_256, 2000); //6.5ms * 1000 = 6500ms.
 
 	Serial.begin(9600); //USART1, 当使用USART下载程序：USART--->USART1
 	LoRa_MHL9LF.BaudRate(9600);//#define LoRa_Serial     Serial1
@@ -129,7 +129,7 @@ void setup()
 #else
 	LoRa_Para_Config.Save_LoRa_Com_Mode(0xF0);//这里是写入模式为节点模式
 #endif
-	LoRa_MHL9LF.Parameter_Init(false);
+	// LoRa_MHL9LF.Parameter_Init(false);
 	LoRa_Para_Config.Save_LoRa_Config_Flag();
 
 #if SOFT_HARD_VERSION
@@ -169,14 +169,12 @@ void setup()
 	unsigned char random_2 = random(0, 255);
 
 	/*这里上报完成一个轮次循环*/
-	Message_Receipt.Irrigation_loop_Receipt(true, 1, random_1, random_2);
+	Message_Receipt.Irrigation_loop_Receipt(false, 1, random_1, random_2);
 #endif // Get_RTC
-
-
 
 	Project_Debug(); //工程模式
 
-	//SN.Clear_SN_Access_Network_Flag(); //清除注册到服务器标志位
+	// SN.Clear_SN_Access_Network_Flag(); //清除注册到服务器标志位
 
 	/*Request access network(request gateway to save the device's SN code and channel)*/
 	Request_Access_Network(); //检查是否注册到服务器
@@ -196,17 +194,24 @@ void setup()
 	// LED_RUNNING;
 	iwdg_feed();
 
-	Realtime_Status_Reporting_Timer_Init(); //使用定时器2初始化自动上报状态周期
+	// Realtime_Status_Reporting_Timer_Init(); //使用定时器2初始化自动上报状态周期(改为了定时器3)
+	Stop_Status_Report_Timing();
 	Serial.println("Timed status reporting mechanism initialization completed...");//定时上报机制初始化完成
 	Serial.println("");
 
-	Self_Check_Parameter_Timer_Init(); //使用定时器3初始化自检参数功能自检周期
+	// Self_Check_Parameter_Timer_Init(); //使用定时器3初始化自检参数功能自检周期
+	Stop_Self_Check_Timing();
 	Serial.println("Timed self check mechanism initialization completed...");//定时自检机制初始化完成
 	Serial.println("");
 
 	Irrigation_Timer_Init();//使用定时器4初始化灌溉计时
 	Stop_Timer4();//不用的时候关闭
 	Serial.println("Irrigation timing mechanism initialization completed...");//灌溉计时机制初始化完成
+	Serial.println("");
+
+	unsigned char random_1 = random(0, 255);unsigned char random_2 = random(0, 255);
+	Message_Receipt.OnLine_Receipt(true, 2, random_1, random_2);//设备上线状态报告
+	Serial.println("Online status report");
 	Serial.println("");
 
 	Serial.println("All configuration items are initialized. Welcome to use.  ~(*^__^*)~ ");//所有的设置项初始化完成，欢迎使用
@@ -234,6 +239,7 @@ void loop()
 
 	Change_status_report();//状态改变上报
 
+	iwdg_feed();
 	Irrigation_time_sharing_onV3();//灌溉分时打开
 
 	Key_cycle_irrigationV3();//按键启动循环灌溉
@@ -372,7 +378,7 @@ void Regular_status_report(void)
 
 
 		/*这里上报实时状态*/
-		Message_Receipt.Working_Parameter_Receipt(true, 1, random_1, random_2);
+		Message_Receipt.Working_Parameter_Receipt(false, 1, random_1, random_2);
 
 		Start_Status_Report_Timing();
 		Serial.println("Scheduled status reporting completed... <Regular_status_report>");
@@ -388,7 +394,7 @@ void Change_status_report(void)
 {
 	if (DOStatus_Change)
 	{
-		Serial.println("开始DO状态改变上报");
+		Serial.println("开始DO状态改变上报 <Change_status_report>");
 		DOStatus_Change = false;
 		Get_receipt = true;
 
@@ -399,14 +405,14 @@ void Change_status_report(void)
 		Serial.println(String("random_2 = ") + String(random_2, HEX));
 
 		/*这里上报实时状态*/
-		Message_Receipt.Working_Parameter_Receipt(true, 2, random_1, random_2);
+		Message_Receipt.Working_Parameter_Receipt(false, 2, random_1, random_2);
 
 		Serial.println("Scheduled status reporting completed... <Change_status_report>");
 	}
 
 	if (One_Cycle_Complete)
 	{
-		Serial.println("开始循环完成上报");
+		Serial.println("开始循环完成上报 <Change_status_report>");
 		One_Cycle_Complete = false;
 		Get_receipt = false;
 
@@ -415,7 +421,7 @@ void Change_status_report(void)
 		unsigned char random_2 = random(0, 255);
 
 		/*这里上报完成一个轮次循环*/
-		//Message_Receipt.Irrigation_loop_Receipt(true, 1, random_1, random_2);
+		Message_Receipt.Irrigation_loop_Receipt(false, 1, random_1, random_2);
 
 		Serial.println("Cycle status report completed... <Change_status_report>");
 	}
@@ -945,51 +951,51 @@ void Judge_Cycle_completion()
 			3、是否需要进行判断循环完成的标志位
  @return  : 需要return则返回true，不需要return返回false
  */
-bool Judge_ONorOFF(unsigned char c,unsigned char C_N,bool Need_Judge)
-{
-	//GET_DO_ON = 0;
+// bool Judge_ONorOFF(unsigned char c,unsigned char C_N,bool Need_Judge)
+// {
+// 	GET_DO_ON = 0;
 
-	//if (!Irrigation_use)
-	//{
-	//	Irrigation_use = true;
-	//	gTime_arrive_Flag = false;
-	//	Irrigation_time = Worktime[(2 * c) + 1];
-	//	Start_Timer4();
-	//	//Set_Irrigation_relay(i / 2, ON);
-	//	DOStatus_Change = true;//状态改变标志位已改变
+// 	if (!Irrigation_use)
+// 	{
+// 		Irrigation_use = true;
+// 		gTime_arrive_Flag = false;
+// 		Irrigation_time = Worktime[(2 * c) + 1];
+// 		Start_Timer4();
+// 		//Set_Irrigation_relay(i / 2, ON);
+// 		DOStatus_Change = true;//状态改变标志位已改变
 
-	//	Serial.println(String("开始第") + c + "路计时");
-	//}
+// 		Serial.println(String("开始第") + c + "路计时");
+// 	}
 
-	//if (gTime_arrive_Flag)
-	//{
-	//	Serial.println(String("第") + c + "路时间到达");
-	//	Serial.println("------");
-	//	fornum--;
-	//	GET_DO_ON = 0;//
-	//	Complete_Num += C_N;//完成的个数+= C_N
-	//	Stop_Timer4();
-	//	for (size_t j = 0; j < c + 1; j++)
-	//	{
-	//		Worktime[2 * j] = 0;
-	//		Worktime[(2 * j) + 1] = 0;
-	//		Set_Irrigation_relay(j, OFF);
-	//	}
-	//	DOStatus_Change = true;//状态改变标志位已改变
+// 	if (gTime_arrive_Flag)
+// 	{
+// 		Serial.println(String("第") + c + "路时间到达");
+// 		Serial.println("------");
+// 		fornum--;
+// 		GET_DO_ON = 0;//
+// 		Complete_Num += C_N;//完成的个数+= C_N
+// 		Stop_Timer4();
+// 		for (size_t j = 0; j < c + 1; j++)
+// 		{
+// 			Worktime[2 * j] = 0;
+// 			Worktime[(2 * j) + 1] = 0;
+// 			Set_Irrigation_relay(j, OFF);
+// 		}
+// 		DOStatus_Change = true;//状态改变标志位已改变
 
-	//	gTime_arrive_Flag = false;
-	//	Irrigation_use = false;
-	//	DO_intervalFlag = true;
+// 		gTime_arrive_Flag = false;
+// 		Irrigation_use = false;
+// 		DO_intervalFlag = true;
 
-	//	if (Need_Judge)
-	//	{
-	//		Judge_Cycle_completion();
-	//	}
+// 		if (Need_Judge)
+// 		{
+// 			Judge_Cycle_completion();
+// 		}
 
-	//	return true;
-	//}
-	//return false;
-}
+// 		return true;
+// 	}
+// 	return false;
+// }
 
 
 
@@ -1005,7 +1011,7 @@ void Irrigation_time_sharing_onV3()
 	{
 		for (unsigned char i = 0; i < 12; i++)
 		{
-			//Serial.println(String("i = ") + i);
+			iwdg_feed();
 			if (!DO_Set[i])//该路DO未被设置
 			{
 				//Serial.println(String("第") + i + "路未被设置");
@@ -1047,18 +1053,18 @@ void Irrigation_time_sharing_onV3()
 			{
 				switch (i)
 				{
-				case 0:if (DO_OFF(i)) return;	break;
-				case 1:if (DO_OFF(i)) return;	break;
-				case 2:if (DO_OFF(i)) return;	break;
-				case 3:if (DO_OFF(i)) return;	break;
-				case 4:if (DO_OFF(i)) return;	break;
-				case 5:if (DO_OFF(i)) return;	break;
-				case 6:if (DO_OFF(i)) return;	break;
-				case 7:if (DO_OFF(i)) return;	break;
-				case 8:if (DO_OFF(i)) return;	break;
-				case 9:if (DO_OFF(i)) return;	break;
-				case 10:if (DO_OFF(i)) return;	break;
-				case 11:if (DO_OFF(i)) return;	break;
+				case 0:if (DO_OFF(i)) {return;}	break;
+				case 1:if (DO_OFF(i)) {return;}	break;
+				case 2:if (DO_OFF(i)) {return;}	break;
+				case 3:if (DO_OFF(i)) {return;}	break;
+				case 4:if (DO_OFF(i)) {return;}	break;
+				case 5:if (DO_OFF(i)) {return;}	break;
+				case 6:if (DO_OFF(i)) {return;}	break;
+				case 7:if (DO_OFF(i)) {return;}	break;
+				case 8:if (DO_OFF(i)) {return;}	break;
+				case 9:if (DO_OFF(i)) {return;}	break;
+				case 10:if (DO_OFF(i)) {return;}break;
+				case 11:if (DO_OFF(i)) {return;}break;
 				default:Serial.println("default");	break;
 				}
 			}
@@ -1172,8 +1178,12 @@ bool DO_OFF(unsigned char i)
 				Serial.flush();
 				return false;
 			}
+			return true;
 		}
-		return true;
+		if (WorkInterval[i] != 0)
+		{
+			return true;
+		}
 	}
 	return false;
 }
@@ -1186,192 +1196,192 @@ bool DO_OFF(unsigned char i)
  */
 void Key_cycle_irrigationV3(void)
 {
-		if (KeyDI7_num % 2)//代表需要启动
+	if (KeyDI7_num % 2)//代表需要启动
+	{
+		Get_receipt = true;
+	}
+	else
+	{
+		//Get_receipt = false;
+	}
+#if USE_COM
+	while (Serial.available() > 0)
+	{
+		comdata += char(Serial.read());  //每次读一个char字符，并相加
+		delay(2);
+	}
+
+	if (comdata.length() > 0)
+	{
+		comdata.toUpperCase();
+		Serial.println(comdata);
+		if (comdata == String("B"))
 		{
-			Get_receipt = true;
+			comdata = "";
+			KeyDI7_num++;
+			Serial.println("Start circulating irrigation button press <Key_cycle_irrigationV2>");
+			Serial.println(String("KeyDI7_num = ") + KeyDI7_num);
+			Serial.println("");
+			Stop_Timer4();//先停止计时
+			rtc_detach_interrupt(RTC_ALARM_SPECIFIC_INTERRUPT);//RTC报警特定中断,不知道具体是干嘛的，注释掉好像也一样的跑？
+
+			Cyclic_intervalFlag = false;//循环时间间隔的标志位
+			gRTCTime_arrive_Flag = false;//RTC时间到达的标志位
+			gTime_arrive_Flag = false; //定时器时间到达的标志位
+			Cyclic_timing = false;//正在进行循环时间间隔的标志位
+			Irrigation_use = false;//正在灌溉的标志位
+			//OpenSec = 0;//开启的时间
+			//DO_Interval = 0;//单个的间隔时间
+			//DO_Num = 0;//一次性开启的DO数量
+			//retryCnt = 0;//循环次数（）
+			Cyclic_interval = 0;//循环间隔时间
+			//fornum = 0;//一轮循环需要的循环次数，（例如开4路，每次开2路，fornum=2）
+			//fornum_backups = 0;//一轮循环需要的循环次数的备份，（例如开4路，每次开2路，fornum=2）
+			//Last_full = false;//最后一轮循环是否能开满，（例如开5路，每次开2路，最后一轮开不满）
+			//Last_num = 0;//最后一轮循环开不满时需要开启的个数
+			DO_intervalFlag = false;//单个间隔时间的标志位
+			DO_interval_timing = false;//正在进行单个间隔时间的标志位
+			DOStatus_Change = false;//DO的状态改变标志位
+			One_Cycle_Complete = false;//一轮循环完成的标志位
+
+			Need_Num = 0;	//需要开启继电器的个数
+			Complete_Num = 0;//完成开启的个数
+
+			GET_DO_ON = 0;//开启的数量
+
+			for (size_t i = 0; i < 12; i++)
+			{
+				Worktime[i] = 0;//16个开启时间
+				WorkInterval[i] = 0;//16个间隔时间
+				Worktime_backups[i] = 0;//16个开启时间的备份
+				WorkInterval_backups[i] = 0;//16个间隔时间的备份
+				retryCnt[i] = 0;//循环次数（）
+				DO_WayOpentime[i] = 0;//16路DO的开始时间
+				DO_WayClosetime[i] = 0;//16路DO的关闭时间
+				DO_WayIntervalBengin[i] = 0;//16路DO的间隔开始时间
+				DO_WayIntervalEnd[i] = 0;//16路DO的间隔结束时间
+				DO_WayOpen[i] = false; //16路DO打开的标志位
+				DO_WayInterval[i] = false;//16路DO间隔标志位
+				DO_WayComplete[i] = false;//16路DO完成的标志位
+				DO_Set[i] = false;//DO设置的标志位
+				Set_Irrigation_relay(i, OFF);
+			}
+			if (KeyDI7_num % 2)//代表需要启动
+			{
+				Cyclic_interval = InitState.Read_CyclicInterval();//循环间隔为1小时（3600）
+
+				for (size_t i = 0; i < 12; i++)
+				{
+					Worktime[i] = 20;//开启时间为20s
+					WorkInterval[i] = 60;//间隔时间为60s
+					retryCnt[i] = 0xFFFF;//65535次循环
+				}
+				Start_Timer4();
+			}
+			else//代表关闭
+			{
+				Cyclic_interval = 0;//循环间隔为0小时
+				for (size_t i = 0; i < 12; i++)
+				{
+					Worktime[i] = 0;//开启时间为0s
+					WorkInterval[i] = 0;//间隔时间为0s
+					retryCnt[i] = 0x00;//0次循环
+				}
+			}
 		}
 		else
 		{
-			//Get_receipt = false;
+			//comdata = "";
 		}
-	#if USE_COM
-		while (Serial.available() > 0)
-		{
-			comdata += char(Serial.read());  //每次读一个char字符，并相加
-			delay(2);
-		}
-	
-		if (comdata.length() > 0)
-		{
-			comdata.toUpperCase();
-			Serial.println(comdata);
-			if (comdata == String("B"))
-			{
-				comdata = "";
-				KeyDI7_num++;
-				Serial.println("Start circulating irrigation button press <Key_cycle_irrigationV2>");
-				Serial.println(String("KeyDI7_num = ") + KeyDI7_num);
-				Serial.println("");
-				Stop_Timer4();//先停止计时
-				rtc_detach_interrupt(RTC_ALARM_SPECIFIC_INTERRUPT);//RTC报警特定中断,不知道具体是干嘛的，注释掉好像也一样的跑？
-
-				Cyclic_intervalFlag = false;//循环时间间隔的标志位
-				gRTCTime_arrive_Flag = false;//RTC时间到达的标志位
-				gTime_arrive_Flag = false; //定时器时间到达的标志位
-				Cyclic_timing = false;//正在进行循环时间间隔的标志位
-				Irrigation_use = false;//正在灌溉的标志位
-				//OpenSec = 0;//开启的时间
-				//DO_Interval = 0;//单个的间隔时间
-				//DO_Num = 0;//一次性开启的DO数量
-				//retryCnt = 0;//循环次数（）
-				Cyclic_interval = 0;//循环间隔时间
-				//fornum = 0;//一轮循环需要的循环次数，（例如开4路，每次开2路，fornum=2）
-				//fornum_backups = 0;//一轮循环需要的循环次数的备份，（例如开4路，每次开2路，fornum=2）
-				//Last_full = false;//最后一轮循环是否能开满，（例如开5路，每次开2路，最后一轮开不满）
-				//Last_num = 0;//最后一轮循环开不满时需要开启的个数
-				DO_intervalFlag = false;//单个间隔时间的标志位
-				DO_interval_timing = false;//正在进行单个间隔时间的标志位
-				DOStatus_Change = false;//DO的状态改变标志位
-				One_Cycle_Complete = false;//一轮循环完成的标志位
-
-				Need_Num = 0;	//需要开启继电器的个数
-				Complete_Num = 0;//完成开启的个数
-
-				GET_DO_ON = 0;//开启的数量
-
-				for (size_t i = 0; i < 12; i++)
-				{
-					Worktime[i] = 0;//16个开启时间
-					WorkInterval[i] = 0;//16个间隔时间
-					Worktime_backups[i] = 0;//16个开启时间的备份
-					WorkInterval_backups[i] = 0;//16个间隔时间的备份
-					retryCnt[i] = 0;//循环次数（）
-					DO_WayOpentime[i] = 0;//16路DO的开始时间
-					DO_WayClosetime[i] = 0;//16路DO的关闭时间
-					DO_WayIntervalBengin[i] = 0;//16路DO的间隔开始时间
-					DO_WayIntervalEnd[i] = 0;//16路DO的间隔结束时间
-					DO_WayOpen[16] = false; //16路DO打开的标志位
-					DO_WayInterval[i] = false;//16路DO间隔标志位
-					DO_WayComplete[i] = false;//16路DO完成的标志位
-					DO_Set[i] = false;//DO设置的标志位
-					Set_Irrigation_relay(i, OFF);
-				}
-				if (KeyDI7_num % 2)//代表需要启动
-				{
-					Cyclic_interval = InitState.Read_CyclicInterval();//循环间隔为1小时（3600）
-
-					for (size_t i = 0; i < 12; i++)
-					{
-						Worktime[i] = 20;//开启时间为20s
-						WorkInterval[i] = 2;//间隔时间为2s
-						retryCnt[i] = 0xFFFF;//65535次循环
-					}
-					Start_Timer4();
-				}
-				else//代表关闭
-				{
-					Cyclic_interval = 0;//循环间隔为0小时
-					for (size_t i = 0; i < 12; i++)
-					{
-						Worktime[i] = 0;//开启时间为0s
-						WorkInterval[i] = 0;//间隔时间为0s
-						retryCnt[i] = 0x00;//0次循环
-					}
-				}
-			}
-			else
-			{
-				//comdata = "";
-			}
-			iwdg_feed();
-		}
-	#elif USE_KEY
+		iwdg_feed();
+	}
+#elif USE_KEY
+	if (digitalRead(DI7) == HIGH)
+	{
+		iwdg_feed();
+		delay(100);
 		if (digitalRead(DI7) == HIGH)
 		{
-			iwdg_feed();
-			delay(100);
-			if (digitalRead(DI7) == HIGH)
+			KeyDI7_num++;
+			Serial.println("Start circulating irrigation button press <Key_cycle_irrigationV2>");
+			Serial.println(String("KeyDI7_num = ") + KeyDI7_num);
+			Serial.println("");
+			Stop_Timer4();//先停止计时
+			rtc_detach_interrupt(RTC_ALARM_SPECIFIC_INTERRUPT);//RTC报警特定中断,不知道具体是干嘛的，注释掉好像也一样的跑？
+
+			Cyclic_intervalFlag = false;//循环时间间隔的标志位
+			gRTCTime_arrive_Flag = false;//RTC时间到达的标志位
+			gTime_arrive_Flag = false; //定时器时间到达的标志位
+			Cyclic_timing = false;//正在进行循环时间间隔的标志位
+			Irrigation_use = false;//正在灌溉的标志位
+			//OpenSec = 0;//开启的时间
+			//DO_Interval = 0;//单个的间隔时间
+			//DO_Num = 0;//一次性开启的DO数量
+			//retryCnt = 0;//循环次数（）
+			Cyclic_interval = 0;//循环间隔时间
+			//fornum = 0;//一轮循环需要的循环次数，（例如开4路，每次开2路，fornum=2）
+			//fornum_backups = 0;//一轮循环需要的循环次数的备份，（例如开4路，每次开2路，fornum=2）
+			//Last_full = false;//最后一轮循环是否能开满，（例如开5路，每次开2路，最后一轮开不满）
+			//Last_num = 0;//最后一轮循环开不满时需要开启的个数
+			DO_intervalFlag = false;//单个间隔时间的标志位
+			DO_interval_timing = false;//正在进行单个间隔时间的标志位
+			DOStatus_Change = false;//DO的状态改变标志位
+			One_Cycle_Complete = false;//一轮循环完成的标志位
+
+			Need_Num = 0;	//需要开启继电器的个数
+			Complete_Num = 0;//完成开启的个数
+
+			GET_DO_ON = 0;//开启的数量
+
+			for (size_t i = 0; i < 12; i++)
 			{
-				KeyDI7_num++;
-				Serial.println("Start circulating irrigation button press <Key_cycle_irrigationV2>");
-				Serial.println(String("KeyDI7_num = ") + KeyDI7_num);
-				Serial.println("");
-				Stop_Timer4();//先停止计时
-				rtc_detach_interrupt(RTC_ALARM_SPECIFIC_INTERRUPT);//RTC报警特定中断,不知道具体是干嘛的，注释掉好像也一样的跑？
+				Worktime[i] = 0;//16个开启时间
+				WorkInterval[i] = 0;//16个间隔时间
+				Worktime_backups[i] = 0;//16个开启时间的备份
+				WorkInterval_backups[i] = 0;//16个间隔时间的备份
+				retryCnt[i] = 0;//循环次数（）
+				DO_WayOpentime[i] = 0;//16路DO的开始时间
+				DO_WayClosetime[i] = 0;//16路DO的关闭时间
+				DO_WayIntervalBengin[i] = 0;//16路DO的间隔开始时间
+				DO_WayIntervalEnd[i] = 0;//16路DO的间隔结束时间
+				DO_WayOpen[16] = false; //16路DO打开的标志位
+				DO_WayInterval[i] = false;//16路DO间隔标志位
+				DO_WayComplete[i] = false;//16路DO完成的标志位
+				DO_Set[i] = false;//DO设置的标志位
+				Set_Irrigation_relay(i, OFF);
+			}
 
-				Cyclic_intervalFlag = false;//循环时间间隔的标志位
-				gRTCTime_arrive_Flag = false;//RTC时间到达的标志位
-				gTime_arrive_Flag = false; //定时器时间到达的标志位
-				Cyclic_timing = false;//正在进行循环时间间隔的标志位
-				Irrigation_use = false;//正在灌溉的标志位
-				//OpenSec = 0;//开启的时间
-				//DO_Interval = 0;//单个的间隔时间
-				//DO_Num = 0;//一次性开启的DO数量
-				//retryCnt = 0;//循环次数（）
-				Cyclic_interval = 0;//循环间隔时间
-				//fornum = 0;//一轮循环需要的循环次数，（例如开4路，每次开2路，fornum=2）
-				//fornum_backups = 0;//一轮循环需要的循环次数的备份，（例如开4路，每次开2路，fornum=2）
-				//Last_full = false;//最后一轮循环是否能开满，（例如开5路，每次开2路，最后一轮开不满）
-				//Last_num = 0;//最后一轮循环开不满时需要开启的个数
-				DO_intervalFlag = false;//单个间隔时间的标志位
-				DO_interval_timing = false;//正在进行单个间隔时间的标志位
-				DOStatus_Change = false;//DO的状态改变标志位
-				One_Cycle_Complete = false;//一轮循环完成的标志位
+			/*等待按键释放*/
+			while (digitalRead(DI7) == HIGH)
+			{
 
-				Need_Num = 0;	//需要开启继电器的个数
-				Complete_Num = 0;//完成开启的个数
+			}
 
-				GET_DO_ON = 0;//开启的数量
+			if (KeyDI7_num % 2)//代表需要启动
+			{
+				Cyclic_interval = InitState.Read_CyclicInterval();//循环间隔为1小时（3600）
 
 				for (size_t i = 0; i < 12; i++)
 				{
-					Worktime[i] = 0;//16个开启时间
-					WorkInterval[i] = 0;//16个间隔时间
-					Worktime_backups[i] = 0;//16个开启时间的备份
-					WorkInterval_backups[i] = 0;//16个间隔时间的备份
-					retryCnt[i] = 0;//循环次数（）
-					DO_WayOpentime[i] = 0;//16路DO的开始时间
-					DO_WayClosetime[i] = 0;//16路DO的关闭时间
-					DO_WayIntervalBengin[i] = 0;//16路DO的间隔开始时间
-					DO_WayIntervalEnd[i] = 0;//16路DO的间隔结束时间
-					DO_WayOpen[16] = false; //16路DO打开的标志位
-					DO_WayInterval[i] = false;//16路DO间隔标志位
-					DO_WayComplete[i] = false;//16路DO完成的标志位
-					DO_Set[i] = false;//DO设置的标志位
-					Set_Irrigation_relay(i, OFF);
+					Worktime[i] = 20;//开启时间为20s
+					WorkInterval[i] = 60;//间隔时间为60s
+					retryCnt[i] = 0xFFFF;//65535次循环
 				}
-
-				/*等待按键释放*/
-				while (digitalRead(DI7) == HIGH)
+				Start_Timer4();
+			}
+			else//代表关闭
+			{
+				Cyclic_interval = 0;//循环间隔为0小时
+				for (size_t i = 0; i < 12; i++)
 				{
-	
-				}
-	
-				if (KeyDI7_num % 2)//代表需要启动
-				{
-					Cyclic_interval = InitState.Read_CyclicInterval();//循环间隔为1小时（3600）
-	
-					for (size_t i = 0; i < 12; i++)
-					{
-						Worktime[i] = 20;//开启时间为20s
-						WorkInterval[i] = 2;//间隔时间为2s
-						retryCnt[i] = 0xFFFF;//65535次循环
-					}
-					Start_Timer4();
-				}
-				else//代表关闭
-				{
-					Cyclic_interval = 0;//循环间隔为0小时
-					for (size_t i = 0; i < 12; i++)
-					{
-						Worktime[i] = 0;//开启时间为0s
-						WorkInterval[i] = 0;//间隔时间为0s
-						retryCnt[i] = 0x00;//0次循环
-					}
+					Worktime[i] = 0;//开启时间为0s
+					WorkInterval[i] = 0;//间隔时间为0s
+					retryCnt[i] = 0x00;//0次循环
 				}
 			}
 		}
-	#else
-	
-	#endif
+	}
+#else
+
+#endif
 }
