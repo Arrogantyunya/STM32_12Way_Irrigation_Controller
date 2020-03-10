@@ -130,18 +130,18 @@ void Modbus_Coils::Modbus_Config(void)
 bool Modbus_Coils::Set_Coil_DefaultValue(void)
 {
 	unsigned char count = 0;
-	if(mb.Coil(KCZJ1_COIL,0x0000) == true)	count++;
-	if(mb.Coil(KCZJ2_COIL,0x0000) == true)	count++;
-	if(mb.Coil(KCZJ3_COIL,0x0000) == true)	count++;
-	if(mb.Coil(KCZJ4_COIL,0x0000) == true)	count++;
-	if(mb.Coil(KCZJ5_COIL,0x0000) == true)	count++;
-	if(mb.Coil(KCZJ6_COIL,0x0000) == true)	count++;
-	if(mb.Coil(KCZJ7_COIL,0x0000) == true)	count++;
-	if(mb.Coil(KCZJ8_COIL,0x0000) == true)	count++;
-	if(mb.Coil(KCZJ9_COIL,0x0000) == true)	count++;
-	if(mb.Coil(KCZJ10_COIL,0x0000) == true)	count++;
-	if(mb.Coil(KCZJ11_COIL,0x0000) == true)	count++;
-	if(mb.Coil(KCZJ12_COIL,0x0000) == true)	count++;
+	if(mb.Coil(KCZJ1_COIL,0xFF00) == true)	count++;
+	if(mb.Coil(KCZJ2_COIL,0xFF00) == true)	count++;
+	if(mb.Coil(KCZJ3_COIL,0xFF00) == true)	count++;
+	if(mb.Coil(KCZJ4_COIL,0xFF00) == true)	count++;
+	if(mb.Coil(KCZJ5_COIL,0xFF00) == true)	count++;
+	if(mb.Coil(KCZJ6_COIL,0xFF00) == true)	count++;
+	if(mb.Coil(KCZJ7_COIL,0xFF00) == true)	count++;
+	if(mb.Coil(KCZJ8_COIL,0xFF00) == true)	count++;
+	if(mb.Coil(KCZJ9_COIL,0xFF00) == true)	count++;
+	if(mb.Coil(KCZJ10_COIL,0xFF00) == true)	count++;
+	if(mb.Coil(KCZJ11_COIL,0xFF00) == true)	count++;
+	if(mb.Coil(KCZJ12_COIL,0xFF00) == true)	count++;
 
     
 

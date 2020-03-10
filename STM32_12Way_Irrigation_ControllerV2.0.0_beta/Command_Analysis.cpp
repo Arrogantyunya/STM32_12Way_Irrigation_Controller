@@ -905,7 +905,7 @@ void Command_Analysis::General_controller_control_command(void)
 		Modbus_Coil.Modbus_Realization(modbusPacket, modbusPacket_Length);//设置输出线圈状态，modbus实现
 
 		Message_Receipt.Control_command_Receipt(gReceiveCmd[11], gReceiveCmd[12], 1, gReceiveCmd[9], gReceiveCmd[10]);
-		DOStatus_Change = true;
+		DOStatus_Change = true;//接收到指令后上报实时状态
 	}
 	memset(gReceiveCmd, 0x00, gReceiveLength);
 }
