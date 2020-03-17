@@ -38,23 +38,23 @@
 #include "Private_RTC.h"
 
 /* 测试宏 */
-#define DEBUG_PRINT 	0 	//打印调试信息
-#define Reset_RTC 		0   //重置rtc时间
-#define Get_RTC			0	//获取rtc时间
-#define Reset_Binding	0	//重新绑定
+#define DEBUG_PRINT 	false 	//打印调试信息
+#define Reset_RTC 		false   //重置rtc时间
+#define Get_RTC			false	//获取rtc时间
+#define Reset_Binding	false	//重新绑定
 /* 使能宏 */
-#define SOFT_HARD_VERSION	1 //使能写入软件和硬件版本
-#define USE_RTC				1 //使用RTC
-#define USE_TIMER			0 //使用定时器
-#define USE_COM				0 //使用串口发送数据
-#define USE_KEY				1 //使用按键发送数据
-#define USE_NODE			0 //loRa节点模式
-#define USE_GATEWAY			1 //loRa网关模式
-#define EEPROM_RESET		0 //重置EEPROM的所有值【测试使用】
+#define SOFT_HARD_VERSION	true 	//使能写入软件和硬件版本
+#define USE_RTC				true 	//使用RTC
+#define USE_TIMER			false 	//使用定时器
+#define USE_COM				true	//使用串口发送数据
+#define USE_KEY				false	//使用按键发送数据
+#define USE_NODE			false 	//loRa节点模式
+#define USE_GATEWAY			true 	//loRa网关模式
+#define EEPROM_RESET		false 	//重置EEPROM的所有值【测试使用】
 /* 替换宏 */
-#define Software_version_high 	0x01 	//软件版本的高位
-#define Software_version_low 	0x11  	//软件版本的低位
-#define Hardware_version_high 	0x01 	//硬件版本的高位
+#define Software_version_high 	0x02 	//软件版本的高位
+#define Software_version_low 	0x00  	//软件版本的低位
+#define Hardware_version_high 	0x02 	//硬件版本的高位
 #define Hardware_version_low 	0x00	//硬件版本的低位
 #define Init_Area				0x01	//初始区域ID
 
@@ -62,7 +62,7 @@
 //全局变量
 String comdata = "";//串口接收的字符串
 unsigned char gSN_Code[9] = { 0x00 }; //设备出厂默认SN码全为0
-unsigned char gRTC_Code[7] = { 20,20,00,00,00,00,00 };//
+unsigned char gRTC_Code[7] = { 20,20,00,00,00,00,00 };//设备出厂默认RTC
 bool DOStatus_Change = false;//DO的状态改变标志位
 bool One_Cycle_Complete = false;//一轮循环完成的标志位
 bool Cyclic_intervalFlag = false;//循环时间间隔的标志位
@@ -71,6 +71,9 @@ bool DO_intervalFlag = false;//单个间隔时间的标志位
 bool DO_interval_timing = false;//正在进行单个间隔时间的标志位
 unsigned int KeyDI7_num = 0;//按键DI7按下的次数
 unsigned char GET_DO_ON = 0;//开启的数量++
+unsigned char DI_NumLast = 0;unsigned char DI_NumNow = 0;//8路DI的上次值与当前值
+bool RS485_DEBUG = false;
+unsigned char RS485_Debug[20] = {0x00};unsigned char RS485_Debug_Length = 0;
 
 
 //函数声明
@@ -133,8 +136,8 @@ void setup()
 #else
 	LoRa_Para_Config.Save_LoRa_Com_Mode(0xF0);//这里是写入模式为节点模式
 #endif
-	LoRa_MHL9LF.Parameter_Init(false);
-	LoRa_Para_Config.Save_LoRa_Config_Flag();
+	LoRa_MHL9LF.Parameter_Init(false);//LORA参数设置
+	LoRa_Para_Config.Save_LoRa_Config_Flag();//保存LORA参数配置完成标志位
 
 #if SOFT_HARD_VERSION
 	Serial.println("");
@@ -218,6 +221,9 @@ void setup()
 	Serial.println("Online status report");
 	Serial.println("");
 
+	//得到当前DI的状态
+	DI_NumLast = Modbus_Coil.Get_DI_1to8();	DI_NumNow = DI_NumLast;
+
 	Serial.println("All configuration items are initialized. Welcome to use.  ~(*^__^*)~ ");//所有的设置项初始化完成，欢迎使用
 	Serial.println("");
 }
@@ -243,12 +249,13 @@ void loop()
 
 	Change_status_report();//状态改变上报
 
-	iwdg_feed();
 	Irrigation_time_sharing_onV3();//灌溉分时打开
 
 	Key_cycle_irrigationV3();//按键启动循环灌溉
 
 	Com_Set_Cyclic_interval();//串口设置循环间隔
+
+	Project_Debug();
 }
 
 /*
@@ -320,16 +327,25 @@ void Request_Access_Network(void)
  */
 void Project_Debug(void)
 {
-	// while (1)
-	// {
-	// 	iwdg_feed();
-	// 	for (size_t i = 0; i < 12; i++)
-	// 	{
-
-	// 	}
-
-	// }
-
+	iwdg_feed();
+	if (RS485_DEBUG)
+	{
+		while (Serial2.available() > 0)
+		{
+			RS485_Debug[RS485_Debug_Length++] = Serial2.read();
+			delay(2);
+			if (RS485_Debug_Length >= 20)
+			{
+				iwdg_feed();
+				RS485_Debug_Length = 0;
+				Serial.println("数据超出可以接收的范围 <Project_Debug>");
+				// delay(1000);
+				memset(RS485_Debug, 0x00, sizeof(RS485_Debug));
+			}
+			Serial.print(RS485_Debug[RS485_Debug_Length - 1], HEX);
+			Serial.print("_");
+		}	
+	}
 }
 
 /*
@@ -339,26 +355,7 @@ void Project_Debug(void)
  */
 void Key_Reset_LoRa_Parameter(void)
 {
-	// if (digitalRead(SW_FUN1) == LOW)
-	// {
-	// 	MyDelayMs(100);
-	// 	if (digitalRead(SW_FUN1) == LOW)
-	// 	{
-	// 		MyDelayMs(3000);
-	// 		iwdg_feed();
-	// 		if (digitalRead(SW_FUN2) == LOW)
-	// 		{
-	// 			MyDelayMs(100);
-	// 			if (digitalRead(SW_FUN2) == LOW)
-	// 			{
-	// 				LoRa_Para_Config.Clear_LoRa_Config_Flag();
-	// 				Serial.println("Clear LoRa configuration flag SUCCESS... <Key_Reset_LoRa_Parameter>");
-	// 				Serial.println("清除LoRa配置标志成功...<Key_Reset_LoRa_Parameter>");
-	// 				iwdg_feed();
-	// 			}
-	// 		}
-	// 	}
-	// }
+	
 }
 
 /*
@@ -396,17 +393,24 @@ void Regular_status_report(void)
  */
 void Change_status_report(void)
 {
+	DI_NumNow = Modbus_Coil.Get_DI_1to8();//得到当前DI的状态
+
+	/*得到随机值*/
+	unsigned char random_1 = random(0, 255);
+	unsigned char random_2 = random(0, 255);
+
+	if (DI_NumLast != DI_NumNow)//8路DI的值有所改变
+	{
+		DI_NumLast = DI_NumNow;
+		DOStatus_Change = true;
+		Serial.println("DI 状态已改变");
+	}
+	
 	if (DOStatus_Change)
 	{
-		Serial.println("开始DO状态改变上报 Start reporting of DO status change<Change_status_report>");
+		Serial.println("开始状态改变上报 Start reporting of status change <Change_status_report>");
 		DOStatus_Change = false;
 		Get_receipt = true;
-
-		/*得到随机值*/
-		unsigned char random_1 = random(0, 255);
-		unsigned char random_2 = random(0, 255);
-		Serial.println(String("random_1 = ") + String(random_1, HEX));
-		Serial.println(String("random_2 = ") + String(random_2, HEX));
 
 		/*这里上报实时状态*/
 		Message_Receipt.Working_Parameter_Receipt(false, 2, random_1, random_2);
@@ -416,13 +420,9 @@ void Change_status_report(void)
 
 	if (One_Cycle_Complete)
 	{
-		Serial.println("开始循环完成上报 Start cycle to complete reporting<Change_status_report>");
+		Serial.println("开始循环完成上报 Start cycle to complete reporting <Change_status_report>");
 		One_Cycle_Complete = false;
 		Get_receipt = false;
-
-		/*得到随机值*/
-		unsigned char random_1 = random(0, 255);
-		unsigned char random_2 = random(0, 255);
 
 		/*这里上报完成一个轮次循环*/
 		Message_Receipt.Irrigation_loop_Receipt(false, 1, random_1, random_2);
@@ -905,6 +905,20 @@ void Com_Set_Cyclic_interval(void)
 			Serial.println(String("Cyclic_interval = ") + Cyclic_interval);
 			comdata = "";
 		}
+		else if (comdata == String("485DEBUG"))
+		{
+			RS485_DEBUG = !RS485_DEBUG;
+			if (RS485_DEBUG)
+			{
+				Serial.println("485 DeBug模式已启动...");
+			}
+			else
+			{
+				Serial.println("485 DeBug模式已关闭...");
+			}	
+			comdata = "";
+		}
+		
 		else
 		{
 			comdata = "";

@@ -130,18 +130,18 @@ void Modbus_Coils::Modbus_Config(void)
 bool Modbus_Coils::Set_Coil_DefaultValue(void)
 {
 	unsigned char count = 0;
-	if(mb.Coil(KCZJ1_COIL,0xFF00) == true)	count++;
-	if(mb.Coil(KCZJ2_COIL,0xFF00) == true)	count++;
-	if(mb.Coil(KCZJ3_COIL,0xFF00) == true)	count++;
-	if(mb.Coil(KCZJ4_COIL,0xFF00) == true)	count++;
-	if(mb.Coil(KCZJ5_COIL,0xFF00) == true)	count++;
-	if(mb.Coil(KCZJ6_COIL,0xFF00) == true)	count++;
-	if(mb.Coil(KCZJ7_COIL,0xFF00) == true)	count++;
-	if(mb.Coil(KCZJ8_COIL,0xFF00) == true)	count++;
-	if(mb.Coil(KCZJ9_COIL,0xFF00) == true)	count++;
-	if(mb.Coil(KCZJ10_COIL,0xFF00) == true)	count++;
-	if(mb.Coil(KCZJ11_COIL,0xFF00) == true)	count++;
-	if(mb.Coil(KCZJ12_COIL,0xFF00) == true)	count++;
+	if(mb.Coil(KCZJ1_COIL,0x0000) == true)	count++;
+	if(mb.Coil(KCZJ2_COIL,0x0000) == true)	count++;
+	if(mb.Coil(KCZJ3_COIL,0x0000) == true)	count++;
+	if(mb.Coil(KCZJ4_COIL,0x0000) == true)	count++;
+	if(mb.Coil(KCZJ5_COIL,0x0000) == true)	count++;
+	if(mb.Coil(KCZJ6_COIL,0x0000) == true)	count++;
+	if(mb.Coil(KCZJ7_COIL,0x0000) == true)	count++;
+	if(mb.Coil(KCZJ8_COIL,0x0000) == true)	count++;
+	if(mb.Coil(KCZJ9_COIL,0x0000) == true)	count++;
+	if(mb.Coil(KCZJ10_COIL,0x0000) == true)	count++;
+	if(mb.Coil(KCZJ11_COIL,0x0000) == true)	count++;
+	if(mb.Coil(KCZJ12_COIL,0x0000) == true)	count++;
 
     
 
@@ -559,22 +559,22 @@ unsigned char Modbus_Coils::Get_DI_1to8(void)
 	{
 		switch (i)
 		{
-		case 0: digitalRead(DI1) == HIGH ? DI1to8 += 128 : DI1to8 += 0;
+		case 0: digitalRead(DI1) == HIGH ? DI1to8 += 1 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 1:	digitalRead(DI2) == HIGH ? DI1to8 += 64 : DI1to8 += 0;
+		case 1:	digitalRead(DI2) == HIGH ? DI1to8 += 2 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 2: digitalRead(DI3) == HIGH ? DI1to8 += 32 : DI1to8 += 0;
+		case 2: digitalRead(DI3) == HIGH ? DI1to8 += 4 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 3:	digitalRead(DI4) == HIGH ? DI1to8 += 16 : DI1to8 += 0;
+		case 3:	digitalRead(DI4) == HIGH ? DI1to8 += 8 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 4: digitalRead(DI5) == HIGH ? DI1to8 += 8 : DI1to8 += 0;
+		case 4: digitalRead(DI5) == HIGH ? DI1to8 += 16 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 5:	digitalRead(DI6) == HIGH ? DI1to8 += 4 : DI1to8 += 0;
+		case 5:	digitalRead(DI6) == HIGH ? DI1to8 += 32 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 6: digitalRead(DI7) == HIGH ? DI1to8 += 2 : DI1to8 += 0;
+		case 6: digitalRead(DI7) == HIGH ? DI1to8 += 64 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 7:	digitalRead(DI8) == HIGH ? DI1to8 += 1 : DI1to8 += 0;
-			Serial.println(String("DI1to8 = ") + DI1to8); break;
+		case 7:	digitalRead(DI8) == HIGH ? DI1to8 += 128 : DI1to8 += 0;
+			// Serial.println(String("DI1to8 = ") + DI1to8); break;
 		default:
 			break;
 		}
@@ -610,7 +610,7 @@ unsigned char Modbus_Coils::Get_DO_1to8(void)
 		case 6: digitalRead(KCZJ7) == HIGH ? DO1to8 += 0 : DO1to8 += 2;
 			/*Serial.println(String("DO1to8 = ") + DO1to8);*/ break;
 		case 7:	digitalRead(KCZJ8) == HIGH ? DO1to8 += 0 : DO1to8 += 1;
-			Serial.println(String("DO1to8 = ") + DO1to8); break;
+			// Serial.println(String("DO1to8 = ") + DO1to8); break;
 		default:
 			break;
 		}
@@ -647,7 +647,7 @@ unsigned char Modbus_Coils::Get_DO_9to16(void)
 		case 6: DO9to16 += 0;
 			/*Serial.println(String("DO9to16 = ") + DO9to16);*/ break;
 		case 7:	DO9to16 += 0;
-			Serial.println(String("DO9to16 = ") + DO9to16); break;
+			// Serial.println(String("DO9to16 = ") + DO9to16); break;
 		default: break;
 		}
 	}

@@ -285,10 +285,9 @@ bool SN_Operations::Set_SN_Access_Network_Flag(void)
 bool SN_Operations::Clear_SN_Access_Network_Flag(void)
 {
 	Serial.println("If you need to clear the registration, send \"YES\"	<Clear_SN_Access_Network_Flag>");
+	Serial.flush();
 	iwdg_feed();
-	delay(3000);
-	iwdg_feed();
-	delay(3000);
+	delay(5000);
 	iwdg_feed();
 	while (Serial.available() > 0)
 	{
