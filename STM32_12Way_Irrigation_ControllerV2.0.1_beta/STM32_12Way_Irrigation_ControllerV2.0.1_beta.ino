@@ -53,7 +53,7 @@
 #define EEPROM_RESET		false 	//重置EEPROM的所有值【测试使用】
 /* 替换宏 */
 #define Software_version_high 	0x02 	//软件版本的高位
-#define Software_version_low 	0x00  	//软件版本的低位
+#define Software_version_low 	0x01  	//软件版本的低位
 #define Hardware_version_high 	0x02 	//硬件版本的高位
 #define Hardware_version_low 	0x00	//硬件版本的低位
 #define Init_Area				0x01	//初始区域ID
@@ -413,7 +413,7 @@ void Change_status_report(void)
 		Get_receipt = true;
 
 		/*这里上报实时状态*/
-		Message_Receipt.Working_Parameter_Receipt(false, 2, random_1, random_2);
+		Message_Receipt.Working_Parameter_Receipt(false, 1, random_1, random_2);
 
 		Serial.println("Scheduled status reporting completed... <Change_status_report>");
 	}
@@ -426,7 +426,7 @@ void Change_status_report(void)
 
 		/*这里上报完成一个轮次循环*/
 		Message_Receipt.Irrigation_loop_Receipt(false, 1, random_1, random_2);
-		Message_Receipt.Working_Parameter_Receipt(false, 2, random_1, random_2);
+		Message_Receipt.Working_Parameter_Receipt(false, 1, random_1, random_2);
 
 		Serial.println("Cycle & status report completed... <Change_status_report>");
 	}
