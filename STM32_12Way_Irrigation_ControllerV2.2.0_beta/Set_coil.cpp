@@ -44,63 +44,6 @@ void Modbus_Coils::Modbus_Config(void)
 	mb.addCoil(KCZJ11_COIL);
 	mb.addCoil(KCZJ12_COIL);
 
-	mb.addCoil(KCZJ13_COIL);
-	mb.addCoil(KCZJ14_COIL);
-	mb.addCoil(KCZJ15_COIL);
-	mb.addCoil(KCZJ16_COIL);
-	mb.addCoil(KCZJ17_COIL);
-	mb.addCoil(KCZJ18_COIL);
-	mb.addCoil(KCZJ19_COIL);
-	mb.addCoil(KCZJ20_COIL);
-	mb.addCoil(KCZJ21_COIL);
-	mb.addCoil(KCZJ22_COIL);
-	mb.addCoil(KCZJ23_COIL);
-	mb.addCoil(KCZJ24_COIL);
-
-	mb.addCoil(KCZJ25_COIL);
-	mb.addCoil(KCZJ26_COIL);
-	mb.addCoil(KCZJ27_COIL);
-	mb.addCoil(KCZJ28_COIL);
-	mb.addCoil(KCZJ29_COIL);
-	mb.addCoil(KCZJ30_COIL);
-	mb.addCoil(KCZJ31_COIL);
-	mb.addCoil(KCZJ32_COIL);
-	mb.addCoil(KCZJ33_COIL);
-	mb.addCoil(KCZJ34_COIL);
-	mb.addCoil(KCZJ35_COIL);
-	mb.addCoil(KCZJ36_COIL);
-
-	mb.addCoil(KCZJ37_COIL);
-	mb.addCoil(KCZJ38_COIL);
-	mb.addCoil(KCZJ39_COIL);
-	mb.addCoil(KCZJ40_COIL);
-	mb.addCoil(KCZJ41_COIL);
-	mb.addCoil(KCZJ42_COIL);
-	mb.addCoil(KCZJ43_COIL);
-	mb.addCoil(KCZJ44_COIL);
-	mb.addCoil(KCZJ45_COIL);
-	mb.addCoil(KCZJ46_COIL);
-	mb.addCoil(KCZJ47_COIL);
-	mb.addCoil(KCZJ48_COIL);
-
-	mb.addCoil(KCZJ49_COIL);
-	mb.addCoil(KCZJ50_COIL);
-	mb.addCoil(KCZJ51_COIL);
-	mb.addCoil(KCZJ52_COIL);
-	mb.addCoil(KCZJ53_COIL);
-	mb.addCoil(KCZJ54_COIL);
-	mb.addCoil(KCZJ55_COIL);
-	mb.addCoil(KCZJ56_COIL);
-	mb.addCoil(KCZJ57_COIL);
-	mb.addCoil(KCZJ58_COIL);
-	mb.addCoil(KCZJ59_COIL);
-	mb.addCoil(KCZJ60_COIL);
-
-	mb.addCoil(KCZJ61_COIL);
-	mb.addCoil(KCZJ62_COIL);
-	mb.addCoil(KCZJ63_COIL);
-	mb.addCoil(KCZJ64_COIL);
-
 	mb.addIsts(DI1_ISTS);
 	mb.addIsts(DI2_ISTS);
 	mb.addIsts(DI3_ISTS);

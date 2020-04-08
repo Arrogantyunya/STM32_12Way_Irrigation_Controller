@@ -1342,7 +1342,7 @@ void Command_Analysis::Irrigation_Controllor_control_command(void)
 		unsigned char random_2 = random(0, 255);
 
 		/*这里上报E003定时IO指令接收回执*/
-		Message_Receipt.Irrigation_control_Receipt(1, gReceiveCmd);
+		Message_Receipt.Irrigation_control_Receipt(2, gReceiveCmd);
 
 		Start_Timer4();
 
