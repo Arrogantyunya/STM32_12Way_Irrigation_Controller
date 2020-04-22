@@ -341,58 +341,66 @@ bool LoRa::Parse_Command(unsigned char *addr_temp, unsigned char len, unsigned c
  @return    : 无
  */
 void LoRa::Get_CSQ(unsigned char *addr_temp, unsigned char len, unsigned char *data_buffer)
-{
+{	
+	/* 	+CSQ:12,-72 
+		+CSQ:-12,-172*/  /* '0' = 48	'9' = 57 */
 	/*信噪比和接收强度两个值中间有逗号隔开，这里去除逗号，得到数值*/
 	String Str_CSQ; String Str_SNR; String Str_RSSI;
+	bool Division = false;//分割标志位
+
+	memset(data_buffer, 0x00, sizeof(data_buffer));
+	data_buffer[2] = 0xE0;data_buffer[3] = 0xE0;
+	
 	for (size_t i = 0; i < len; i++)
 	{
 		Str_CSQ += String(addr_temp[i]);
-		//Serial.println(String("Str_CSQ = ") + Str_CSQ);
-	}
-	
-	Str_SNR = Str_CSQ.substring(0, Str_CSQ.indexOf("4445"));
-	Serial.println(String("Str_SNR = ") + Str_SNR);
-	Str_RSSI = Str_CSQ.substring(Str_CSQ.indexOf("4445") + 4, Str_CSQ.length());
-	Serial.println(String("Str_RSSI = ") + Str_RSSI);
+		if(addr_temp[i] == ',')
+		{
+			Division = true;
+			continue;
+		}
 
-	if (Str_SNR.length()==2)
-	{
-		//Serial.println("SNR.length()==2");
-		long X = Str_SNR.toInt();
-		//Serial.println(String("X = ") + X);
-		unsigned char SNR = X - 48;
-		Serial.println(String("SNR = ") + String(SNR, HEX) + "(HEX)");
-		data_buffer[0] = SNR;
+		if(addr_temp[i] >= '0' && addr_temp[i] <= '9')
+		{
+			addr_temp[i] -= '0';
+		}
+		
+		if(!Division)
+		{
+			if(addr_temp[i] == '-')
+			{
+				Serial.println("SNR为负数");
+				data_buffer[3] = 0xF0;//如果SNR为负数，那么将数组第4个置为F0，代表为负
+			}
+			else
+			{
+				Str_SNR += String(addr_temp[i]);
+			}
+		}
+		else
+		{
+			if(addr_temp[i] == '-')
+			{
+				Serial.println("RSSI为负数");	
+				data_buffer[3] = 0xF0;//如果SNR为负数，那么将数组第4个置为F0，代表为负
+			}
+			else
+			{
+				Str_RSSI += String(addr_temp[i]);
+			}
+		}
 	}
-	else if (Str_SNR.length() == 4)
-	{
-		//Serial.println("SNR.length()==4");
-		long X = Str_SNR.toInt();
-		//Serial.println(String("X = ") + X);
-		unsigned char SNR = ((X / 100 - 48) * 10) + ((X % 100)-48);
-		Serial.println(String("SNR = ") + String(SNR, HEX) + "(HEX)");
-		data_buffer[0] = SNR;
-	}
+	Serial.println(String("Str_CSQ = ") + Str_CSQ);
+	Serial.print(String("Str_SNR = "));
+    data_buffer[2] == 0xF0?Serial.print("-"):(data_buffer[2] == 0xE0?Serial.print(""):Serial.print("读取错误"));
+	Serial.println(Str_SNR + " (DEC)");
 
-	if (Str_RSSI.length() == 2)
-	{
-		//Serial.println("Str_RSSI.length()==2");
-		long X = Str_RSSI.toInt();
-		//Serial.println(String("X = ") + X);
-		unsigned char RSSI = X  - 48;
-		Serial.println(String("RSSI = ") + String(RSSI, HEX) + "(HEX)");
-		data_buffer[1] = RSSI;
-	}
-	else if (Str_RSSI.length() == 4)
-	{
-		//Serial.println("Str_RSSI.length()==4");
-		long X = Str_RSSI.toInt();
-		//Serial.println(String("X = ") + X);
-		unsigned char RSSI = ((X / 100 - 48) * 10) + ((X % 100) - 48);
-		Serial.println(String("RSSI = ") + String(RSSI, HEX) + "(HEX)");
-		data_buffer[1] = RSSI;
-	}
+    Serial.print(String("Str_RSSI = "));
+    data_buffer[3] == 0xF0?Serial.print("-"):(data_buffer[3] == 0xE0?Serial.print(""):Serial.print("读取错误"));
+    Serial.println(Str_RSSI + " (DEC)");
 
+	data_buffer[0] = Str_SNR.toInt();
+	data_buffer[1] = Str_RSSI.toInt();
 }
 
 // /*
@@ -520,6 +528,16 @@ bool LoRa::Rewrite_ID(void)
 			else
 			{
 				Serial.println("LoRa addr for AT Correct, OK <Rewrite_ID>");
+				Serial.print("LoRa addr is:");
+                    Serial.print(EP_Buffer[6]);
+                    Serial.print(EP_Buffer[7]);
+                    Serial.print(EP_Buffer[4]);
+                    Serial.print(EP_Buffer[5]);
+                    Serial.print(EP_Buffer[2]);
+                    Serial.print(EP_Buffer[3]);
+                    Serial.print(EP_Buffer[0]);
+                    Serial.print(EP_Buffer[1]);
+                Serial.println();
 			}
 		}
 		/* EP储存的地址不幸出错，选择相信从AT指令读出来的，重新写入EP保存 */

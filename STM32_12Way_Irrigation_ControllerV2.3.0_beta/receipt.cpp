@@ -20,7 +20,7 @@ Receipt Message_Receipt;
 //unsigned char x = 0x00;
 unsigned char gStatus_Working_Parameter_Receipt = 0x00;//E014实时工作状态回执的状态
 unsigned char gStatus_E014 = DefaultValue;	//E014通用回执的状态
-unsigned char gLoRaCSQ[2] = { 0 };  //接收LoRa发送和接收的信号强度
+unsigned char gLoRaCSQ[4] = { 0 };  //接收LoRa发送和接收的信号强度
 extern unsigned char G_modbusPacket[20];
 extern int G_modbusPacket_Length;
 extern void Irrigation_time_sharing_onV2(void);	//灌溉分时开启V2
@@ -240,10 +240,10 @@ void Receipt::Request_Device_SN_and_Channel(void)
  */
 void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2)
 {
-  /*| 字节索引	| 0			| 1-2		| 3			| 4-5			| 6-7		| 8			| 9-10	| 11-12	| 13	| 14	| 15-22	| 23-30	| 31-46	| 47-62	| 63-64	| 65		| 66	| 67-73			|
-	| 数据域	| frameHead	| frameId	| dataLen	| DeviceTypeId	| randomId	| status	| swVer	| hwVer	| rssi	| csq	| DI	| DO	| AI	| AO	| VOL	| LoraMode	| CRC8	| frameEnd      |
-	| 长度		| 1			| 2			| 1			| 2				| 2			| 1			| 2		| 2		| 1		| 1		| 8		| 8		| 16	| 16	| 2		| 1			| 1		| 6				|
-	| 示例数据	| FE		| E014		| 3E		| C003			| 1234		|			|       |       |		|		|		|		|		|		|		| F1		| D6	| 0D0A0D0A0D0A	|*/
+  /*| 字节索引	| 0			| 1-2		| 3			| 4-5			| 6-7		| 8			| 9-10	| 11-12	| 13	| 15	|16			| 15-22	| 23-30	| 31-46	| 47-62	| 63-64	| 65		|| 66	| 67-73			|
+	| 数据域	| frameHead	| frameId	| dataLen	| DeviceTypeId	| randomId	| status	| swVer	| hwVer	| rssi	| csq	|csqSymbol	| DI	| DO	| AI	| AO	| VOL	| LoraMode	|| CRC8	| frameEnd      |
+	| 长度		| 1			| 2			| 1			| 2				| 2			| 1			| 2		| 2		| 1		| 1		| 1 		| 8		| 8		| 16	| 16	| 2		| 1			|| 1		| 6				|
+	| 示例数据	| FE		| E014		| 40		| C003			| 1234		|			|       |       |		|		|	F0		|		|		|		|		|		| F1		|| D6	| 0D0A0D0A0D0A	|*/
 	iwdg_feed();
 	Serial.println("上报实时详细工作状态 <Working_Parameter_Receipt>");
 	Serial.flush();
@@ -274,7 +274,7 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
 	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
 	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
 	ReceiptFrame[ReceiptLength++] = 0x14; //
-	ReceiptFrame[ReceiptLength++] = 0x3E; //数据长度55+7=63
+	ReceiptFrame[ReceiptLength++] = 0x40; //数据长度57+7=64
 
 	/*设备类型*/
 	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
@@ -346,6 +346,10 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
 
 	/*LoraMode*/
 	ReceiptFrame[ReceiptLength++] = LoRa_Para_Config.Read_LoRa_Com_Mode();
+
+	/* 信号的符号位 */
+	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[2];  //接收信号强度符号
+	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[3];  //接收信号强度符号
 
 	/*CRC8*/
 	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
@@ -452,8 +456,10 @@ void Receipt::General_Receipt(unsigned char status, unsigned char send_times)
 
 	/*预留的8个字节*/
 	/*SNR and RSSI*/
-	ReceiptFrame[ReceiptLength++] = Type_Conv.Dec_To_Hex(gLoRaCSQ[0]);  //发送信号强度
-	ReceiptFrame[ReceiptLength++] = Type_Conv.Dec_To_Hex(gLoRaCSQ[1]);  //接收信号强度
+	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[0];  //发送信号强度
+	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[1];  //接收信号强度
+	// ReceiptFrame[ReceiptLength++] = Type_Conv.Dec_To_Hex(gLoRaCSQ[0]);  //发送信号强度
+	// ReceiptFrame[ReceiptLength++] = Type_Conv.Dec_To_Hex(gLoRaCSQ[1]);  //接收信号强度
 	for (unsigned char i = 0; i < 6; i++)
 		ReceiptFrame[ReceiptLength++] = 0x00;
 
@@ -916,7 +922,7 @@ void Receipt::OnLine_Receipt(bool use_random_wait, unsigned char times, unsigned
 void Receipt::Forgery_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2, unsigned char DO_used1,unsigned char DO_used2)
 {
 	/*	| 字节索引	| 0			| 1-2		| 3			| 4-5			| 6-7		| 8			| 9-10	| 11-12	| 13	| 14	| 15-22	| 23-30	| 31-46	| 47-62	| 63-64	| 65		| 66	| 67-73			|
-		| 数据域		| frameHead	| frameId	| dataLen	| DeviceTypeId	| randomId	| status	| swVer	| hwVer	| rssi	| csq	| DI	| DO	| AI	| AO	| VOL	| LoraMode	| CRC8	| frameEnd      |
+		| 数据域	| frameHead	| frameId	| dataLen	| DeviceTypeId	| randomId	| status	| swVer	| hwVer	| rssi	| csq	| DI	| DO	| AI	| AO	| VOL	| LoraMode	| CRC8	| frameEnd      |
 		| 长度		| 1			| 2			| 1			| 2				| 2			| 1			| 2		| 2		| 1		| 1		| 8		| 8		| 16	| 16	| 2		| 1			| 1		| 6				|
 		| 示例数据	| FE		| E014		| 3E		| C003			| 1234		|			|       |       |		|		|		|		|		|		|		| F1		| D6	| 0D0A0D0A0D0A	|*/
 	iwdg_feed();
@@ -983,7 +989,23 @@ void Receipt::Forgery_Receipt(bool use_random_wait, unsigned char times, unsigne
 
 	/*SNR 和 RSSI*/
 	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[0];  //信号发送强度
+	if(gLoRaCSQ[2] == 0)
+	{
+		ReceiptFrame[ReceiptLength++] = 0xE0;
+	}
+	else
+	{
+		ReceiptFrame[ReceiptLength++] = 0xF0;
+	}
 	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[1];  //信号接收强度
+	if(gLoRaCSQ[3] == 0)
+	{
+		ReceiptFrame[ReceiptLength++] = 0xE0;
+	}
+	else
+	{
+		ReceiptFrame[ReceiptLength++] = 0xF0;
+	}
 	//ReceiptFrame[ReceiptLength++] = Type_Conv.Dec_To_Hex(gLoRaCSQ[0]);  //信号发送强度
 	//ReceiptFrame[ReceiptLength++] = Type_Conv.Dec_To_Hex(gLoRaCSQ[1]);  //信号接收强度
 
