@@ -96,18 +96,12 @@
 #define Timeout_END_ADDR						117
 #define E000Interval_BASE_ADDR					118
 #define E000Interval_END_ADDR					119
-#define E014Interval_BASE_ADDR					120
-#define E014Interval_END_ADDR					121
-#define E014Auto_report_BASE_ADDR				122
-#define E014Auto_report_END_ADDR				123
+#define WorkInterval_BASE_ADDR					120
+#define WorkInterval_END_ADDR					121
+#define StopInterval_BASE_ADDR					122
+#define StopInterval_END_ADDR					123
 #define Cyclic_interval_BASE_ADDR				124
 #define Cyclic_interval_END_ADDR				125
-
-/* 延时DO模式存储 */
-// #define Delay_mode_OpenSec_BASE_ADDR			126
-// #define Delay_mode_OpenSec_END_ADDR				127
-
-
 
 
 
@@ -239,19 +233,17 @@ public:
 	unsigned int Read_E000Interval(void);//读取E000Interval时间
 	bool Clean_E000Interval(void);//清除E000Interval时间
 
-	bool Save_E014Auto_report(unsigned char High, unsigned char Low);//存储E014Auto_report时间
-	unsigned int Read_E014Auto_report(void);//读取E014Auto_report时间
-	bool Clean_E014Auto_report(void);//清除E014Auto_report时间
+	bool Save_StopInterval(unsigned char High, unsigned char Low);//存储StopInterval时间
+	unsigned int Read_StopInterval(void);//读取StopInterval时间
+	bool Clean_StopInterval(void);//清除StopInterval时间
 
-	bool Save_E014Interval(unsigned char High, unsigned char Low);//存储E014Interval时间
-	unsigned int Read_E014Interval(void);//读取E014Interval时间
-	bool Clean_E014Interval(void);//清除E014Interval时间
+	bool Save_WorkInterval(unsigned char High, unsigned char Low);//存储WorkInterval时间
+	unsigned int Read_WorkInterval(void);//读取WorkInterval时间
+	bool Clean_WorkInterval(void);//清除WorkInterval时间
 
 	bool Save_CyclicInterval(unsigned char High, unsigned char Low);//保存循环间隔时间
 	unsigned int Read_CyclicInterval();//读取循环间隔时间
 	bool Clean_CyclicInterval(void);//清除循环间隔时间
-
-	// bool Save_Delay_mode_OpenSec(unsigned char High, unsigned char Low);//保存延时模式的
 };
 
 

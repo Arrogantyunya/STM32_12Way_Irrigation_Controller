@@ -4,6 +4,7 @@
 #include "receipt.h"
 #include "Memory.h"
 #include "Set_coil.h"
+#include "Command_Analysis.h"
 #include <Arduino.h>
 
 /*Timer timing time*/
@@ -14,19 +15,6 @@ volatile static unsigned int gSelfCheckNum;
 volatile static unsigned int gStateReportNum;
 /*volatile static */unsigned int Time_Count;
 
-
-/*
- @brief   : 使用定时器2初始化卷膜行程计时参数
- @param   : 无
- @return  : 无
- */
-// void Roll_Timer_Init(void)
-// {
-// 	Timer2.setPeriod(TIMER_NUM); // in microseconds，1S
-// 	Timer2.attachCompare1Interrupt(Timer2_Interrupt);
-// 	Timer2.setCount(0);
-// 	Timer2.pause();
-// }
 
 /*
  @brief   : 使用定时器2初始化自动上报状态周期
@@ -64,18 +52,6 @@ void Irrigation_Timer_Init(void)
 	Timer4.setCount(0);
 }
 
-/*
- @brief   : 开始卷膜计时
- @param   : 无
- @return  : 无
- */
-// void Start_Roll_Timing(void)
-// {
-// 	gRollingTime = 0;
-// 	gRollingTimeVarFlag = false;
-// 	Timer2.setCount(0);
-// 	Timer2.resume();
-// }
 
 /*
  @brief   : 开始上报状态周期计时
@@ -110,16 +86,6 @@ void Start_Timer4(void)
 	Timer4.setCount(0);
 	Time_Count = 0;
 }
-
-/*
- @brief   : 停止卷膜计时
- @param   : 无
- @return  : 无
- */
-// void Stop_Roll_Timing(void)
-// {
-// 	Timer2.pause();
-// }
 
 /*
  @brief   : 停止状态上报周期计时
@@ -161,9 +127,17 @@ void Timer2_Interrupt(void)
 {
 	gStateReportNum++;
 	/*大于0秒 && 小于1800秒（30分钟）才能开启自动上报*/
-	if (InitState.Read_E014Auto_report() >= 5 && InitState.Read_E014Auto_report() <= 1800)
+	if(Enter_Work_State)
 	{
-		if (gStateReportNum >= InitState.Read_E014Auto_report()) //
+		if (gStateReportNum >= InitState.Read_WorkInterval()) //
+		{
+			gStateReportNum = 0;
+			gStateReportFlag = true;
+		}
+	}
+	else
+	{
+		if (gStateReportNum >= InitState.Read_StopInterval()) //
 		{
 			gStateReportNum = 0;
 			gStateReportFlag = true;
@@ -209,15 +183,7 @@ void Timer4_Interrupt(void)
 		gSelfCheckNum = 0;
 		gCheckStoreParamFlag = true;
 	}
-	// /*大于5秒 && 小于1800秒（30分钟）才能开启自动上报*/
-	// if (InitState.Read_E014Auto_report() > 5 && InitState.Read_E014Auto_report() <= 1800)
-	// {
-	// 	if (gStateReportNum >= InitState.Read_E014Auto_report()) //
-	// 	{
-	// 		gStateReportNum = 0;
-	// 		gStateReportFlag = true;
-	// 	}
-	// }
+	
 	Time_Count++;
 	Serial.println(String("Time_Count = ") + Time_Count);
 }

@@ -17,7 +17,8 @@ enum E014_ReceiptStatus
 enum ReceiptStatus {
 	FactoryMode = 0, AskUploadParamsOk, AskUploadParamsErr, AssignGroupIdArrayOk, AssignGroupIdArrayErr, SetSnAndSlaverCountOk,
 	SetSnAndSlaverCountErr, TrunOffOk, TrunOffErr, RestRollerOk, ResetRollerErr, OpenRollerOk, OpenRollerErr, LimitRollerOk,
-	LimitRollerErr, SetLoRaModeOk, SetLoRaModeErr,SetLoRaTFREQOk,SetLoRaTFREQErr,SetLoRaRFREQOk,SetLoRaRFREQErr
+	LimitRollerErr, SetLoRaModeOk, SetLoRaModeErr,SetLoRaTFREQOk,SetLoRaTFREQErr,SetLoRaRFREQOk,SetLoRaRFREQErr,
+	SetIntervalOK,SetIntervalErr,SetRTCOK,SetRTCErr
 };
 
 // /*电机状态*/
@@ -50,15 +51,16 @@ public:
 	void Request_Device_SN_and_Channel(void);//E013当本地SN码丢失，向服务器申请本机的SN码
 	void Working_Parameter_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2);//E014上报实时详细工作状态
 	void General_Receipt(unsigned char status, unsigned char send_times);//E015发送通用回执信息给服务器
-	void Control_command_Receipt(unsigned char interval_1, unsigned char interval_2, unsigned char send_times, unsigned char randomId_1, unsigned char randomId_2);//E000发送通用控制器Modbus控制指令回执信息给服务器
+	void Control_command_Receipt(bool use_random_wait, unsigned char send_times);//E000发送通用控制器Modbus控制指令回执信息给服务器
 	// void Irrigation_loop_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2);//E001发送灌溉循环状态回执信息给服务器
-	void OnLine_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2);//E002发送上线状态回执信息给服务器
+	void OnLine_Receipt(bool use_random_wait, unsigned char times);//E002发送上线状态回执信息给服务器
 	void Irrigation_control_Receipt(unsigned char send_times, unsigned char* gReceiveCmd);//E003发送灌溉控制回执信息给服务器
 	void Delay_Start_DO_Control_Receipt(unsigned char send_times, unsigned char* gReceiveCmd);//E004发送延时开启回执信息给服务器
-	void Positive_negative_Control_Receipt(unsigned char send_times, unsigned char* gReceiveCmd);//E005送正反转回执信息给服务器
+	void Positive_negative_Control_Receipt(unsigned char send_times, unsigned char* gReceiveCmd);//E005发送正反转回执信息给服务器
 	void New_Working_Parameter_Receipt(bool use_random_wait,unsigned char send_times);//E006新实时状态回执
+	void SignalQuality_Version_Receipt(bool use_random_wait,unsigned char send_times);//E007信号质量与版本号回执
 	
-	void Output_init_Receipt(unsigned char status, unsigned char send_times, unsigned char randomId_1, unsigned char randomId_2, unsigned char* R_Modbus_Instructions, int R_Modbus_Length);//E002发送设置初始状态回执信息给服务器
+	void Output_init_Receipt(unsigned char status, unsigned char send_times);//E002发送设置初始状态回执信息给服务器
 private:
 	void Receipt_Random_Wait_Value(unsigned long int *random_value);//
 	void Clear_Server_LoRa_Buffer(void);//

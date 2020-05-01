@@ -559,21 +559,21 @@ unsigned char Modbus_Coils::Get_DI_1to8(void)
 	{
 		switch (i)
 		{
-		case 0: digitalRead(DI1) == HIGH ? DI1to8 += 1 : DI1to8 += 0;
+		case 0: digitalRead(DI8) == HIGH ? DI1to8 += 1 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 1:	digitalRead(DI2) == HIGH ? DI1to8 += 2 : DI1to8 += 0;
+		case 1:	digitalRead(DI7) == HIGH ? DI1to8 += 2 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 2: digitalRead(DI3) == HIGH ? DI1to8 += 4 : DI1to8 += 0;
+		case 2: digitalRead(DI6) == HIGH ? DI1to8 += 4 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 3:	digitalRead(DI4) == HIGH ? DI1to8 += 8 : DI1to8 += 0;
+		case 3:	digitalRead(DI5) == HIGH ? DI1to8 += 8 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 4: digitalRead(DI5) == HIGH ? DI1to8 += 16 : DI1to8 += 0;
+		case 4: digitalRead(DI4) == HIGH ? DI1to8 += 16 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 5:	digitalRead(DI6) == HIGH ? DI1to8 += 32 : DI1to8 += 0;
+		case 5:	digitalRead(DI3) == HIGH ? DI1to8 += 32 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 6: digitalRead(DI7) == HIGH ? DI1to8 += 64 : DI1to8 += 0;
+		case 6: digitalRead(DI2) == HIGH ? DI1to8 += 64 : DI1to8 += 0;
 			/*Serial.println(String("DI1to8 = ") + DI1to8);*/ break;
-		case 7:	digitalRead(DI8) == HIGH ? DI1to8 += 128 : DI1to8 += 0;
+		case 7:	digitalRead(DI1) == HIGH ? DI1to8 += 128 : DI1to8 += 0;
 			// Serial.println(String("DI1to8 = ") + DI1to8); break;
 		default:
 			break;
@@ -595,21 +595,21 @@ unsigned char Modbus_Coils::Get_DO_1to8(void)
 	{
 		switch (i)
 		{
-		case 0: digitalRead(KCZJ1) == HIGH ? DO1to8 &= ~(1<<7) : DO1to8 |= 1<<7;
+		case 0: digitalRead(KCZJ8) == HIGH ? DO1to8 &= ~(1<<7) : DO1to8 |= 1<<7;
 			/* Serial.println(String("DO1to8 = ") + DO1to8); */ break;
-		case 1:	digitalRead(KCZJ2) == HIGH ? DO1to8 &= ~(1<<6) : DO1to8 |= 1<<6;
+		case 1:	digitalRead(KCZJ7) == HIGH ? DO1to8 &= ~(1<<6) : DO1to8 |= 1<<6;
 			/* Serial.println(String("DO1to8 = ") + DO1to8); */ break;
-		case 2: digitalRead(KCZJ3) == HIGH ? DO1to8 &= ~(1<<5) : DO1to8 |= 1<<5;
+		case 2: digitalRead(KCZJ6) == HIGH ? DO1to8 &= ~(1<<5) : DO1to8 |= 1<<5;
 			/* Serial.println(String("DO1to8 = ") + DO1to8); */ break;
-		case 3:	digitalRead(KCZJ4) == HIGH ? DO1to8 &= ~(1<<4) : DO1to8 |= 1<<4;
+		case 3:	digitalRead(KCZJ5) == HIGH ? DO1to8 &= ~(1<<4) : DO1to8 |= 1<<4;
 			/* Serial.println(String("DO1to8 = ") + DO1to8); */ break;
-		case 4: digitalRead(KCZJ5) == HIGH ? DO1to8 &= ~(1<<3) : DO1to8 |= 1<<3;
+		case 4: digitalRead(KCZJ4) == HIGH ? DO1to8 &= ~(1<<3) : DO1to8 |= 1<<3;
 			/* Serial.println(String("DO1to8 = ") + DO1to8); */ break;
-		case 5:	digitalRead(KCZJ6) == HIGH ? DO1to8 &= ~(1<<2) : DO1to8 |= 1<<2;
+		case 5:	digitalRead(KCZJ3) == HIGH ? DO1to8 &= ~(1<<2) : DO1to8 |= 1<<2;
 			/* Serial.println(String("DO1to8 = ") + DO1to8); */ break;
-		case 6: digitalRead(KCZJ7) == HIGH ? DO1to8 &= ~(1<<1) : DO1to8 |= 1<<1;
+		case 6: digitalRead(KCZJ2) == HIGH ? DO1to8 &= ~(1<<1) : DO1to8 |= 1<<1;
 			/* Serial.println(String("DO1to8 = ") + DO1to8); */ break;
-		case 7:	digitalRead(KCZJ8) == HIGH ? DO1to8 &= ~(1<<0) : DO1to8 |= 1<<0;
+		case 7:	digitalRead(KCZJ1) == HIGH ? DO1to8 &= ~(1<<0) : DO1to8 |= 1<<0;
 			/* Serial.println(String("DO1to8 = ") + DO1to8); */ break;
 		default:
 			break;
@@ -632,21 +632,21 @@ unsigned char Modbus_Coils::Get_DO_9to16(void)
 	{
 		switch (i)
 		{
-		case 0: digitalRead(KCZJ9) == HIGH ? DO9to16 += 0 : DO9to16 += 128;
+		case 0: DO9to16 += 0;
 			/*Serial.println(String("DO9to16 = ") + DO9to16);*/ break;
-		case 1:	digitalRead(KCZJ10) == HIGH ? DO9to16 += 0 : DO9to16 += 64;
+		case 1:	DO9to16 += 0;
 			/*Serial.println(String("DO9to16 = ") + DO9to16);*/ break;
-		case 2: digitalRead(KCZJ11) == HIGH ? DO9to16 += 0 : DO9to16 += 32;
+		case 2: DO9to16 += 0;
 			/*Serial.println(String("DO9to16 = ") + DO9to16);*/ break;
-		case 3:	digitalRead(KCZJ12) == HIGH ? DO9to16 += 0 : DO9to16 += 16;
+		case 3:	DO9to16 += 0;
 			/*Serial.println(String("DO9to16 = ") + DO9to16);*/ break;
-		case 4: DO9to16 += 0;
+		case 4: digitalRead(KCZJ12) == HIGH ? DO9to16 += 0 : DO9to16 += 16;
 			/*Serial.println(String("DO9to16 = ") + DO9to16);*/ break;
-		case 5:	DO9to16 += 0;
+		case 5:	digitalRead(KCZJ11) == HIGH ? DO9to16 += 0 : DO9to16 += 32;
 			/*Serial.println(String("DO9to16 = ") + DO9to16);*/ break;
-		case 6: DO9to16 += 0;
+		case 6: digitalRead(KCZJ10) == HIGH ? DO9to16 += 0 : DO9to16 += 64;
 			/*Serial.println(String("DO9to16 = ") + DO9to16);*/ break;
-		case 7:	DO9to16 += 0;
+		case 7:	digitalRead(KCZJ9) == HIGH ? DO9to16 += 0 : DO9to16 += 128;
 			/* Serial.println(String("DO9to16 = ") + DO9to16); */ break;
 		default: break;
 		}

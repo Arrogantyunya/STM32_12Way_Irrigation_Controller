@@ -62,9 +62,11 @@ void Receipt::Receipt_Random_Wait_Value(unsigned long int *random_value)
  */
 void Receipt::Report_General_Parameter(void)
 {
-	//  帧头     |    帧ID   |  数据长度   |    设备类型ID   |群发标志位 | 所在执行区域号  | 工作组号   | SN码    | 查询角色 | 采集时间间隔      |  时间   |  预留位     |  校验码  |     帧尾 
-	//Frame head | Frame ID | Data Length | Device type ID | mass flag | Area number   | workgroup | SN code | channel | collect interval  |  RTC   |   allocate  |  CRC8   |  Frame end
-	//  1 byte       2 byte      1 byte          2 byte       1 byte       1 byte          5 byte     9 byte    1 byte      2 byte           7 byte      8 byte     1 byte      6 byte
+// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8-12   	13-21   	22     	23-24   	25-31         	32-39   	40  	41-45        
+// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	GroupID	SN      	channel	Interval	RTC           	Allocata	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1      	2           	1          	1     	5      	9       	1      	2       	7             	8       	1   	6            
+// 示例数据    	FE       	E001   	0x24   	C003        	00         	01    	XXXXXX 	C003XXXX	01     	0000    	20200501121010	        	00  	0D0A0D 0A0D0A
+
 
 	unsigned char ReportFrame[64] = { 0 };
 	unsigned char FrameLength = 0;
@@ -83,34 +85,43 @@ void Receipt::Report_General_Parameter(void)
 	ReportFrame[FrameLength++] = 0xE0; //帧ID
 	ReportFrame[FrameLength++] = 0x11;
 	ReportFrame[FrameLength++] = 0x24; //帧有效数据长度
+
 	/*设备类型*/
 	ReportFrame[FrameLength++] = highByte(DEVICE_TYPE_ID);
 	ReportFrame[FrameLength++] = lowByte(DEVICE_TYPE_ID);
+
 	/*是否是群发*/
 	gMassCommandFlag == true ? ReportFrame[FrameLength++] = 0x55 : ReportFrame[FrameLength++] = 0x00;
 	/*区域号*/
 	ReportFrame[FrameLength++] = SN.Read_Area_Number();
+
 	/*组号*/
 	SN.Read_Group_Number(&DataTemp[0]);
 	for (unsigned char i = 0; i < 5; i++)
 		ReportFrame[FrameLength++] = DataTemp[i];
+
 	/*SN码*/
 	SN.Read_SN_Code(&DataTemp[0]);
 	for (unsigned char i = 0; i < 9; i++)
 		ReportFrame[FrameLength++] = DataTemp[i];
+
 	/*路数*/
 	ReportFrame[FrameLength++] = 0x01; //卷膜机默认只有一路
+
 	/*采集状态间隔*/
 	ReportFrame[FrameLength++] = 0x00;
 	ReportFrame[FrameLength++] = 0x00;
+
 	/*RTC*/
 	for (unsigned char i = 0; i < 7; i++)
 		ReportFrame[FrameLength++] = 0x00;
+
 	/*预留的8个字节*/
 	for (unsigned char i = 0; i < 8; i++)
 		ReportFrame[FrameLength++] = 0x00;
+
 	/*CRC8*/
-	ReportFrame[FrameLength++] = GetCrc8(&ReportFrame[4], 0x24);
+	ReportFrame[FrameLength++] = GetCrc8(&ReportFrame[4], ReportFrame[3]);
 	/*帧尾*/
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReportFrame[FrameLength++] = 0x0D : ReportFrame[FrameLength++] = 0x0A;
@@ -132,9 +143,11 @@ void Receipt::Report_General_Parameter(void)
  */
 void Receipt::Request_Set_Group_Number(void)
 {
-	//  帧头     |    帧ID   |  数据长度   |    设备类型ID   |群发标志位 | 所在执行区域号 |  设备路数      | 校验码  |     帧尾 
-	//Frame head | Frame ID | Data Length | Device type ID | mass flag | Area number  | Device channel |  CRC8  |  Frame end
-	//  1 byte        2 byte      1 byte          2 byte       1 byte       1 byte          1 byte       1 byte     6 byte
+// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8      	9   	10~15        
+// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	channel	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1      	2           	1          	1     	1      	1   	6            
+// 示例数据    	FE       	E012   	0x05   	C003        	00         	01    	01     	00  	0D0A0D 0A0D0A
+
 
 	unsigned char RequestFrame[20] = { 0 };
 	unsigned char FrameLength = 0;
@@ -153,17 +166,23 @@ void Receipt::Request_Set_Group_Number(void)
 	RequestFrame[FrameLength++] = 0xE0; //帧ID
 	RequestFrame[FrameLength++] = 0x12;
 	RequestFrame[FrameLength++] = 0x05; //帧有效数据长度
+	
 	/*设备ID*/
 	RequestFrame[FrameLength++] = highByte(DEVICE_TYPE_ID);
 	RequestFrame[FrameLength++] = lowByte(DEVICE_TYPE_ID);
+
 	/*是否是群发*/
 	gMassCommandFlag == true ? RequestFrame[FrameLength++] = 0x55 : RequestFrame[FrameLength++] = 0x00;
+	
 	/*区域号*/
 	RequestFrame[FrameLength++] = SN.Read_Area_Number();
+	
 	/*设备路数*/
 	RequestFrame[FrameLength++] = 0x01;
+	
 	/*CRC8*/
-	RequestFrame[FrameLength++] = GetCrc8(&RequestFrame[4], 0x05);
+	RequestFrame[FrameLength++] = GetCrc8(&RequestFrame[4], RequestFrame[3]);
+	
 	/*帧尾*/
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? RequestFrame[FrameLength++] = 0x0D : RequestFrame[FrameLength++] = 0x0A;
@@ -185,13 +204,15 @@ void Receipt::Request_Set_Group_Number(void)
  */
 void Receipt::Request_Device_SN_and_Channel(void)
 {
-	//  帧头     |    帧ID   |  数据长度   |    设备类型ID   | 群发标志位 | 所在执行区域号 |  设备路数      | 校验码  |     帧尾 
-	//Frame head | Frame ID | Data Length | Device type ID |  mass flag |  Area number | Device channel |  CRC8  |  Frame end
-	//  1 byte        2 byte      1 byte          2 byte        1 byte      1 byte          1 byte       1 byte     6 byte
+// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8      	9   	10~15        
+// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	channel	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1      	2           	1          	1     	1      	1   	6            
+// 示例数据    	FE       	E013   	0x05   	C003        	00         	01    	       	00  	0D0A0D 0A0D0A
+
 
 	unsigned char RequestFrame[20] = { 0 };
 	unsigned char FrameLength = 0;
-	// unsigned char RandomSeed;
+
 	unsigned long int RandomSendInterval = 0;
 
 	Receipt_Random_Wait_Value(&RandomSendInterval);
@@ -206,17 +227,22 @@ void Receipt::Request_Device_SN_and_Channel(void)
 	RequestFrame[FrameLength++] = 0xE0; //帧ID
 	RequestFrame[FrameLength++] = 0x13;
 	RequestFrame[FrameLength++] = 0x05; //帧有效数据长度
+
 	/*设备ID*/
 	RequestFrame[FrameLength++] = highByte(DEVICE_TYPE_ID);
 	RequestFrame[FrameLength++] = lowByte(DEVICE_TYPE_ID);
+
 	/*是否是群发*/
 	gMassCommandFlag == true ? RequestFrame[FrameLength++] = 0x55 : RequestFrame[FrameLength++] = 0x00;
+	
 	/*区域号*/
 	RequestFrame[FrameLength++] = SN.Read_Area_Number();
+	
 	/*设备路数*/
 	RequestFrame[FrameLength++] = 0x01;
+	
 	/*CRC8*/
-	RequestFrame[FrameLength++] = GetCrc8(&RequestFrame[4], 0x05);
+	RequestFrame[FrameLength++] = GetCrc8(&RequestFrame[4], RequestFrame[3]);
 	/*帧尾*/
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? RequestFrame[FrameLength++] = 0x0D : RequestFrame[FrameLength++] = 0x0A;
@@ -238,16 +264,17 @@ void Receipt::Request_Device_SN_and_Channel(void)
  */
 void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2)
 {
-  /*| 字节索引	| 0			| 1-2		| 3			| 4-5			| 6-7		| 8			| 9-10	| 11-12	| 13	| 15	|16			| 15-22	| 23-30	| 31-46	| 47-62	| 63-64	| 65		|| 66	| 67-73			|
-	| 数据域	| frameHead	| frameId	| dataLen	| DeviceTypeId	| randomId	| status	| swVer	| hwVer	| rssi	| csq	|csqSymbol	| DI	| DO	| AI	| AO	| VOL	| LoraMode	|| CRC8	| frameEnd      |
-	| 长度		| 1			| 2			| 1			| 2				| 2			| 1			| 2		| 2		| 1		| 1		| 1 		| 8		| 8		| 16	| 16	| 2		| 1			|| 1		| 6				|
-	| 示例数据	| FE		| E014		| 40		| C003			| 1234		|			|       |       |		|		|	F0		|		|		|		|		|		| F1		|| D6	| 0D0A0D0A0D0A	|*/
+// 字节索引    	0        	1-2    	3      	4-5         	6     	7-8  	9-10 	11  	12  	13-20	21-28	29-44	45-60	61-62	63      	64-65	66  	67-72        
+// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	status	swVer	hwVer	SNR 	RSSI	DI   	DO   	AI   	AO   	VOL  	LoraMode	符号位  	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1      	2           	1     	2    	2    	1   	1   	8    	8    	16   	16   	2    	1       	2    	1   	6            
+// 示例数据    	FE       	E014   	0x3E   	C003        	00    	0200 	0200 	    	    	     	     	     	     	     	        	     	00  	0D0A0D 0A0D0A
+
 	iwdg_feed();
 	Serial.println("上报实时详细工作状态 <Working_Parameter_Receipt>");
 	Serial.flush();
-	unsigned char ReceiptFrame[74] = { 0x00 };
+	unsigned char ReceiptFrame[72] = { 0x00 };
 	unsigned char ReceiptLength = 0;
-	// unsigned char RandomSeed;
+
 	unsigned long int RandomSendInterval = 0;
 
 	iwdg_feed();
@@ -259,12 +286,6 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
 	}
 	iwdg_feed();
 
-	if (gLoRaCSQ[0] == 0 || gLoRaCSQ[1] == 0)
-	{
-		Serial.println("开始查询信号质量");
-		LoRa_MHL9LF.LoRa_AT(gLoRaCSQ, true, AT_CSQ_, 0);
-	}
-
 #if CLEAR_BUFFER_FLAG
 	Clear_Server_LoRa_Buffer();
 #endif
@@ -272,15 +293,11 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
 	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
 	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
 	ReceiptFrame[ReceiptLength++] = 0x14; //
-	ReceiptFrame[ReceiptLength++] = 0x40; //数据长度57+7=64
+	ReceiptFrame[ReceiptLength++] = 0x3E; //数据长度62
 
 	/*设备类型*/
 	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
 	ReceiptFrame[ReceiptLength++] = lowByte(DEVICE_TYPE_ID);
-
-	/*randomId*/
-	ReceiptFrame[ReceiptLength++] = randomId_1;
-	ReceiptFrame[ReceiptLength++] = randomId_2;
 
 	/*status*/
 	Serial.println(String("gStatus_E014 = ") + gStatus_E014);
@@ -294,15 +311,6 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
 	/*hwVer*/
 	ReceiptFrame[ReceiptLength++] = Vertion.Read_hardware_version(HARD_VERSION_BASE_ADDR);
 	ReceiptFrame[ReceiptLength++] = Vertion.Read_hardware_version(HARD_VERSION_BASE_ADDR + 1);
-
-	/*验证服务器命令是否是群发*/
-	//gMassCommandFlag == true ? ReceiptFrame[ReceiptLength++] = 0x55 : ReceiptFrame[ReceiptLength++] = 0x00;
-	
-	/*区域ID*/
-	//ReceiptFrame[ReceiptLength++] = SN.Read_Area_Number();
-	
-	/*设备路数*/
-	//ReceiptFrame[ReceiptLength++] = 0x01;
 	
 	/*SNR 和 RSSI*/
 	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[0];  //信号发送强度
@@ -361,10 +369,8 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
 	for (unsigned char i = 0; i < times; i++)
 	{
 		iwdg_feed();
-		//Some_Peripheral.Stop_LED();
 		LoRa_Serial.write(&ReceiptFrame[0], ReceiptLength);
 		delayMicroseconds(SEND_DATA_DELAY * 1000);
-		//Some_Peripheral.Start_LED();
 	}
 
 #elif PLC_V2
@@ -381,9 +387,11 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
  */
 void Receipt::General_Receipt(unsigned char status, unsigned char send_times)
 {
-	//  帧头     |    帧ID   |  数据长度   |    设备类型ID   | 群发标志位 | 所在执行区域号 |  设备路数      | 回执状态       |  预留位    | 校验码  |     帧尾 
-	//Frame head | Frame ID | Data Length | Device type ID | mass flag | Area number | Device channel | receipt status |  allocate | CRC8    |  Frame end
-	//  1 byte        2 byte      1 byte          2 byte       1 byte        1 byte          1 byte       1 byte          8 byte      1 byte     6 byte
+// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8      	9     	10-17   	18  	19~24        
+// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	channel	Status	Allocate	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1      	2           	1          	1     	1      	1     	8       	1   	6            
+// 示例数据    	FE       	E015   	0x0E   	C003        	00         	01    	       	      	00000   	00  	0D0A0D 0A0D0A
+
 
 	unsigned char ReceiptFrame[25] = { 0 };
 	unsigned char ReceiptLength = 0;
@@ -393,10 +401,6 @@ void Receipt::General_Receipt(unsigned char status, unsigned char send_times)
 	Receipt_Random_Wait_Value(&RandomSendInterval);
 	delayMicroseconds(RandomSendInterval);
 	iwdg_feed();
-
-	/*读取LoRa模块的 SNR and RSSI，为了防止影响性能，只获取一次信号值*/
-	if (gLoRaCSQ[0] == 0 || gLoRaCSQ[1] == 0)
-		LoRa_MHL9LF.LoRa_AT(gLoRaCSQ, true, AT_CSQ_, 0);
 
 #if CLEAR_BUFFER_FLAG
 	Clear_Server_LoRa_Buffer();
@@ -423,16 +427,11 @@ void Receipt::General_Receipt(unsigned char status, unsigned char send_times)
 	ReceiptFrame[ReceiptLength++] = status;
 
 	/*预留的8个字节*/
-	/*SNR and RSSI*/
-	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[0];  //发送信号强度
-	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[1];  //接收信号强度
-	// ReceiptFrame[ReceiptLength++] = Type_Conv.Dec_To_Hex(gLoRaCSQ[0]);  //发送信号强度
-	// ReceiptFrame[ReceiptLength++] = Type_Conv.Dec_To_Hex(gLoRaCSQ[1]);  //接收信号强度
-	for (unsigned char i = 0; i < 6; i++)
+	for (unsigned char i = 0; i < 8; i++)
 		ReceiptFrame[ReceiptLength++] = 0x00;
 
 	/*CRC8*/
-	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], 0x0E);
+	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
 
 	/*帧尾*/
 	for (unsigned char i = 0; i < 6; i++)
@@ -447,66 +446,64 @@ void Receipt::General_Receipt(unsigned char status, unsigned char send_times)
 		LoRa_Serial.write(ReceiptFrame, ReceiptLength);
 		delay(SEND_DATA_DELAY);
 	}
-	//Some_Peripheral.Start_LED();
 }
 
 /*
  @brief   : 发送通用控制器Modbus控制指令回执信息给服务器。（本设备 ---> 服务器）
- @param   : 1.上报时间间隔，interval_1
-			2.上报时间间隔，interval_2
-			3.回执次数，send_times
-			4.随机ID第1位，randomId_1
-			5.随机ID第2位，randomId_2
-			6.485设备回执数组的指针，R_Modbus_Instructions
-			7.485设备回执数组的长度，R_Modbus_Length
+ @param   :	1.使用随机延时
+			2.回执次数，send_times
  @return  : 无
  */
-void Receipt::Control_command_Receipt(unsigned char interval_1, unsigned char interval_2, unsigned char send_times, unsigned char randomId_1, unsigned char randomId_2/*, unsigned char * R_Modbus_Instructions, int R_Modbus_Length*/)
+void Receipt::Control_command_Receipt(bool use_random_wait, unsigned char send_times)
 {
-	  /*| 字节索引	| 0			| 1-2		| 3			| 4 - 5			| 6				| 7			| 8			| 9			| 10		| 11~(11 + n)	|		|               |
-		| 数据域	| frameHead	| frameId	| dataLen	| DeviceTypeId	| isBroadcast	| zoneId	| groupId	| random	| interval	| modbusPacket	| CRC8	| frameEnd		|
-		| 长度		| 1			| 2			| 1			| 2				| 1				| 1			| 1			| 2			| 2			| n				| 1		| 6				|
-		| 示例数据	| FE		| E000		| 9 + N		| C003			| 00			| 01		| 01		| 1234		| 0000		| XXXXXXXX		| 00	| 0D0A0D0A0D0A	|*/
+// 字节索引  	0        	1-2    	3      	4-5         	6          	7     	8      	9-n         	    	             
+// 数据域   	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	zoneId	groupId	modbusPacket	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1      	2           	1          	1     	1      	n           	1   	6            
+// 示例数据  	FE       	E000   	5+N    	C003        	00         	01    	01     	XXXXXXXX    	00  	0D0A0D 0A0D0A
 
-	unsigned char ReceiptFrame[38] = { 0 };
+
+	unsigned char ReceiptFrame[50] = { 0 };
 	unsigned char ReceiptLength = 0;
 	// unsigned char RandomSeed;
-	// unsigned long int RandomSendInterval = 0;
+	unsigned long int RandomSendInterval = 0;
 
-	//Receipt_Random_Wait_Value(&RandomSendInterval);
-	//delayMicroseconds(RandomSendInterval);
+	iwdg_feed();
+	if (use_random_wait)
+	{
+		//随机等待一段时间后再发送，避免大量设备发送堵塞。
+		Receipt_Random_Wait_Value(&RandomSendInterval);
+		delayMicroseconds(RandomSendInterval);
+	}
 	iwdg_feed();
 
 	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
 	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
 	ReceiptFrame[ReceiptLength++] = 0x00;
-	ReceiptFrame[ReceiptLength++] = G_modbusPacket_Length + 9; //帧有效数据长度
+	ReceiptFrame[ReceiptLength++] = G_modbusPacket_Length + 5; //帧有效数据长度
 
 	/*设备类型*/
 	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
 	ReceiptFrame[ReceiptLength++] = lowByte(DEVICE_TYPE_ID);
+
 	/*是否是群发*/
 	//gMassCommandFlag == true ? ReceiptFrame[ReceiptLength++] = 0x55 : ReceiptFrame[ReceiptLength++] = 0x00;
 	ReceiptFrame[ReceiptLength++] = 0x00;
+
 	/*区域号*/
 	ReceiptFrame[ReceiptLength++] = SN.Read_Area_Number();
+
 	/*组ID*/
 	ReceiptFrame[ReceiptLength++] = 0x01;
-	/*random*/
-	ReceiptFrame[ReceiptLength++] = randomId_1;
-	ReceiptFrame[ReceiptLength++] = randomId_2;
-	/*interval*/
-	ReceiptFrame[ReceiptLength++] = interval_1;
-	ReceiptFrame[ReceiptLength++] = interval_2;
+
 	/*设备回执的字段*/
-	//extern unsigned char G_modbusPacket[10];
-	//extern int G_modbusPacket_Length;
 	for (unsigned char i = 0; i < G_modbusPacket_Length; i++)
 	{
 		ReceiptFrame[ReceiptLength++] = G_modbusPacket[i];
 	}
+
 	/*CRC8*/
-	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], G_modbusPacket_Length + 9);
+	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
+
 	/*帧尾*/
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
@@ -534,47 +531,29 @@ void Receipt::Control_command_Receipt(unsigned char interval_1, unsigned char in
 			6.485设备回执数组的长度，R_Modbus_Length
  @return  : 无
  */
-void Receipt::Output_init_Receipt(unsigned char status, unsigned char send_times, unsigned char randomId_1, unsigned char randomId_2, unsigned char* R_Modbus_Instructions, int R_Modbus_Length)
+void Receipt::Output_init_Receipt(unsigned char status, unsigned char send_times)
 {
-  /*|字节索引	| 0			| 1 - 2		| 3			| 4 - 5		| 6			| 7-n	|		|				|
-	|数据域		| frameHead | frameId	| dataLen	| randomId	| status	| RS485	| CRC8	| frameEnd		|
-	|长度(byte)	| 1			| 2			| 1			| 2			| 1			| n		| 1		| 6				|
-	|示例数据	| FE		| E002		|			| 1234		|			| xxxx	| 00	| 0D0A0D0A0D0A	|*/
-	unsigned char ReceiptFrame[34] = { 0 };
-	unsigned char ReceiptLength = 0;
-	// unsigned char RandomSeed;
-	// unsigned long int RandomSendInterval = 0;
+// 字节索引  	0        	1-2    	3      	4-5         	6          	7     	8     	9  		10-15        
+// 数据域   	frameHead	frameId	dataLen	DeviceTypeId	IsBroadcast	ZoneId	status	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1      	2           	1          	1     	1     	1   	6            
+// 示例数据  	FE       	E008   	0x01   	C003        	55         	01    	00    	D6  	0D0A0D 0A0D0A
 
-	//Receipt_Random_Wait_Value(&RandomSendInterval);
-	//delayMicroseconds(RandomSendInterval);
+	unsigned char ReceiptFrame[50] = { 0 };
+	unsigned char ReceiptLength = 0;
+
 	iwdg_feed();
 
 	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
 	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
-	ReceiptFrame[ReceiptLength++] = 0x02;
-	ReceiptFrame[ReceiptLength++] = R_Modbus_Length + 3; //帧有效数据长度
+	ReceiptFrame[ReceiptLength++] = 0x08;
+	ReceiptFrame[ReceiptLength++] = 0x01; //帧有效数据长度
 
-	///*设备类型*/
-	//ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
-	//ReceiptFrame[ReceiptLength++] = lowByte(DEVICE_TYPE_ID);
-	///*是否是群发*/
-	//gMassCommandFlag == true ? ReceiptFrame[ReceiptLength++] = 0x55 : ReceiptFrame[ReceiptLength++] = 0x00;
-	///*区域号*/
-	//ReceiptFrame[ReceiptLength++] = SN.Read_Area_Number();
-	///*路数*/
-	//ReceiptFrame[ReceiptLength++] = 0x01;
-	/*randomId*/
-	ReceiptFrame[ReceiptLength++] = randomId_1;
-	ReceiptFrame[ReceiptLength++] = randomId_2;
 	/*回执状态*/
 	ReceiptFrame[ReceiptLength++] = status;
-	/*485设备回执的字段*/
-	for (unsigned char i = 0; i < R_Modbus_Length; i++)
-	{
-		ReceiptFrame[ReceiptLength++] = R_Modbus_Instructions[i];
-	}
+
 	/*CRC8*/
-	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], R_Modbus_Length + 3);
+	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
+
 	/*帧尾*/
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
@@ -615,7 +594,7 @@ void Receipt::Irrigation_control_Receipt(unsigned char send_times, unsigned char
 	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
 	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
 	ReceiptFrame[ReceiptLength++] = 0x03;
-	ReceiptFrame[ReceiptLength++] = 0x06; //帧有效数据长度
+	ReceiptFrame[ReceiptLength++] = 0x04; //帧有效数据长度
 
 	/*设备类型*/
 	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
@@ -626,10 +605,6 @@ void Receipt::Irrigation_control_Receipt(unsigned char send_times, unsigned char
 	
 	/*区域号*/
 	ReceiptFrame[ReceiptLength++] = SN.Read_Area_Number();
-
-	/*randomId*/
-	ReceiptFrame[ReceiptLength++] = gReceiveCmd[x++];
-	ReceiptFrame[ReceiptLength++] = gReceiveCmd[x++];
 
 	// /*openSec*/
 	// for (size_t i = 0; i < 32; i++)
@@ -661,7 +636,7 @@ void Receipt::Irrigation_control_Receipt(unsigned char send_times, unsigned char
 	//ReceiptFrame[ReceiptLength++] = status;
 	
 	/*CRC8*/
-	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], 0x68);
+	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
 	/*帧尾*/
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
@@ -685,6 +660,11 @@ void Receipt::Irrigation_control_Receipt(unsigned char send_times, unsigned char
  */
 void Receipt::Delay_Start_DO_Control_Receipt(unsigned char send_times, unsigned char* gReceiveCmd)
 {
+// 字节索引  	0        	1-2    	3      	4-5         	6          	7     	8-9    	10      	11   	12-13 	14  	15~20        
+// 数据域   	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	openSec	interval	DONum	DOUsed	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1      	2           	1          	1     	2      	1       	1    	2     	1   	6            
+// 示例数据  	FE       	E004   	0A     	C003        	00         	01    	003C   	30      	2    	FF00  	D6  	0D0A0D 0A0D0A
+
 	unsigned char ReceiptFrame[50] = { 0 };
 	unsigned char ReceiptLength = 0;
 	unsigned char x = 8;
@@ -725,7 +705,7 @@ void Receipt::Delay_Start_DO_Control_Receipt(unsigned char send_times, unsigned 
 	ReceiptFrame[ReceiptLength++] = gReceiveCmd[x++];
 	
 	/*CRC8*/
-	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], 0x0A);
+	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
 	/*帧尾*/
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
@@ -749,14 +729,15 @@ void Receipt::Delay_Start_DO_Control_Receipt(unsigned char send_times, unsigned 
  */
 void Receipt::Positive_negative_Control_Receipt(unsigned char send_times, unsigned char* gReceiveCmd)
 {
+// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8-15    	16      	17    	18  	19~24        
+// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	WorkTime	interval	DOUsed	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1      	2           	1          	1     	8       	1       	1     	1   	6            
+// 示例数据    	FE       	E005   	0E     	C003        	00         	01    	0A0A0A0A	03      	55/AA 	00  	0D0A0D 0A0D0A
+
 	unsigned char ReceiptFrame[50] = { 0 };
 	unsigned char ReceiptLength = 0;
 	unsigned char x = 8;
-	// unsigned char RandomSeed;
-	// unsigned long int RandomSendInterval = 0;
 
-	//Receipt_Random_Wait_Value(&RandomSendInterval);
-	//delayMicroseconds(RandomSendInterval);
 	iwdg_feed();
 
 	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
@@ -787,7 +768,7 @@ void Receipt::Positive_negative_Control_Receipt(unsigned char send_times, unsign
 	ReceiptFrame[ReceiptLength++] = gReceiveCmd[x++];
 	
 	/*CRC8*/
-	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], 0x0E);
+	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
 	/*帧尾*/
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
@@ -889,6 +870,87 @@ void  Receipt::New_Working_Parameter_Receipt(bool use_random_wait,unsigned char 
 }
 
 /*
+ @brief   : E007信号质量与版本号回执。（本设备 ---> 服务器）
+ @param   :	1.是否启用随机等待
+ 			2.回执次数，send_times
+ @return  : 无
+ */
+void Receipt::SignalQuality_Version_Receipt(bool use_random_wait,unsigned char send_times)//E007信号质量与版本号回执
+{
+// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8-9     	11-12     		13-14       	15-16       		17  	18~23        
+// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	SNR     	RSSI      		SoftwareVer 	HardwareVer 		CRC8	frameEnd     
+// 长度（byte）	1        	2      	1      	2           	1          	1     	2       	2         		2           	2           		1   	6            
+// 示例数据    	FE       	E007   	0C     	C003        	00         	01    	05E0（+5）	80F0（-128）	0202（V2.0.2）	0220（V2.2.0）		D6  	0D0A0D 0A0D0A
+
+	iwdg_feed();
+	Serial.println("上报信号强度以及版本号 <SignalQuality_Version_Receipt>");
+	Serial.flush();
+	unsigned char ReceiptFrame[50] = { 0x00 };
+	unsigned char ReceiptLength = 0;
+	unsigned long int RandomSendInterval = 0;
+
+	iwdg_feed();
+	if (use_random_wait)
+	{
+		//随机等待一段时间后再发送，避免大量设备发送堵塞。
+		Receipt_Random_Wait_Value(&RandomSendInterval);
+		delayMicroseconds(RandomSendInterval);
+	}
+	iwdg_feed();
+
+	/*读取LoRa模块的 SNR and RSSI*/
+	LoRa_MHL9LF.LoRa_AT(gLoRaCSQ, true, AT_CSQ_, 0);
+
+#if CLEAR_BUFFER_FLAG
+	Clear_Server_LoRa_Buffer();
+#endif
+
+	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
+	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
+	ReceiptFrame[ReceiptLength++] = 0x07; //
+	ReceiptFrame[ReceiptLength++] = 0x0C; //数据长度
+
+	/*设备类型*/
+	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
+	ReceiptFrame[ReceiptLength++] = lowByte(DEVICE_TYPE_ID);
+
+	/*是否是群发*/
+	gMassCommandFlag == true ? ReceiptFrame[ReceiptLength++] = 0x55 : ReceiptFrame[ReceiptLength++] = 0x00;
+
+	/*区域号*/
+	ReceiptFrame[ReceiptLength++] = SN.Read_Area_Number();
+
+	/*SNR and RSSI*/
+	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[0];  //SNR信噪比
+	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[2];  //符号位
+	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[1];  //RSSI信号质量
+	ReceiptFrame[ReceiptLength++] = gLoRaCSQ[3];  //符号位
+
+	/*swVer*/
+	ReceiptFrame[ReceiptLength++] = Vertion.Read_Software_version(SOFT_VERSION_BASE_ADDR);
+	ReceiptFrame[ReceiptLength++] = Vertion.Read_Software_version(SOFT_VERSION_BASE_ADDR + 1);
+
+	/*hwVer*/
+	ReceiptFrame[ReceiptLength++] = Vertion.Read_hardware_version(HARD_VERSION_BASE_ADDR);
+	ReceiptFrame[ReceiptLength++] = Vertion.Read_hardware_version(HARD_VERSION_BASE_ADDR + 1);
+
+	/*CRC8*/
+	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
+	/*帧尾*/
+	for (unsigned char i = 0; i < 6; i++)
+		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
+
+	Serial.println("LoRa parameter receipt...");
+	Print_Debug(&ReceiptFrame[0], ReceiptLength);
+
+	for (unsigned char i = 0; i < send_times; i++)
+	{
+		iwdg_feed();
+		LoRa_Serial.write(&ReceiptFrame[0], ReceiptLength);
+		delayMicroseconds(SEND_DATA_DELAY * 1000);
+	}
+}
+/*
  @brief   : 发送灌溉循环状态回执信息给服务器。（本设备 ---> 服务器）
  @param   :	1.是否需要随机时间延时发送
 			2.回执次数，send_times
@@ -942,7 +1004,7 @@ void  Receipt::New_Working_Parameter_Receipt(bool use_random_wait,unsigned char 
 // 	}
 
 // 	/*CRC8*/
-// 	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], 0x24);
+// 	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
 // 	/*帧尾*/
 // 	for (unsigned char i = 0; i < 6; i++)
 // 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
@@ -968,12 +1030,13 @@ void  Receipt::New_Working_Parameter_Receipt(bool use_random_wait,unsigned char 
 			4.随机ID第2位，randomId_2
  @return  : 无
  */
-void Receipt::OnLine_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2)
+void Receipt::OnLine_Receipt(bool use_random_wait, unsigned char times)
 {
-	  /*| 字节索引		| 0			| 1 - 2		| 3			| 4 - 5			| 6 - 7		| 8 - 15	| 16	| 17 - 22		|
-		| 数据域		| frameHead | frameId	| dataLen	| DeviceTypeId	| randomId	| allocate	| CRC8	| frameEnd		|
-		| 长度（byte）	| 1			| 2			| 1			| 2				| 2			| 8			| 1		| 6				|
-		| 示例数据		| FE		| E002		| 0x0C(12)	| C003			| 1234		| 0000		| D6	| 0D0A0D0A0D0A	|*/
+//   字节索引    	0        	1-2    	3      	4-5         	6-13    	14  	15-20        
+//   数据域     	frameHead	frameId	dataLen	DeviceTypeId	Allocate	CRC8	frameEnd     
+//   长度（byte）	1        	2      	1      	2           	8       	1   	6            
+//   示例数据    	FE       	E002   	0A     	C003        	0000    	D6  	0D0A0D 0A0D0A
+
 	Serial.println("上线状态报告 <Working_Parameter_Receipt>");
 	unsigned char ReceiptFrame[23] = { 0 };
 	unsigned char ReceiptLength = 0;
@@ -996,15 +1059,11 @@ void Receipt::OnLine_Receipt(bool use_random_wait, unsigned char times, unsigned
 	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
 	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
 	ReceiptFrame[ReceiptLength++] = 0x02; //
-	ReceiptFrame[ReceiptLength++] = 0x0C; //数据长度
+	ReceiptFrame[ReceiptLength++] = 0x0A; //数据长度
 
 	/*设备类型*/
 	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
 	ReceiptFrame[ReceiptLength++] = lowByte(DEVICE_TYPE_ID);
-
-	/*randomId*/
-	ReceiptFrame[ReceiptLength++] = randomId_1;
-	ReceiptFrame[ReceiptLength++] = randomId_2;
 
 	/* allocate */
 	for (size_t i = 0; i < 8; i++)

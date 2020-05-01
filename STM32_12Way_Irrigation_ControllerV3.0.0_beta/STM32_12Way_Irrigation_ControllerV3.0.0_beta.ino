@@ -235,8 +235,7 @@ void setup()
 	Serial.println("Irrigation timing mechanism initialization completed...");//灌溉计时机制初始化完成
 	Serial.println("");
 
-	unsigned char random_1 = random(0, 255);unsigned char random_2 = random(0, 255);
-	Message_Receipt.OnLine_Receipt(true, 2, random_1, random_2);//设备上线状态报告
+	Message_Receipt.OnLine_Receipt(true, 2);//设备上线状态报告
 	Serial.println("Online status report");
 	Serial.println("");
 
@@ -246,17 +245,6 @@ void setup()
 
 	Serial.println("All configuration items are initialized. Welcome to use!!!  ~(*^__^*)~ ");//所有的设置项初始化完成，欢迎使用
 	Serial.println("");
-
-	if (InitState.Save_E014Auto_report(0x00, 0x05))
-	{
-		Serial.println("設置時間成功！！！！！");
-		Serial.println(String("時間爲：") + InitState.Read_E014Auto_report());
-		delay(1000);
-	}
-	else
-	{
-		Serial.println("保存E014Auto_report失败!!! <General_controller_control_command>");
-	}
 }
 
 /*
@@ -291,7 +279,6 @@ void loop()
 		 
 	}
 	
-
 	Check_Store_Param_And_LoRa(); //检查存储参数以及LORA参数
 
 	Regular_status_report();//定时状态上报
@@ -414,43 +401,32 @@ void Regular_status_report(void)
 {
 	if (gStateReportFlag)
 	{
-		if (Begin_AUTOReceipt == true)
-		{
-			// Serial.println("开始定时状态上报 Start timing status reporting");
-			gStateReportFlag = false;
-			Stop_Status_Report_Timing();
+		gStateReportFlag = false;
+		Stop_Status_Report_Timing();
 
-			unsigned long Now = millis();
-			if(Waiting_Collection)
+		unsigned long Now = millis();
+		if (Waiting_Collection)
+		{
+			while (millis() - Now < 2000)
 			{
-				while (millis() - Now < 2000)
-				{
-					LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
-					Serial.println("Waiting_Collection......");
-					delay(500);
-				}
-				Waiting_Collection = false;
+				LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
+				Serial.println("Waiting_Collection......");
+				delay(500);
 			}
-
-			/*得到随机值*/
-			// unsigned char random_1 = random(0, 255);
-			// unsigned char random_2 = random(0, 255);
-			// Serial.println(String("random_1 = ") + String(random_1, HEX));
-			// Serial.println(String("random_2 = ") + String(random_2, HEX));
-
-			/*这里上报实时状态*/
-			// Message_Receipt.Working_Parameter_Receipt(true, 1, random_1, random_2);
-			Message_Receipt.New_Working_Parameter_Receipt(true,1);
-
-			Start_Status_Report_Timing();//开始上报状态周期计时
-			// Serial.println("Scheduled status reporting completed... <Regular_status_report>");
+			Waiting_Collection = false;
 		}
-		else
-		{
-			Serial.println("節約帶寬，省略的自動上報");
-			gStateReportFlag = false;
-			return;
-		}	
+
+		/*得到随机值*/
+		// unsigned char random_1 = random(0, 255);
+		// unsigned char random_2 = random(0, 255);
+		// Serial.println(String("random_1 = ") + String(random_1, HEX));
+		// Serial.println(String("random_2 = ") + String(random_2, HEX));
+
+		/*这里上报实时状态*/
+		// Message_Receipt.Working_Parameter_Receipt(true, 1, random_1, random_2);
+		Message_Receipt.New_Working_Parameter_Receipt(true,1);
+
+		Start_Status_Report_Timing();//开始上报状态周期计时
 	}
 }
 
@@ -489,11 +465,11 @@ void Change_status_report(void)
 #if DO_OPEN_REPORT
 	if (DO_NumNow != 0)//如果DO有任意一路开启，那么开启高频率自动上报，否则关闭
 	{
-		Begin_AUTOReceipt = true;
+		Enter_Work_State = true;
 	}
 	else
 	{
-		Begin_AUTOReceipt = false;
+		Enter_Work_State = false;
 	}
 #endif
 	
@@ -686,7 +662,7 @@ void Solenoid_mode_DO_ON()
 			gRTCTime_arrive_Flag = false;
 			Private_RTC.Set_Alarm();//设置RTC闹钟
 			Serial.println("开始循环间隔计时 Start cycle interval");
-			Begin_AUTOReceipt = false;
+			Enter_Work_State = false;
 			Cyclic_timing = true;
 		}
 
@@ -694,7 +670,7 @@ void Solenoid_mode_DO_ON()
 		{
 			if (gRTCTime_arrive_Flag)
 			{
-				Begin_AUTOReceipt = true;
+				Enter_Work_State = true;
 				Serial.println("循环时间间隔结束 End of cycle interval");
 				Serial.println(">>>>>>>>>>>>");
 				Cyclic_timing = false;
@@ -718,7 +694,7 @@ void Solenoid_mode_DO_ON()
 				}
 				else
 				{
-					Begin_AUTOReceipt = false;
+					Enter_Work_State = false;
 					Serial.println("完成所有的灌溉循环 Complete all irrigation cycles");
 					Serial.println("(｡◕ˇ∀ˇ◕）");
 				}
@@ -1075,7 +1051,7 @@ void Delay_mode_DO_ON(void)
 		Stop_Timer4();
 		Serial.println("完成延时循环 Complete Delay Cycles");
 		Serial.println("(｡◕ˇ∀ˇ◕）");
-		Begin_AUTOReceipt = false;
+		Enter_Work_State = false;
 		Complete_Num = 0;
 
 		Delay_mode_OpenSec = 0;//
@@ -1198,7 +1174,7 @@ void Forward_Reverse_DO_ON(void)
 		Stop_Timer4();
 		Serial.println("完成正反转循环 Complete Forward&Reverse Cycles");
 		Serial.println("(｡◕ˇ∀ˇ◕）");
-		Begin_AUTOReceipt = false;
+		Enter_Work_State = false;
 		Complete_Num = 0;
 
 		for (size_t i = 0; i < 8; i++)

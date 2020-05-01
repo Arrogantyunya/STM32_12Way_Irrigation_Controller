@@ -129,7 +129,7 @@ bool SN_Operations::Save_BKP_SN_Code(unsigned char *sn_code)
  */
 bool SN_Operations::Read_SN_Code(unsigned char *sn_code)
 {
-	unsigned char SN_Temp[9] = { 0 };
+	unsigned char SN_Temp[9] = {0};
 
 	for (unsigned char i = 0; i < 9; i++)
 		SN_Temp[i] = AT24CXX_ReadOneByte(SN_BASE_ADDR + i);
@@ -156,7 +156,7 @@ bool SN_Operations::Read_SN_Code(unsigned char *sn_code)
  */
 bool SN_Operations::Read_BKP_SN_Code(unsigned char *sn_code)
 {
-	unsigned char SN_BKP_Temp[9] = { 0 };
+	unsigned char SN_BKP_Temp[9] = {0};
 
 	for (unsigned char i = 0; i < 9; i++)
 		SN_BKP_Temp[i] = AT24CXX_ReadOneByte(SN_BKP_BASE_ADDR + i);
@@ -304,7 +304,7 @@ bool SN_Operations::Clear_SN_Access_Network_Flag(void)
 			Serial.println("Clear the Registration <Clear_SN_Access_Network_Flag>");
 
 			comdata = "";
-			
+
 			if (AT24CXX_ReadOneByte(SN_ACCESS_NETWORK_FLAG_ADDR) != 0x00)
 			{
 				EEPROM_Write_Enable();
@@ -362,20 +362,20 @@ bool SN_Operations::Self_check(unsigned char *sn_code)
 	else if (Read_SN_Code(sn_code)) //如果仅仅是读取SN码成功，将SN码覆盖修正备份SN码保存区
 	{
 		Serial.println("Read SN code success but read backup SN code failed...");
-		Save_BKP_SN_Code(sn_code) == true ? BoolValue = true : BoolValue = false;   //覆盖后判断覆盖是否成功
+		Save_BKP_SN_Code(sn_code) == true ? BoolValue = true : BoolValue = false; //覆盖后判断覆盖是否成功
 	}
 	else if (Read_BKP_SN_Code(sn_code)) //如果仅仅是读取备份SN码成功，将SN码覆盖修正SN码保存区
 	{
 		Serial.println("Read backup SN code success but read SN code failed...");
 		Save_SN_Code(sn_code) == true ? BoolValue = true : BoolValue = false; //覆盖后判断覆盖是否成功
 	}
-	else    //如果SN码和备份SN码都损坏，清除已保存SN码标志位，已保存备份SN码标志位，设备将需要重新申请一份SN码
+	else //如果SN码和备份SN码都损坏，清除已保存SN码标志位，已保存备份SN码标志位，设备将需要重新申请一份SN码
 	{
 		Serial.println("All SN store ERROR!");
 		Clear_SN_Save_Flag();
 		Clear_BKP_SN_Save_Flag();
 	}
-	return BoolValue;   //返回操作的最终结果
+	return BoolValue; //返回操作的最终结果
 }
 
 /*
@@ -396,7 +396,8 @@ bool SN_Operations::Save_Group_Number(unsigned char *group_num)
 			break;
 		}
 	}
-	if (SaveGroupFlag == false) return true;
+	if (SaveGroupFlag == false)
+		return true;
 
 	EEPROM_Write_Enable();
 	for (unsigned char i = 0; i < 5; i++)
@@ -505,8 +506,8 @@ bool SN_Operations::Clear_Group_Number(void)
 			}
 		}
 	}
-	if (AT24CXX_ReadOneByte(GROUP_NUMBER_FLAG_ADDR) != 0x00)    //保护EP，防止重复擦写。
-		AT24CXX_WriteOneByte(GROUP_NUMBER_FLAG_ADDR, 0x00); //同时清除保存组号标志位
+	if (AT24CXX_ReadOneByte(GROUP_NUMBER_FLAG_ADDR) != 0x00) //保护EP，防止重复擦写。
+		AT24CXX_WriteOneByte(GROUP_NUMBER_FLAG_ADDR, 0x00);	 //同时清除保存组号标志位
 
 	EEPROM_Write_Disable();
 	return true;
@@ -592,7 +593,7 @@ bool SN_Operations::Clear_Area_Number(void)
 		return true;
 
 	EEPROM_Write_Enable();
-	AT24CXX_WriteOneByte(AREA_ADDR, 0X00);  //默认区域号
+	AT24CXX_WriteOneByte(AREA_ADDR, 0X00); //默认区域号
 	if (AT24CXX_ReadOneByte(AREA_ADDR) != 0x00)
 	{
 		EEPROM_Write_Disable();
@@ -610,8 +611,9 @@ bool SN_Operations::Clear_Area_Number(void)
  @para      : None
  @return    : opening value(0 - 100)
  */
-unsigned char SN_Operations::Read_RealTime_Opening_Value(void){
-    return 0;
+unsigned char SN_Operations::Read_RealTime_Opening_Value(void)
+{
+	return 0;
 }
 
 /*
@@ -914,7 +916,7 @@ void Soft_Hard_Vertion::Save_hardware_version(unsigned char number_high, unsigne
 bool ModbusController_InitState::Save_InitState_Flag(void)
 {
 	EEPROM_Write_Enable();
-	AT24CXX_WriteOneByte(INIT_STATE_FLAG_ADDR,0x55);
+	AT24CXX_WriteOneByte(INIT_STATE_FLAG_ADDR, 0x55);
 	EEPROM_Write_Disable();
 	if (AT24CXX_ReadOneByte(INIT_STATE_FLAG_ADDR) == 0x55)
 	{
@@ -953,7 +955,7 @@ bool ModbusController_InitState::Read_InitState_Flag(void)
 bool ModbusController_InitState::Clean_InitState_Flag(void)
 {
 	EEPROM_Write_Enable();
-	AT24CXX_WriteOneByte(INIT_STATE_FLAG_ADDR,0x00);
+	AT24CXX_WriteOneByte(INIT_STATE_FLAG_ADDR, 0x00);
 	EEPROM_Write_Disable();
 	if (AT24CXX_ReadOneByte(INIT_STATE_FLAG_ADDR) == 0x00)
 	{
@@ -973,7 +975,7 @@ bool ModbusController_InitState::Clean_InitState_Flag(void)
  */
 bool ModbusController_InitState::Save_DO_InitState(unsigned char *data)
 {
-	unsigned char DO_Init[8] = { 0x00 };
+	unsigned char DO_Init[8] = {0x00};
 
 	EEPROM_Write_Enable();
 	for (size_t i = 0; i < 8; i++)
@@ -1010,10 +1012,10 @@ bool ModbusController_InitState::Save_DO_InitState(unsigned char *data)
  @para      : 
  @return    : None
  */
-unsigned char* ModbusController_InitState::Read_DO_InitState(void)
+unsigned char *ModbusController_InitState::Read_DO_InitState(void)
 {
 	Serial.println("<Read_DO_InitState>");
-	static unsigned char DO_INIT[8] = { 0x00 };//C 不支持在函数外返回局部变量的地址，除非定义局部变量为 static 变量。
+	static unsigned char DO_INIT[8] = {0x00}; //C 不支持在函数外返回局部变量的地址，除非定义局部变量为 static 变量。
 	for (size_t i = 0; i < 8; i++)
 	{
 		DO_INIT[i] = AT24CXX_ReadOneByte(DO_INIT_STATE_BASE_ADDR + i);
@@ -1042,7 +1044,7 @@ bool ModbusController_InitState::Clean_DO_InitState(unsigned char *data)
  */
 bool ModbusController_InitState::Save_AO_InitState(unsigned char *data)
 {
-	unsigned char AO_Init[8] = { 0x00 };
+	unsigned char AO_Init[8] = {0x00};
 
 	EEPROM_Write_Enable();
 	for (size_t i = 0; i < 8; i++)
@@ -1164,246 +1166,245 @@ bool ModbusController_InitState::Clean_Timeout(void)
  @para      :
  @return    : 保存成功true，失败false
  */
- bool ModbusController_InitState::Save_E000Interval(unsigned char High, unsigned char Low)
- {
-	 if ((AT24CXX_ReadOneByte(E000Interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(E000Interval_END_ADDR) == Low))
-	 {
-		 Serial.println("储存E000Interval成功<Save_Interval>");
-		 return true;
-	 }
+bool ModbusController_InitState::Save_E000Interval(unsigned char High, unsigned char Low)
+{
+	if ((AT24CXX_ReadOneByte(E000Interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(E000Interval_END_ADDR) == Low))
+	{
+		Serial.println("储存E000Interval成功<Save_Interval>");
+		return true;
+	}
 
-	 EEPROM_Write_Enable();
-	 AT24CXX_WriteOneByte(E000Interval_BASE_ADDR, High);
-	 AT24CXX_WriteOneByte(E000Interval_END_ADDR, Low);
-	 EEPROM_Write_Disable();
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(E000Interval_BASE_ADDR, High);
+	AT24CXX_WriteOneByte(E000Interval_END_ADDR, Low);
+	EEPROM_Write_Disable();
 
-	 if ((AT24CXX_ReadOneByte(E000Interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(E000Interval_END_ADDR) == Low))
-	 {
-		 Serial.println("储存E000Interval成功<Save_Interval>");
-		 return true;
-	 }
-	 Serial.println("储存E000Interval失败<Save_Interval>");
-	 return false;
- }
+	if ((AT24CXX_ReadOneByte(E000Interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(E000Interval_END_ADDR) == Low))
+	{
+		Serial.println("储存E000Interval成功<Save_Interval>");
+		return true;
+	}
+	Serial.println("储存E000Interval失败<Save_Interval>");
+	return false;
+}
 
- /*
+/*
  @brief     : 读取E000Interval时间
 			  Read E000Interval.
  @para      :
  @return    : E000Interval
  */
- unsigned int ModbusController_InitState::Read_E000Interval(void)
- {
-	 unsigned int E000Interval = AT24CXX_ReadOneByte(E000Interval_BASE_ADDR) * 0x100 + AT24CXX_ReadOneByte(E000Interval_END_ADDR);
-	 return E000Interval;
- }
+unsigned int ModbusController_InitState::Read_E000Interval(void)
+{
+	unsigned int E000Interval = AT24CXX_ReadOneByte(E000Interval_BASE_ADDR) * 0x100 + AT24CXX_ReadOneByte(E000Interval_END_ADDR);
+	return E000Interval;
+}
 
- /*
+/*
 @brief     : 清除E000Interval时间
 			 Clean E000Interval.
 @para      :
 @return    : 清除成功true，失败false
 */
- bool ModbusController_InitState::Clean_E000Interval(void)
- {
-	 EEPROM_Write_Enable();
-	 AT24CXX_WriteOneByte(E000Interval_BASE_ADDR, 0x00);
-	 AT24CXX_WriteOneByte(E000Interval_END_ADDR, 0x00);
-	 EEPROM_Write_Disable();
+bool ModbusController_InitState::Clean_E000Interval(void)
+{
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(E000Interval_BASE_ADDR, 0x00);
+	AT24CXX_WriteOneByte(E000Interval_END_ADDR, 0x00);
+	EEPROM_Write_Disable();
 
-	 if ((AT24CXX_ReadOneByte(E000Interval_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(E000Interval_END_ADDR) == 0x00))
-	 {
-		 Serial.println("清除E000Interval成功<Clean_E000Interval>");
-		 return true;
-	 }
-	 Serial.println("清除E000Interval失败<Clean_E000Interval>");
-	 return false;
- }
+	if ((AT24CXX_ReadOneByte(E000Interval_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(E000Interval_END_ADDR) == 0x00))
+	{
+		Serial.println("清除E000Interval成功<Clean_E000Interval>");
+		return true;
+	}
+	Serial.println("清除E000Interval失败<Clean_E000Interval>");
+	return false;
+}
 
- /*
- @brief     : 存储E014Auto_report时间
-			  Save E014Auto_report.
+/*
+ @brief     : 存储StopInterval时间
+			  Save StopInterval.
  @para      :
  @return    : 保存成功true，失败false
  */
- bool ModbusController_InitState::Save_E014Auto_report(unsigned char High, unsigned char Low)
- {
-	 if ((AT24CXX_ReadOneByte(E014Auto_report_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(E014Auto_report_END_ADDR) == Low))
-	 {
-		 Serial.println("储存E014Auto_report成功<Save_E014Auto_report>");
-		 return true;
-	 }
+bool ModbusController_InitState::Save_StopInterval(unsigned char High, unsigned char Low)
+{
+	if ((AT24CXX_ReadOneByte(StopInterval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(StopInterval_END_ADDR) == Low))
+	{
+		Serial.println("储存StopInterval成功<Save_StopInterval>");
+		return true;
+	}
 
-	 EEPROM_Write_Enable();
-	 AT24CXX_WriteOneByte(E014Auto_report_BASE_ADDR, High);
-	 AT24CXX_WriteOneByte(E014Auto_report_END_ADDR, Low);
-	 EEPROM_Write_Disable();
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(StopInterval_BASE_ADDR, High);
+	AT24CXX_WriteOneByte(StopInterval_END_ADDR, Low);
+	EEPROM_Write_Disable();
 
-	 if ((AT24CXX_ReadOneByte(E014Auto_report_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(E014Auto_report_END_ADDR) == Low))
-	 {
-		 Serial.println("储存E014Auto_report成功<Save_E014Auto_report>");
-		 return true;
-	 }
-	 Serial.println("储存E014Auto_report失败<Save_E014Auto_report>");
-	 return false;
- }
+	if ((AT24CXX_ReadOneByte(StopInterval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(StopInterval_END_ADDR) == Low))
+	{
+		Serial.println("储存StopInterval成功<Save_StopInterval>");
+		return true;
+	}
+	Serial.println("储存StopInterval失败<Save_StopInterval>");
+	return false;
+}
 
- /*
- @brief     : 读取E014Auto_report时间
-			  Read E014Auto_report.
+/*
+ @brief     : 读取StopInterval时间
+			  Read StopInterval.
  @para      :
- @return    : E014Auto_report
+ @return    : StopInterval
  */
- unsigned int ModbusController_InitState::Read_E014Auto_report(void)
- {
-	 unsigned int E014Auto_report = AT24CXX_ReadOneByte(E014Auto_report_BASE_ADDR) * 0x100 + AT24CXX_ReadOneByte(E014Auto_report_END_ADDR);
-	 return E014Auto_report;
- }
+unsigned int ModbusController_InitState::Read_StopInterval(void)
+{
+	unsigned int StopInterval = AT24CXX_ReadOneByte(StopInterval_BASE_ADDR) * 0x100 + AT24CXX_ReadOneByte(StopInterval_END_ADDR);
+	return StopInterval;
+}
 
- /*
-@brief     : 清除E014Auto_report时间
-			 Clean E014Auto_report.
+/*
+@brief     : 清除StopInterval时间
+			 Clean StopInterval.
 @para      :
 @return    : 清除成功true，失败false
 */
- bool ModbusController_InitState::Clean_E014Auto_report(void)
- {
-	 EEPROM_Write_Enable();
-	 AT24CXX_WriteOneByte(E014Auto_report_BASE_ADDR, 0x00);
-	 AT24CXX_WriteOneByte(E014Auto_report_END_ADDR, 0x00);
-	 EEPROM_Write_Disable();
+bool ModbusController_InitState::Clean_StopInterval(void)
+{
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(StopInterval_BASE_ADDR, 0x00);
+	AT24CXX_WriteOneByte(StopInterval_END_ADDR, 0x00);
+	EEPROM_Write_Disable();
 
-	 if ((AT24CXX_ReadOneByte(E014Auto_report_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(E014Auto_report_END_ADDR) == 0x00))
-	 {
-		 Serial.println("清除E014Auto_report成功<Clean_E014Auto_report>");
-		 return true;
-	 }
-	 Serial.println("清除E014Interval失败<Clean_E014Auto_report>");
-	 return false;
- }
+	if ((AT24CXX_ReadOneByte(StopInterval_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(StopInterval_END_ADDR) == 0x00))
+	{
+		Serial.println("清除StopInterval成功<Clean_StopInterval>");
+		return true;
+	}
+	Serial.println("清除StopInterval失败<Clean_StopInterval>");
+	return false;
+}
 
- //------------------------------------------
- /*
- @brief     : 存储E014Interval时间
-			  Save E014Interval.
+//------------------------------------------
+/*
+ @brief     : 存储WorkInterval时间
+			  Save WorkInterval.
  @para      :
  @return    : 保存成功true，失败false
  */
- bool ModbusController_InitState::Save_E014Interval(unsigned char High, unsigned char Low)
- {
-	 if ((AT24CXX_ReadOneByte(E014Interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(E014Interval_END_ADDR) == Low))
-	 {
-		 Serial.println("储存E014Interval成功<Save_E014Interval>");
-		 return true;
-	 }
+bool ModbusController_InitState::Save_WorkInterval(unsigned char High, unsigned char Low)
+{
+	if ((AT24CXX_ReadOneByte(WorkInterval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(WorkInterval_END_ADDR) == Low))
+	{
+		Serial.println("储存WorkInterval成功<Save_WorkInterval>");
+		return true;
+	}
 
-	 EEPROM_Write_Enable();
-	 AT24CXX_WriteOneByte(E014Interval_BASE_ADDR, High);
-	 AT24CXX_WriteOneByte(E014Interval_END_ADDR, Low);
-	 EEPROM_Write_Disable();
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(WorkInterval_BASE_ADDR, High);
+	AT24CXX_WriteOneByte(WorkInterval_END_ADDR, Low);
+	EEPROM_Write_Disable();
 
-	 if ((AT24CXX_ReadOneByte(E014Interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(E014Interval_END_ADDR) == Low))
-	 {
-		 Serial.println("储存E014Interval成功<Save_E014Interval>");
-		 return true;
-	 }
-	 Serial.println("储存E014Interval失败<Save_E014Interval>");
-	 return false;
- }
+	if ((AT24CXX_ReadOneByte(WorkInterval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(WorkInterval_END_ADDR) == Low))
+	{
+		Serial.println("储存WorkInterval成功<Save_WorkInterval>");
+		return true;
+	}
+	Serial.println("储存WorkInterval失败<Save_WorkInterval>");
+	return false;
+}
 
- /*
- @brief     : 读取E014Interval时间
-			  Read E014Interval.
+/*
+ @brief     : 读取WorkInterval时间
+			  Read WorkInterval.
  @para      :
- @return    : E014Interval
+ @return    : WorkInterval
  */
- unsigned int ModbusController_InitState::Read_E014Interval(void)
- {
-	 unsigned int E014Interval = AT24CXX_ReadOneByte(E014Interval_BASE_ADDR) * 0x100 + AT24CXX_ReadOneByte(E014Interval_END_ADDR);
-	 return E014Interval;
- }
+unsigned int ModbusController_InitState::Read_WorkInterval(void)
+{
+	unsigned int WorkInterval = AT24CXX_ReadOneByte(WorkInterval_BASE_ADDR) * 0x100 + AT24CXX_ReadOneByte(WorkInterval_END_ADDR);
+	return WorkInterval;
+}
 
- /*
-@brief     : 清除E014Interval时间
-			 Clean E014Interval.
+/*
+@brief     : 清除WorkInterval时间
+			 Clean WorkInterval.
 @para      :
 @return    : 清除成功true，失败false
 */
- bool ModbusController_InitState::Clean_E014Interval(void)
- {
-	 EEPROM_Write_Enable();
-	 AT24CXX_WriteOneByte(E014Interval_BASE_ADDR, 0x00);
-	 AT24CXX_WriteOneByte(E014Interval_END_ADDR, 0x00);
-	 EEPROM_Write_Disable();
+bool ModbusController_InitState::Clean_WorkInterval(void)
+{
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(WorkInterval_BASE_ADDR, 0x00);
+	AT24CXX_WriteOneByte(WorkInterval_END_ADDR, 0x00);
+	EEPROM_Write_Disable();
 
-	 if ((AT24CXX_ReadOneByte(E014Interval_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(E014Interval_END_ADDR) == 0x00))
-	 {
-		 Serial.println("清除E014Interval成功<Clean_E014Interval>");
-		 return true;
-	 }
-	 Serial.println("清除E014Interval失败<Clean_E014Interval>");
-	 return false;
- }
+	if ((AT24CXX_ReadOneByte(WorkInterval_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(WorkInterval_END_ADDR) == 0x00))
+	{
+		Serial.println("清除WorkInterval成功<Clean_WorkInterval>");
+		return true;
+	}
+	Serial.println("清除WorkInterval失败<Clean_WorkInterval>");
+	return false;
+}
 
- /*
+/*
 @brief     : 存储CyclicInterval时间
 			 Save CyclicInterval.
 @para      :
 @return    : 保存成功true，失败false
 */
- bool ModbusController_InitState::Save_CyclicInterval(unsigned char High, unsigned char Low)
- {
-	 if ((AT24CXX_ReadOneByte(Cyclic_interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(Cyclic_interval_END_ADDR) == Low))
-	 {
-		 Serial.println("储存CyclicInterval成功<Save_CyclicInterval>");
-		 return true;
-	 }
+bool ModbusController_InitState::Save_CyclicInterval(unsigned char High, unsigned char Low)
+{
+	if ((AT24CXX_ReadOneByte(Cyclic_interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(Cyclic_interval_END_ADDR) == Low))
+	{
+		Serial.println("储存CyclicInterval成功<Save_CyclicInterval>");
+		return true;
+	}
 
-	 EEPROM_Write_Enable();
-	 AT24CXX_WriteOneByte(Cyclic_interval_BASE_ADDR, High);
-	 AT24CXX_WriteOneByte(Cyclic_interval_END_ADDR, Low);
-	 EEPROM_Write_Disable();
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(Cyclic_interval_BASE_ADDR, High);
+	AT24CXX_WriteOneByte(Cyclic_interval_END_ADDR, Low);
+	EEPROM_Write_Disable();
 
-	 if ((AT24CXX_ReadOneByte(Cyclic_interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(Cyclic_interval_END_ADDR) == Low))
-	 {
-		 Serial.println("储存CyclicInterval成功<Save_CyclicInterval>");
-		 return true;
-	 }
-	 Serial.println("储存CyclicInterval失败<Save_CyclicInterval>");
-	 return false;
- }
+	if ((AT24CXX_ReadOneByte(Cyclic_interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(Cyclic_interval_END_ADDR) == Low))
+	{
+		Serial.println("储存CyclicInterval成功<Save_CyclicInterval>");
+		return true;
+	}
+	Serial.println("储存CyclicInterval失败<Save_CyclicInterval>");
+	return false;
+}
 
- /*
+/*
 @brief     : 读取CyclicInterval时间
 			 Read CyclicInterval.
 @para      :
 @return    : CyclicInterval
 */
- unsigned int ModbusController_InitState::Read_CyclicInterval()
- {
-	 unsigned int CyclicInterval = AT24CXX_ReadOneByte(Cyclic_interval_BASE_ADDR) * 0x100 + AT24CXX_ReadOneByte(Cyclic_interval_END_ADDR);
-	 return CyclicInterval;
- }
+unsigned int ModbusController_InitState::Read_CyclicInterval()
+{
+	unsigned int CyclicInterval = AT24CXX_ReadOneByte(Cyclic_interval_BASE_ADDR) * 0x100 + AT24CXX_ReadOneByte(Cyclic_interval_END_ADDR);
+	return CyclicInterval;
+}
 
- /*
+/*
 @brief     : 清除CyclicInterval时间
 			 Clean CyclicInterval.
 @para      :
 @return    : 清除成功true，失败false
 */
- bool ModbusController_InitState::Clean_CyclicInterval(void)
- {
-	 EEPROM_Write_Enable();
-	 AT24CXX_WriteOneByte(Cyclic_interval_BASE_ADDR, 0x00);
-	 AT24CXX_WriteOneByte(Cyclic_interval_END_ADDR, 0x00);
-	 EEPROM_Write_Disable();
+bool ModbusController_InitState::Clean_CyclicInterval(void)
+{
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(Cyclic_interval_BASE_ADDR, 0x00);
+	AT24CXX_WriteOneByte(Cyclic_interval_END_ADDR, 0x00);
+	EEPROM_Write_Disable();
 
-	 if ((AT24CXX_ReadOneByte(Cyclic_interval_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(Cyclic_interval_END_ADDR) == 0x00))
-	 {
-		 Serial.println("清除CyclicInterval成功<Clean_CyclicInterval>");
-		 return true;
-	 }
-	 Serial.println("清除CyclicInterval失败<Clean_CyclicInterval>");
-	 return false;
- }
-
+	if ((AT24CXX_ReadOneByte(Cyclic_interval_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(Cyclic_interval_END_ADDR) == 0x00))
+	{
+		Serial.println("清除CyclicInterval成功<Clean_CyclicInterval>");
+		return true;
+	}
+	Serial.println("清除CyclicInterval失败<Clean_CyclicInterval>");
+	return false;
+}

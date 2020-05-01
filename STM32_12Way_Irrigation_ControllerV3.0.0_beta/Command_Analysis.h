@@ -12,7 +12,7 @@
 enum Frame_ID {
 	Modbus_Control, R_Modbus_Control,Output_default,Work_Para, Set_Group_Num, SN_Area_Channel, Work_Status
 	 , /*ResetRoll, Opening, Work_Limit,*/ Stop_Work,Irrigation_Control,Delay_Start_DO_Control
-	 ,Positive_negative_Control,Non_existent
+	 ,Positive_negative_Control,Query_SignalQuality_Version,Set_Reporting_Interval,Set_Lora_parameter,Non_existent
 };
 
 class Command_Analysis {
@@ -39,12 +39,15 @@ private:
 	// void Working_Limit_Command(void);//电机工作电压阈值、上报状态间隔值设置()
 	void Stop_Work_Command(void);//强制停止当前设备的工作(A015)
 	void General_controller_control_command(void);//服务器发送通用控制器Modbus控制指令(A000)
-	void Set_RTC_command(void);//服务器发送通用控制器Modbus控制指令接收回执(A001)
+	void Set_RTC_command(void);//服务器发送设置RTC指令(A001)
 	void Set_General_controller_output_init(void);//服务器设置通用控制器输出默认状态(A002)
 
 	void Irrigation_Controllor_control_command(void);//服务器发送灌溉控制器控制指令(A003)
 	void Delay_Start_DO_Control_command();//服务器发送延时DO指令（A004）
 	void Positive_negative_Control_command();//服务器发送正反转控制指令(A005)
+	void Query_SignalQuality_Version_command();//服务器查询信号质量与版本号(A006)
+	void Set_Reporting_Interval_command();//服务器设置上报时间间隔(A007)
+	void Set_Lora_parameter_command();//服务器设置LORA参数(A008)
 };
 
 
@@ -59,7 +62,7 @@ extern bool gAccessNetworkFlag;
 extern bool gMassCommandFlag;
 extern bool gIsHandleMsgFlag;
 
-extern bool Begin_AUTOReceipt;//開始自動上報
+extern bool Enter_Work_State;//開始自動上報
 
 /* 通用相关 */
 extern unsigned int Worktime[16]; //16个开启时间
