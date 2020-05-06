@@ -410,8 +410,24 @@ void Regular_status_report(void)
 			while (millis() - Now < 2000)
 			{
 				LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
-				Serial.println("Waiting_Collection......");
-				delay(500);
+				if (Device_Mode == Solenoid_mode)//电磁阀模式
+				{
+					Solenoid_mode_DO_ON();//灌溉分时打开
+				}
+				else if(Device_Mode == Delay_mode)//延时开启模式（）
+				{
+					Delay_mode_DO_ON();//延时DO开启
+				}
+				else if (Device_Mode == Forward_Reverse_mode)//正反转模式
+				{
+					Forward_Reverse_DO_ON();//正反转DO开启
+				}
+				else
+				{
+					
+				}
+				// Serial.println("Waiting_Collection......");
+				// delay(500);
 			}
 			Waiting_Collection = false;
 		}
@@ -481,8 +497,24 @@ void Change_status_report(void)
 			while (millis() - Now < 2000)
 			{
 				LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
-				Serial.println("Waiting_Collection......");
-				delay(500);
+				if (Device_Mode == Solenoid_mode)//电磁阀模式
+				{
+					Solenoid_mode_DO_ON();//灌溉分时打开
+				}
+				else if(Device_Mode == Delay_mode)//延时开启模式（）
+				{
+					Delay_mode_DO_ON();//延时DO开启
+				}
+				else if (Device_Mode == Forward_Reverse_mode)//正反转模式
+				{
+					Forward_Reverse_DO_ON();//正反转DO开启
+				}
+				else
+				{
+					
+				}
+				// Serial.println("Waiting_Collection......");
+				// delay(500);
 			}
 			Waiting_Collection = false;
 		}
