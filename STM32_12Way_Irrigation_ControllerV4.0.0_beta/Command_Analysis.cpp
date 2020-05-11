@@ -1703,14 +1703,24 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 		}
 		Debug_Serial.println("<<<");
 
-		if(Illegal_AI_relation){Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd,0);}
-		else if(Illegal_threshold_multiple){Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd,1);}
+		if(Illegal_AI_relation)
+		{
+			Debug_Serial.println("AI关联非法!!! <Set_Forward_Reverse_mode_threshold>");
+			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd,0);
+		}
+		else if(Illegal_threshold_multiple)
+		{
+			Debug_Serial.println("阈值倍数非法!!! <Set_Forward_Reverse_mode_threshold>");
+			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd,1);
+		}
 		else
 		{
-			Pos_Nega_mode.Save_AI_Relation_Way(AI_Relation_Way_Array);
-			Pos_Nega_mode.Save_Threshold_multiple(Threshold_multiple_Array);
+			Debug_Serial.println("AI关联以及阈值倍数设置成功... <Set_Forward_Reverse_mode_threshold>");
+			Pos_Nega_mode.Save_AI_Relation_Way(AI_Relation_Way_Array);//保存AI的关联
+			Pos_Nega_mode.Save_Threshold_multiple(Threshold_multiple_Array);//保存阈值倍数
+			Pos_Nega_mode.Save_A009_Seted();//保存AI关联以及阈值倍数被设置
 			
-			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd,2);
+			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd,2);//
 		}
 	}
 	else

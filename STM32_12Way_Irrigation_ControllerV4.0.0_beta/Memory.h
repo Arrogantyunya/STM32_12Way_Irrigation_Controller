@@ -120,6 +120,9 @@
 #define Threshold_multiple_BASE_ADDR			193//阈值倍数存储(1*6)
 #define Threshold_multiple_END_ADDR				198
 
+#define A009_Seted								199//AI关联以及阈值倍数被设置
+#define A00A_Seted								200//静止状态、正传、反转AI以及正传、反转时间被设置
+
 
 
 /*使用芯片自带备份寄存器的宏定义地址*/
@@ -294,6 +297,14 @@ public:
 	bool Save_Threshold_multiple(unsigned char* data);//阈值倍数
 	unsigned char* Read_Threshold_multiple(void);//阈值倍数
 	bool Clean_Threshold_multiple(void);//阈值倍数
+
+	bool Save_A009_Seted(void);//保存AI关联以及阈值倍数被设置
+	bool Read_A009_Seted(void);//读取AI关联以及阈值倍数被设置
+	bool Clean_A009_Seted(void);//清除AI关联以及阈值倍数被设置
+
+	bool Save_A00A_Seted(void);//保存静止状态、正传、反转AI以及正传、反转时间被设置
+	bool Read_A00A_Seted(void);//读取静止状态、正传、反转AI以及正传、反转时间被设置
+	bool Clean_A00A_Seted(void);//清除静止状态、正传、反转AI以及正传、反转时间被设置
 };
 
 

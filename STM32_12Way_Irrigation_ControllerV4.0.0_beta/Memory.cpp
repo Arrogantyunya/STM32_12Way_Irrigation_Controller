@@ -1414,7 +1414,6 @@ bool ModbusController_InitState::Clean_CyclicInterval(void)
 
 /*
 @brief     : 存储AI关联路数
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
@@ -1435,7 +1434,6 @@ bool Positive_Negative_MODE::Save_AI_Relation_Way(unsigned char* data)
 
 /*
 @brief     : 读取AI关联路数
-			 Clean CyclicInterval.
 @para      :
 @return    : 
 */
@@ -1451,7 +1449,6 @@ unsigned char* Positive_Negative_MODE::Read_AI_Relation_Way(void)
 
 /*
 @brief     : 清除AI关联路数
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
@@ -1472,7 +1469,6 @@ bool Positive_Negative_MODE::Clean_AI_Relation_Way(void)
 
 /*
 @brief     : 存储静止状态AI
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
@@ -1490,7 +1486,6 @@ bool Positive_Negative_MODE::Save_Stop_AI(unsigned char* data)
 }
 /*
 @brief     : 读取静止状态AI
-			 Clean CyclicInterval.
 @para      :
 @return    : 
 */
@@ -1505,11 +1500,10 @@ unsigned char* Positive_Negative_MODE::Read_Stop_AI(void)
 }
 /*
 @brief     : 清除静止状态AI
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-bool  Positive_Negative_MODE::Clean_Stop_AI(void)
+bool Positive_Negative_MODE::Clean_Stop_AI(void)
 {
 	EEPROM_Write_Enable();
 	for (size_t i = 0; i < 12; i++)
@@ -1527,11 +1521,10 @@ bool  Positive_Negative_MODE::Clean_Stop_AI(void)
 
 /*
 @brief     : 存储正转AI
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-bool  Positive_Negative_MODE::Save_Forward_AI(unsigned char* data)
+bool Positive_Negative_MODE::Save_Forward_AI(unsigned char* data)
 {
 	EEPROM_Write_Enable();
 	for (size_t i = 0; i < 12; i++)
@@ -1545,11 +1538,10 @@ bool  Positive_Negative_MODE::Save_Forward_AI(unsigned char* data)
 }
 /*
 @brief     : 读取正转AI
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-unsigned char*  Positive_Negative_MODE::Read_Forward_AI(void)
+unsigned char* Positive_Negative_MODE::Read_Forward_AI(void)
 {
 	static unsigned char data[12] = {0x00};
 	for (size_t i = 0; i < 12; i++)
@@ -1560,11 +1552,10 @@ unsigned char*  Positive_Negative_MODE::Read_Forward_AI(void)
 }
 /*
 @brief     : 清除正转AI
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-bool  Positive_Negative_MODE::Clean_Forward_AI(void)
+bool Positive_Negative_MODE::Clean_Forward_AI(void)
 {
 	EEPROM_Write_Enable();
 	for (size_t i = 0; i < 12; i++)
@@ -1580,7 +1571,6 @@ bool  Positive_Negative_MODE::Clean_Forward_AI(void)
 
 /*
 @brief     : 存储反转AI
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
@@ -1598,7 +1588,6 @@ bool Positive_Negative_MODE::Save_Reversal_AI(unsigned char* data)
 }
 /*
 @brief     : 读取反转AI
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
@@ -1613,7 +1602,6 @@ unsigned char* Positive_Negative_MODE::Read_Reversal_AI(void)
 }
 /*
 @brief     : 清除反转AI
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
@@ -1634,11 +1622,10 @@ bool Positive_Negative_MODE::Clean_Reversal_AI(void)
 
 /*
 @brief     : 存储正转时间
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-bool  Positive_Negative_MODE::Save_Forward_Time(unsigned char* data)
+bool Positive_Negative_MODE::Save_Forward_Time(unsigned char* data)
 {
 	EEPROM_Write_Enable();
 	for (size_t i = 0; i < 12; i++)
@@ -1652,11 +1639,10 @@ bool  Positive_Negative_MODE::Save_Forward_Time(unsigned char* data)
 }
 /*
 @brief     : 读取正转时间
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-unsigned char*  Positive_Negative_MODE::Read_Forward_Time(void)
+unsigned char* Positive_Negative_MODE::Read_Forward_Time(void)
 {
 	static unsigned char data[12] = {0x00};
 	for (size_t i = 0; i < 12; i++)
@@ -1667,11 +1653,10 @@ unsigned char*  Positive_Negative_MODE::Read_Forward_Time(void)
 }
 /*
 @brief     : 清除正转时间
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-bool  Positive_Negative_MODE::Clean_Forward_Time(void)
+bool Positive_Negative_MODE::Clean_Forward_Time(void)
 {
 	EEPROM_Write_Enable();
 	for (size_t i = 0; i < 12; i++)
@@ -1688,11 +1673,10 @@ bool  Positive_Negative_MODE::Clean_Forward_Time(void)
 
 /*
 @brief     : 存储反转时间
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-bool  Positive_Negative_MODE::Save_Reversal_Time(unsigned char* data)
+bool Positive_Negative_MODE::Save_Reversal_Time(unsigned char* data)
 {
 	EEPROM_Write_Enable();
 	for (size_t i = 0; i < 18; i++)
@@ -1706,11 +1690,10 @@ bool  Positive_Negative_MODE::Save_Reversal_Time(unsigned char* data)
 }
 /*
 @brief     : 读取反转时间
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-unsigned char*  Positive_Negative_MODE::Read_Reversal_Time(void)
+unsigned char* Positive_Negative_MODE::Read_Reversal_Time(void)
 {
 	static unsigned char data[18] = {0x00};
 	for (size_t i = 0; i < 18; i++)
@@ -1721,11 +1704,10 @@ unsigned char*  Positive_Negative_MODE::Read_Reversal_Time(void)
 }
 /*
 @brief     : 清除反转时间
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-bool  Positive_Negative_MODE::Clean_Reversal_Time(void)
+bool Positive_Negative_MODE::Clean_Reversal_Time(void)
 {
 	EEPROM_Write_Enable();
 	for (size_t i = 0; i < 18; i++)
@@ -1743,11 +1725,10 @@ bool  Positive_Negative_MODE::Clean_Reversal_Time(void)
 
 /*
 @brief     : 清除阈值倍数
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-bool  Positive_Negative_MODE::Save_Threshold_multiple(unsigned char* data)
+bool Positive_Negative_MODE::Save_Threshold_multiple(unsigned char* data)
 {
 	EEPROM_Write_Enable();
 	for (size_t i = 0; i < 6; i++)
@@ -1763,11 +1744,10 @@ bool  Positive_Negative_MODE::Save_Threshold_multiple(unsigned char* data)
 }
 /*
 @brief     : 清除阈值倍数
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-unsigned char*  Positive_Negative_MODE::Read_Threshold_multiple(void)
+unsigned char* Positive_Negative_MODE::Read_Threshold_multiple(void)
 {
 	static unsigned char data[18] = {0x00};
 	for (size_t i = 0; i < 6; i++)
@@ -1778,11 +1758,10 @@ unsigned char*  Positive_Negative_MODE::Read_Threshold_multiple(void)
 }
 /*
 @brief     : 清除阈值倍数
-			 Clean CyclicInterval.
 @para      :
 @return    : 成功true，失败false
 */
-bool  Positive_Negative_MODE::Clean_Threshold_multiple(void)
+bool Positive_Negative_MODE::Clean_Threshold_multiple(void)
 {
 	EEPROM_Write_Enable();
 	for (size_t i = 0; i < 6; i++)
@@ -1792,5 +1771,98 @@ bool  Positive_Negative_MODE::Clean_Threshold_multiple(void)
 	EEPROM_Write_Disable();
 
 	Debug_Serial.println("清除阈值倍数成功<Clean_Reversal_Time>");
+	return true;
+}
+
+/*
+@brief     : 保存AI关联以及阈值倍数被设置
+@para      :
+@return    : 成功true，失败false
+*/
+bool Positive_Negative_MODE::Save_A009_Seted(void)
+{
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(A009_Seted, 0x55);	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("保存AI关联以及阈值倍数被设置成功<Save_A009_Seted>");
+	return true;
+}
+/*
+@brief     : 读取AI关联以及阈值倍数被设置
+@para      :
+@return    : 成功true，失败false
+*/
+bool Positive_Negative_MODE::Read_A009_Seted(void)
+{
+	if (AT24CXX_ReadOneByte(A009_Seted) == 0x55)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+/*
+@brief     : 清除AI关联以及阈值倍数被设置
+@para      :
+@return    : 成功true，失败false
+*/
+bool Positive_Negative_MODE::Clean_A009_Seted(void)
+{
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(A009_Seted, 0x00);	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("清除AI关联以及阈值倍数被设置成功<Clean_A009_Seted>");
+	return true;
+}
+
+
+
+
+/*
+@brief     : 保存静止状态、正传、反转AI以及正传、反转时间被设置
+@para      :
+@return    : 成功true，失败false
+*/
+bool Positive_Negative_MODE::Save_A00A_Seted(void)
+{
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(A00A_Seted, 0x55);	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("保存静止状态、正传、反转AI以及正传、反转时间被设置<Save_A00A_Seted>");
+	return true;
+}
+/*
+@brief     : 读取静止状态、正传、反转AI以及正传、反转时间被设置
+@para      :
+@return    : 成功true，失败false
+*/
+bool Positive_Negative_MODE::Read_A00A_Seted(void)
+{
+	if (AT24CXX_ReadOneByte(A00A_Seted) == 0x55)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+/*
+@brief     : 清除静止状态、正传、反转AI以及正传、反转时间被设置
+@para      :
+@return    : 成功true，失败false
+*/
+bool Positive_Negative_MODE::Clean_A00A_Seted(void)
+{
+	EEPROM_Write_Enable();
+	AT24CXX_WriteOneByte(A00A_Seted, 0x00);	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("保存静止状态、正传、反转AI以及正传、反转时间被设置<Clean_A00A_Seted>");
 	return true;
 }
