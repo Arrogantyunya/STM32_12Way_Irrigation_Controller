@@ -877,10 +877,11 @@ void  Receipt::New_Working_Parameter_Receipt(bool use_random_wait,unsigned char 
  */
 void Receipt::SignalQuality_Version_Receipt(bool use_random_wait,unsigned char send_times)//E007信号质量与版本号回执
 {
-// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8-9     	11-12     		13-14       	15-16       		17  	18~23        
-// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	SNR     	RSSI      		SoftwareVer 	HardwareVer 		CRC8	frameEnd     
-// 长度（byte）	1        	2      	1      	2           	1          	1     	2       	2         		2           	2           		1   	6            
-// 示例数据    	FE       	E007   	0C     	C003        	00         	01    	05E0（+5）	80F0（-128）	0202（V2.0.2）	0220（V2.2.0）		D6  	0D0A0D 0A0D0A
+// 字节索引    	0        	1-2    	3       	4-5         	6          	7     	8-9     	11-12     	13-14       	15-16       	17      	18  	19~24        
+// 数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	SNR     	RSSI      	SoftwareVer 	HardwareVer 	LoraMode	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1       	2           	1          	1     	2       	2         	2           	2           	1       	1   	6            
+// 示例数据    	FE       	E007   	0x0D（13）	C003        	00         	01    	05E0（+5）	80F0（-128）	0202（V2.0.2）	0220（V2.2.0）	        	D6  	0D0A0D 0A0D0A
+
 
 	iwdg_feed();
 	Debug_Serial.println("上报信号强度以及版本号 <SignalQuality_Version_Receipt>");
@@ -908,7 +909,7 @@ void Receipt::SignalQuality_Version_Receipt(bool use_random_wait,unsigned char s
 	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
 	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
 	ReceiptFrame[ReceiptLength++] = 0x07; //
-	ReceiptFrame[ReceiptLength++] = 0x0C; //数据长度
+	ReceiptFrame[ReceiptLength++] = 0x0D; //数据长度
 
 	/*设备类型*/
 	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
@@ -934,6 +935,9 @@ void Receipt::SignalQuality_Version_Receipt(bool use_random_wait,unsigned char s
 	ReceiptFrame[ReceiptLength++] = Vertion.Read_hardware_version(HARD_VERSION_BASE_ADDR);
 	ReceiptFrame[ReceiptLength++] = Vertion.Read_hardware_version(HARD_VERSION_BASE_ADDR + 1);
 
+	/* LoraMode */
+	ReceiptFrame[ReceiptLength++] = LoRa_Para_Config.Read_LoRa_Com_Mode();
+
 	/*CRC8*/
 	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
 	/*帧尾*/
@@ -950,6 +954,79 @@ void Receipt::SignalQuality_Version_Receipt(bool use_random_wait,unsigned char s
 		delayMicroseconds(SEND_DATA_DELAY * 1000);
 	}
 }
+
+
+/*
+ @brief   : E009设置正反转模式阈值回执。（本设备 ---> 服务器）
+ @param   :	1.是否启用随机等待
+ 			2.回执次数，send_times
+ @return  : 无
+ */
+void Receipt::Set_threshold_Receipt(unsigned char send_times,unsigned char* gReceiveCmd,unsigned char E009status)
+{
+// 数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	AI_Relation_Way	Threshold_multiple	E009_Status	CRC8	frameEnd     
+// 字节索引    	0        	1-2    	3       	4-5         	6          	7     	8-10           	11-16             	17         	18  	19-24        
+// 长度（byte）	1        	2      	1       	2           	1          	1     	3              	6                 	1          	1   	6            
+// 示例数据    	FE       	E009   	0x0E(14)	C003        	00         	01    	163245         	121212121212      	01         	D6  	0D0A0D 0A0D0A
+
+	iwdg_feed();
+	Debug_Serial.println("正反转模式阈值回执 <Set_threshold_Receipt>");
+	Debug_Serial.flush();
+	unsigned char ReceiptFrame[50] = { 0x00 };
+	unsigned char ReceiptLength = 0;
+	unsigned char x = 8;
+
+#if CLEAR_BUFFER_FLAG
+	Clear_Server_LoRa_Buffer();
+#endif
+
+	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
+	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
+	ReceiptFrame[ReceiptLength++] = 0x09; //
+	ReceiptFrame[ReceiptLength++] = 0x0E; //数据长度
+
+	/*设备类型*/
+	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
+	ReceiptFrame[ReceiptLength++] = lowByte(DEVICE_TYPE_ID);
+
+	/*是否是群发*/
+	gMassCommandFlag == true ? ReceiptFrame[ReceiptLength++] = 0x55 : ReceiptFrame[ReceiptLength++] = 0x00;
+
+	/*区域号*/
+	ReceiptFrame[ReceiptLength++] = SN.Read_Area_Number();
+
+	/*AI_Relation_Way*/
+	for (size_t i = 0; i < 3; i++)
+	{
+		ReceiptFrame[ReceiptLength++] = gReceiveCmd[x++];
+	}
+
+	/*Threshold_multiple*/
+	for (size_t i = 0; i < 6; i++)
+	{
+		ReceiptFrame[ReceiptLength++] = gReceiveCmd[x++];
+	}
+	
+	/* E009status */
+	ReceiptFrame[ReceiptLength++] = E009status;
+
+	/*CRC8*/
+	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
+	/*帧尾*/
+	for (unsigned char i = 0; i < 6; i++)
+		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
+
+	Debug_Serial.println("LoRa parameter receipt...");
+	Print_Debug(&ReceiptFrame[0], ReceiptLength);
+
+	for (unsigned char i = 0; i < send_times; i++)
+	{
+		iwdg_feed();
+		LoRa_Serial.write(&ReceiptFrame[0], ReceiptLength);
+		delayMicroseconds(SEND_DATA_DELAY * 1000);
+	}
+}
+
 /*
  @brief   : 发送灌溉循环状态回执信息给服务器。（本设备 ---> 服务器）
  @param   :	1.是否需要随机时间延时发送

@@ -104,6 +104,22 @@
 #define Cyclic_interval_BASE_ADDR				124
 #define Cyclic_interval_END_ADDR				125
 
+/* 正反转模式相关存储 */
+#define AI_Relation_Way_BASE_ADDR				126//AI关联路数地址（1*6）
+#define AI_Relation_Way_END_ADDR				131
+#define Stop_AI_BASE_ADDR						132//静止状态AI（2*6）
+#define Stop_AI_END_ADDR						143
+#define Forward_AI_BASE_ADDR					144//正转AI（2*6）
+#define Forward_AI_END_ADDR						156
+#define Reversal_AI_BASE_ADDR					144//反转AI（2*6）
+#define Reversal_AI_END_ADDR					156	
+#define Forward_Time_BASE_ADDR					157//正转时间（3*6）
+#define Forward_Time_END_ADDR					174
+#define Reversal_Time_BASE_ADDR					175//反转时间（3*6）
+#define Reversal_Time_END_ADDR					192
+#define Threshold_multiple_BASE_ADDR			193//阈值倍数存储(1*6)
+#define Threshold_multiple_END_ADDR				198
+
 
 
 /*使用芯片自带备份寄存器的宏定义地址*/
@@ -220,11 +236,11 @@ public:
 
 	bool Save_DO_InitState(unsigned char *data);//存储DO初始状态
 	unsigned char* Read_DO_InitState(void);//读取DO初始状态
-	bool Clean_DO_InitState(unsigned char *data);//清除DO初始状态
+	bool Clean_DO_InitState();//清除DO初始状态
 
 	bool Save_AO_InitState(unsigned char *data);//存储AO初始状态
 	bool Read_AO_InitState(unsigned char *data);//读取AO初始状态
-	bool Clean_AO_InitState(unsigned char *data);//清除AO初始状态
+	bool Clean_AO_InitState();//清除AO初始状态
 
 	bool Save_Timeout(unsigned char High, unsigned char Low);//存储timeout时间
 	unsigned int Read_Timeout(void);//读取timeout时间
@@ -247,6 +263,39 @@ public:
 	bool Clean_CyclicInterval(void);//清除循环间隔时间
 };
 
+class Positive_Negative_MODE : public EEPROM_Operations{
+private:
+	/* data */
+public:
+	bool Save_AI_Relation_Way(unsigned char* data);//存储AI关联路数
+	unsigned char* Read_AI_Relation_Way(void);//读取AI关联路数
+	bool Clean_AI_Relation_Way(void);//清除AI关联路数
+
+	bool Save_Stop_AI(unsigned char* data);//存储静止状态AI
+	unsigned char* Read_Stop_AI(void);//读取静止状态AI
+	bool Clean_Stop_AI(void);//清除静止状态AI
+
+	bool Save_Forward_AI(unsigned char* data);//存储正转AI
+	unsigned char* Read_Forward_AI(void);//读取正转AI
+	bool Clean_Forward_AI(void);//清除正转AI
+
+	bool Save_Reversal_AI(unsigned char* data);//存储反转AI
+	unsigned char* Read_Reversal_AI(void);//读取反转AI
+	bool Clean_Reversal_AI(void);//清除反转AI
+
+	bool Save_Forward_Time(unsigned char* data);//存储正转时间
+	unsigned char* Read_Forward_Time(void);//读取正转时间
+	bool Clean_Forward_Time(void);//清除正转时间
+
+	bool Save_Reversal_Time(unsigned char* data);//存储反转时间
+	unsigned char* Read_Reversal_Time(void);//读取反转时间
+	bool Clean_Reversal_Time(void);//清除反转时间
+
+	bool Save_Threshold_multiple(unsigned char* data);//阈值倍数
+	unsigned char* Read_Threshold_multiple(void);//阈值倍数
+	bool Clean_Threshold_multiple(void);//阈值倍数
+};
+
 
 
 /*Create EEPROM object*/
@@ -259,5 +308,7 @@ extern LoRa_Config LoRa_Para_Config;
 extern Soft_Hard_Vertion Vertion;
 /*Create ModbusController_InitState object*/
 extern ModbusController_InitState InitState;
+/*Create Positive_Negative_MODE object*/
+extern Positive_Negative_MODE Pos_Nega_mode;
 
 #endif

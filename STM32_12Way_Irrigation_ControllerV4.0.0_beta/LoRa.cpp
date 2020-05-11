@@ -675,21 +675,20 @@ void LoRa::Parameter_Init(bool only_net)
 			StatusBuffer[i++] = Param_Check(AT_RFREQ_, "1C03A180", false);//470.000.000
 			StatusBuffer[i++] = Param_Check(AT_SYNC_, "34", false);
 
-#if USE_LORA_RESET
-			if (LoRa_Para_Config.Read_LoRa_Com_Mode() == 0xF1)
-			{
-				StatusBuffer[i++] = Param_Check(AT_NET_, "01", false); //配置成网关模式01
-				Debug_Serial.println("网关模式");
-			}   
-			else
-			{
-				StatusBuffer[i++] = Param_Check(AT_NET_, "00", false);    //配置成节点模式00
-				Debug_Serial.println("节点模式");
-			}
-
-#else
-			StatusBuffer[i++] = Param_Check(AT_NET_, "01", true);
-#endif
+			#if USE_LORA_RESET
+				if (LoRa_Para_Config.Read_LoRa_Com_Mode() == 0xF1)
+				{
+					StatusBuffer[i++] = Param_Check(AT_NET_, "01", false); //配置成网关模式01
+					Debug_Serial.println("网关模式");
+				}   
+				else
+				{
+					StatusBuffer[i++] = Param_Check(AT_NET_, "00", false);    //配置成节点模式00
+					Debug_Serial.println("节点模式");
+				}
+			#else
+				StatusBuffer[i++] = Param_Check(AT_NET_, "01", true);
+			#endif
 
 			StatusBuffer[i++] = Param_Check(AT_TSF_, "09", false);
 			StatusBuffer[i++] = Param_Check(AT_RSF_, "09", false);

@@ -199,6 +199,8 @@ Frame_ID Command_Analysis::FrameID_Analysis(void)
 	case 0xA006: return Query_SignalQuality_Version;break;//服务器查询信号质量与版本号(A006)
 	case 0xA007: return Set_Reporting_Interval;		break;//服务器设置上报时间间隔(A007)
 	case 0xA008: return Set_Lora_parameter;			break;//服务器设置LORA参数(A008)
+	case 0xA009: return Set_threshold;				break;//服务器设置正反转模式阈值（A009）
+	case 0xA00A: return Calculate_travel;			break;//服务器发送正反转模式计算行程（A00A）
 	case 0xA011: return Work_Para;					break;//基地服务器查询LoRa设备当前工作参数(A011)
 	case 0xA012: return Set_Group_Num;				break;//基地服务器设置LoRa设备工作组编号(A012)
 	case 0xA013: return SN_Area_Channel;			break;//基地服务器设置设备（主/子）SN及子设备总路数(A013)
@@ -377,6 +379,8 @@ void Command_Analysis::Receive_Data_Analysis(void)
 	case Query_SignalQuality_Version: Query_SignalQuality_Version_command(); break;//服务器查询信号质量与版本号(A006)
 	case Set_Reporting_Interval: Set_Reporting_Interval_command(); break;//服务器设置上报时间间隔(A007)
 	case Set_Lora_parameter: Set_Lora_parameter_command(); break;//服务器设置LORA参数(A008)
+	case Set_threshold: Set_Forward_Reverse_mode_threshold(); break;//服务器设置正反转模式阈值（A009）
+	case Calculate_travel: Forward_Reverse_mode_Calculate_travel();break;//服务器发送正反转模式计算行程（A00A）
 	}
 }
 
@@ -1613,8 +1617,13 @@ void Command_Analysis::Set_Reporting_Interval_command()
  */
 void Command_Analysis::Set_Lora_parameter_command()
 {
+// 字节索引    	0        	1-2    	3       	4-5         	6          	7     	8       	9   	10-13   	14-17   	18  	19  	20-27   	28  	29~34        
+// 数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	LoraMode	SYNC	TFREQ   	RFREQ   	TSF 	RSF 	Allocate	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1       	2           	1          	1     	1       	1   	4       	4       	1   	1   	8       	1   	6            
+// 示例数据    	FE       	A008   	0x18(24)	C003        	00         	01    	F1      	12  	1C578DE0	1C03A180	09  	09  	0000000 	D6  	0D0A0D 0A0D0A
+
 	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
-	//FE A007 0A C003 00 55 0005 003C D6 0D0A0D0A0D0A  
+	//FE A008 18 C003 00 55 F1 12 1C578DE0 1C03A180 09 09 0000000000000000 D6 0D0A0D0A0D0A  
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
@@ -1625,6 +1634,112 @@ void Command_Analysis::Set_Lora_parameter_command()
 	else
 	{
 		Debug_Serial.println("不用理会的A008指令!!!!");
+	}
+	
+	memset(gReceiveCmd, 0x00, gReceiveLength);
+}
+
+/*
+ @brief     : 服务器设置正反转模式阈值（A009）（网关 ---> 本机）
+ @param     : 无
+ @return    : 无
+ */
+void Command_Analysis::Set_Forward_Reverse_mode_threshold()
+{
+// 数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	AI_Relation_Way	Threshold_multiple	CRC8	frameEnd     
+// 字节索引    	0        	1-2    	3       	4-5         	6          	7     	8-10           	11-16             	17  	18-23        
+// 长度（byte）	1        	2      	1       	2           	1          	1     	3              	6                 	1   	6            
+// 示例数据    	FE       	A009   	0x0D(13)	C003        	00         	01    	163245         	121212121212      	00  	0D0A0D 0A0D0A
+
+	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
+	//FE A009 0D C003 00 55 163245 121212121212 D6 0D0A0D0A0D0A  
+
+	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
+	{
+		Debug_Serial.println("A009 <Set_Forward_Reverse_mode_threshold>");
+		Debug_Serial.flush();
+
+		bool Illegal_AI_relation = false;//AI关联非法标志位
+		bool Illegal_threshold_multiple = false;//阈值倍数非法标志位
+
+		String Str_AI_Relation_Way = String(gReceiveCmd[8],HEX) + String(gReceiveCmd[9],HEX) + String(gReceiveCmd[10],HEX);
+		Debug_Serial.println("Str_AI_Relation_Way = " + Str_AI_Relation_Way);
+
+		unsigned char AI_Relation_Way_Array[6] = {0x00};
+		// Debug_Serial.println(String("Str_AI_Relation_Way.length = ") + Str_AI_Relation_Way.length());
+		Debug_Serial.print(">>>");
+		for(int i=0;i < Str_AI_Relation_Way.length();i++)
+		{
+			unsigned char x = Str_AI_Relation_Way.charAt(i);
+			if(x >= '1' && x <= '6')
+			{
+				AI_Relation_Way_Array[i] = x - '0';
+				// Debug_Serial.print(Str_AI_Relation_Way.charAt(i));
+				Debug_Serial.print(AI_Relation_Way_Array[i]);
+				Debug_Serial.print(" ");
+			}
+			else
+			{
+				Illegal_AI_relation = true;break;
+			}
+		}
+		Debug_Serial.println("<<<");
+
+		Debug_Serial.print(">>>");
+		unsigned char Threshold_multiple_Array[6] = {0x00};
+		for (size_t i = 0; i < 6; i++)
+		{
+			unsigned char x = gReceiveCmd[11+i];
+			if(x >= 1 && x <= 100)
+			{
+				Threshold_multiple_Array[i] = x;
+				Debug_Serial.print(Threshold_multiple_Array[i]);
+				Debug_Serial.print(" ");
+			}
+			else
+			{
+				Illegal_threshold_multiple = true;break;
+			}
+		}
+		Debug_Serial.println("<<<");
+
+		if(Illegal_AI_relation){Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd,0);}
+		else if(Illegal_threshold_multiple){Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd,1);}
+		else
+		{
+			Pos_Nega_mode.Save_AI_Relation_Way(AI_Relation_Way_Array);
+			Pos_Nega_mode.Save_Threshold_multiple(Threshold_multiple_Array);
+			
+			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd,2);
+		}
+	}
+	else
+	{
+		Debug_Serial.println("不用理会的A009指令!!!!");
+	}
+	
+	memset(gReceiveCmd, 0x00, gReceiveLength);
+}
+
+/*
+ @brief     : 服务器发送正反转模式计算行程（A00A）（网关 ---> 本机）
+ @param     : 无
+ @return    : 无
+ */
+void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
+{
+	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
+	//FE A007 0A C003 00 55 0005 003C D6 0D0A0D0A0D0A  
+
+	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
+	{
+		Debug_Serial.println("A00A <Forward_Reverse_mode_Calculate_travel>");
+		Debug_Serial.flush();
+
+	}
+	else
+	{
+		Debug_Serial.println("不用理会的A00A指令!!!!");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);

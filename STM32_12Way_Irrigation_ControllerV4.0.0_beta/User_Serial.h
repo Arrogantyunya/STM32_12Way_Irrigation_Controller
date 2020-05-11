@@ -3,8 +3,8 @@
 
 #define USE_Serial_Upload   true
 
-#define USE_LORA_Control    false
-#define USE_RS485_Control   true
+#define USE_LORA_Control    true
+#define USE_RS485_Control   false
 
 
 #if USE_Serial_Upload

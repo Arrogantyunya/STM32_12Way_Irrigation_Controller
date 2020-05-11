@@ -192,7 +192,7 @@ void setup()
 
 	Project_Debug(); //工程模式
 
-	// SN.Clear_SN_Access_Network_Flag(); //清除注册到服务器标志位
+	SN.Clear_SN_Access_Network_Flag(); //清除注册到服务器标志位
 
 	/*Request access network(request gateway to save the device's SN code and channel)*/
 	Request_Access_Network(); //检查是否注册到服务器

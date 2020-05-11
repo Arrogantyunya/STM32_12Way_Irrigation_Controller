@@ -24,6 +24,8 @@ LoRa_Config LoRa_Para_Config;
 Soft_Hard_Vertion Vertion;
 /*创建Modbus控制器初始状态对象*/
 ModbusController_InitState InitState;
+/*创建正反转对象*/
+Positive_Negative_MODE Pos_Nega_mode;
 
 /*
  @brief     : 设置EEPROM读写引脚
@@ -1030,7 +1032,7 @@ unsigned char *ModbusController_InitState::Read_DO_InitState(void)
  @para      : 
  @return    : None
  */
-bool ModbusController_InitState::Clean_DO_InitState(unsigned char *data)
+bool ModbusController_InitState::Clean_DO_InitState()
 {
 	Debug_Serial.println("暂时未完成<Clean_DO_InitState>");
 	return false;
@@ -1093,7 +1095,7 @@ bool ModbusController_InitState::Read_AO_InitState(unsigned char *data)
  @para      : 
  @return    : None
  */
-bool ModbusController_InitState::Clean_AO_InitState(unsigned char *data)
+bool ModbusController_InitState::Clean_AO_InitState()
 {
 	Debug_Serial.println("暂时未完成<Clean_AO_InitState>");
 	return false;
@@ -1407,4 +1409,388 @@ bool ModbusController_InitState::Clean_CyclicInterval(void)
 	}
 	Debug_Serial.println("清除CyclicInterval失败<Clean_CyclicInterval>");
 	return false;
+}
+
+
+/*
+@brief     : 存储AI关联路数
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool Positive_Negative_MODE::Save_AI_Relation_Way(unsigned char* data)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 6; i++)
+	{
+		AT24CXX_WriteOneByte(AI_Relation_Way_BASE_ADDR+i, data[i]);
+		Debug_Serial.print(AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+i));
+		Debug_Serial.print(" ");
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("储存AI_Relation_Way成功<Save_AI_Relation_Way>");
+	return true;
+}
+
+/*
+@brief     : 读取AI关联路数
+			 Clean CyclicInterval.
+@para      :
+@return    : 
+*/
+unsigned char* Positive_Negative_MODE::Read_AI_Relation_Way(void)
+{
+	static unsigned char data[6] = {0x00};
+	for (size_t i = 0; i < 6; i++)
+	{
+		data[i] = AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+i);
+	}
+	return data;
+}
+
+/*
+@brief     : 清除AI关联路数
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool Positive_Negative_MODE::Clean_AI_Relation_Way(void)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 6; i++)
+	{
+		AT24CXX_WriteOneByte(AI_Relation_Way_BASE_ADDR+i, 0x00);
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("清除AI_Relation_Way成功<Clean_AI_Relation_Way>");
+	return true;
+}
+
+
+
+/*
+@brief     : 存储静止状态AI
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool Positive_Negative_MODE::Save_Stop_AI(unsigned char* data)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 12; i++)
+	{
+		AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR+i, data[i]);
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("存储静止状态AI成功<Clean_AI_Relation_Way>");
+	return true;
+}
+/*
+@brief     : 读取静止状态AI
+			 Clean CyclicInterval.
+@para      :
+@return    : 
+*/
+unsigned char* Positive_Negative_MODE::Read_Stop_AI(void)
+{
+	static unsigned char data[12] = {0x00};
+	for (size_t i = 0; i < 12; i++)
+	{
+		data[i] = AT24CXX_ReadOneByte(Stop_AI_BASE_ADDR+i);
+	}
+	return data;
+}
+/*
+@brief     : 清除静止状态AI
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool  Positive_Negative_MODE::Clean_Stop_AI(void)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 12; i++)
+	{
+		AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR+i, 0x00);
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("存储静止状态AI成功<Clean_AI_Relation_Way>");
+	return true;
+}
+
+
+
+
+/*
+@brief     : 存储正转AI
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool  Positive_Negative_MODE::Save_Forward_AI(unsigned char* data)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 12; i++)
+	{
+		AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR+i, data[i]);
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("存储正转AI成功<Save_Forward_AI>");
+	return true;
+}
+/*
+@brief     : 读取正转AI
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+unsigned char*  Positive_Negative_MODE::Read_Forward_AI(void)
+{
+	static unsigned char data[12] = {0x00};
+	for (size_t i = 0; i < 12; i++)
+	{
+		data[i] = AT24CXX_ReadOneByte(Forward_AI_BASE_ADDR+i);
+	}
+	return data;
+}
+/*
+@brief     : 清除正转AI
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool  Positive_Negative_MODE::Clean_Forward_AI(void)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 12; i++)
+	{
+		AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR+i, 0x00);
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("清除正转AI成功<Clean_AI_Relation_Way>");
+	return true;
+}
+
+
+/*
+@brief     : 存储反转AI
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool Positive_Negative_MODE::Save_Reversal_AI(unsigned char* data)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 12; i++)
+	{
+		AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR+i, data[i]);
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("存储正转AI成功<Save_Reversal_AI>");
+	return true;
+}
+/*
+@brief     : 读取反转AI
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+unsigned char* Positive_Negative_MODE::Read_Reversal_AI(void)
+{
+	static unsigned char data[12] = {0x00};
+	for (size_t i = 0; i < 12; i++)
+	{
+		data[i] = AT24CXX_ReadOneByte(Reversal_AI_BASE_ADDR+i);
+	}
+	return data;
+}
+/*
+@brief     : 清除反转AI
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool Positive_Negative_MODE::Clean_Reversal_AI(void)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 12; i++)
+	{
+		AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR+i, 0x00);
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("清除反转AI成功<Clean_AI_Relation_Way>");
+	return true;
+}
+
+
+
+/*
+@brief     : 存储正转时间
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool  Positive_Negative_MODE::Save_Forward_Time(unsigned char* data)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 12; i++)
+	{
+		AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR+i, data[i]);
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("存储正转时间成功<Save_Forward_Time>");
+	return true;
+}
+/*
+@brief     : 读取正转时间
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+unsigned char*  Positive_Negative_MODE::Read_Forward_Time(void)
+{
+	static unsigned char data[12] = {0x00};
+	for (size_t i = 0; i < 12; i++)
+	{
+		data[i] = AT24CXX_ReadOneByte(Forward_Time_BASE_ADDR+i);
+	}
+	return data;
+}
+/*
+@brief     : 清除正转时间
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool  Positive_Negative_MODE::Clean_Forward_Time(void)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 12; i++)
+	{
+		AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR+i, 0x00);
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("清除正转时间成功<Clean_Forward_Time>");
+	return true;
+}
+
+
+
+/*
+@brief     : 存储反转时间
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool  Positive_Negative_MODE::Save_Reversal_Time(unsigned char* data)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 18; i++)
+	{
+		AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR+i, data[i]);
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("存储反转时间成功<Save_Reversal_Time>");
+	return true;
+}
+/*
+@brief     : 读取反转时间
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+unsigned char*  Positive_Negative_MODE::Read_Reversal_Time(void)
+{
+	static unsigned char data[18] = {0x00};
+	for (size_t i = 0; i < 18; i++)
+	{
+		data[i] = AT24CXX_ReadOneByte(Reversal_Time_BASE_ADDR+i);
+	}
+	return data;
+}
+/*
+@brief     : 清除反转时间
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool  Positive_Negative_MODE::Clean_Reversal_Time(void)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 18; i++)
+	{
+		AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR+i, 0x00);
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("清除反转时间成功<Clean_Reversal_Time>");
+	return true;
+}
+
+
+
+
+/*
+@brief     : 清除阈值倍数
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool  Positive_Negative_MODE::Save_Threshold_multiple(unsigned char* data)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 6; i++)
+	{
+		AT24CXX_WriteOneByte(Threshold_multiple_BASE_ADDR+i, data[i]);
+		Debug_Serial.print(AT24CXX_ReadOneByte(Threshold_multiple_BASE_ADDR+i));
+		Debug_Serial.print(" ");
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("存储阈值倍数成功<Save_Threshold_multiple>");
+	return true;
+}
+/*
+@brief     : 清除阈值倍数
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+unsigned char*  Positive_Negative_MODE::Read_Threshold_multiple(void)
+{
+	static unsigned char data[18] = {0x00};
+	for (size_t i = 0; i < 6; i++)
+	{
+		data[i] = AT24CXX_ReadOneByte(Threshold_multiple_BASE_ADDR+i);
+	}
+	return data;
+}
+/*
+@brief     : 清除阈值倍数
+			 Clean CyclicInterval.
+@para      :
+@return    : 成功true，失败false
+*/
+bool  Positive_Negative_MODE::Clean_Threshold_multiple(void)
+{
+	EEPROM_Write_Enable();
+	for (size_t i = 0; i < 6; i++)
+	{
+		AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR+i, 0x00);
+	}	
+	EEPROM_Write_Disable();
+
+	Debug_Serial.println("清除阈值倍数成功<Clean_Reversal_Time>");
+	return true;
 }

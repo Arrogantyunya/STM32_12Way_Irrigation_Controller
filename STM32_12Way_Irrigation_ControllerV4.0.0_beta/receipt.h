@@ -59,6 +59,7 @@ public:
 	void Positive_negative_Control_Receipt(unsigned char send_times, unsigned char* gReceiveCmd);//E005发送正反转回执信息给服务器
 	void New_Working_Parameter_Receipt(bool use_random_wait,unsigned char send_times);//E006新实时状态回执
 	void SignalQuality_Version_Receipt(bool use_random_wait,unsigned char send_times);//E007信号质量与版本号回执
+	void Set_threshold_Receipt(unsigned char send_times,unsigned char* gReceiveCmd,unsigned char E009status);//E009设置正反转模式阈值回执
 	
 	void Output_init_Receipt(unsigned char status, unsigned char send_times);//E002发送设置初始状态回执信息给服务器
 private:

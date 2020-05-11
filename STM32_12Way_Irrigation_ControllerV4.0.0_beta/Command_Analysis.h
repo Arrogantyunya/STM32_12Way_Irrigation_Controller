@@ -10,9 +10,10 @@
 #define Forward_Reverse_mode	0x02	//正反转模式（卷膜、拉幕专属）
 
 enum Frame_ID {
-	Modbus_Control, R_Modbus_Control,Output_default,Work_Para, Set_Group_Num, SN_Area_Channel, Work_Status
-	 , /*ResetRoll, Opening, Work_Limit,*/ Stop_Work,Irrigation_Control,Delay_Start_DO_Control
-	 ,Positive_negative_Control,Query_SignalQuality_Version,Set_Reporting_Interval,Set_Lora_parameter,Non_existent
+	Modbus_Control, R_Modbus_Control,Output_default,Work_Para, Set_Group_Num, SN_Area_Channel, Work_Status,
+	/*ResetRoll, Opening, Work_Limit,*/ Stop_Work,Irrigation_Control,Delay_Start_DO_Control,
+	Positive_negative_Control,Query_SignalQuality_Version,Set_Reporting_Interval,Set_Lora_parameter,Non_existent,
+	Set_threshold,Calculate_travel
 };
 
 class Command_Analysis {
@@ -48,6 +49,8 @@ private:
 	void Query_SignalQuality_Version_command();//服务器查询信号质量与版本号(A006)
 	void Set_Reporting_Interval_command();//服务器设置上报时间间隔(A007)
 	void Set_Lora_parameter_command();//服务器设置LORA参数(A008)
+	void Set_Forward_Reverse_mode_threshold();//服务器设置正反转模式阈值（A009）
+	void Forward_Reverse_mode_Calculate_travel();//服务器发送正反转模式计算行程（A00A）
 };
 
 
