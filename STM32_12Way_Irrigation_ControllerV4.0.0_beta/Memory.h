@@ -5,6 +5,9 @@
 #include <libmaple/bkp.h>
 #include <Arduino.h>
 #include "User_Serial.h"
+#include "boot_config.h"
+#include "boot_mem.h"
+#include "boot_protocol.h"
 
 #define EP_WP_PIN                               PB5
 
@@ -107,21 +110,27 @@
 /* 正反转模式相关存储 */
 #define AI_Relation_Way_BASE_ADDR				126//AI关联路数地址（1*6）
 #define AI_Relation_Way_END_ADDR				131
+
 #define Stop_AI_BASE_ADDR						132//静止状态AI（2*6）
 #define Stop_AI_END_ADDR						143
-#define Forward_AI_BASE_ADDR					144//正转AI（2*6）
-#define Forward_AI_END_ADDR						156
-#define Reversal_AI_BASE_ADDR					144//反转AI（2*6）
-#define Reversal_AI_END_ADDR					156	
-#define Forward_Time_BASE_ADDR					157//正转时间（3*6）
-#define Forward_Time_END_ADDR					174
-#define Reversal_Time_BASE_ADDR					175//反转时间（3*6）
-#define Reversal_Time_END_ADDR					192
-#define Threshold_multiple_BASE_ADDR			193//阈值倍数存储(1*6)
-#define Threshold_multiple_END_ADDR				198
 
-#define A009_Seted								199//AI关联以及阈值倍数被设置
-#define A00A_Seted								200//静止状态、正传、反转AI以及正传、反转时间被设置
+#define Forward_AI_BASE_ADDR					144//正转AI（2*6）
+#define Forward_AI_END_ADDR						155
+
+#define Reversal_AI_BASE_ADDR					156//反转AI（2*6）
+#define Reversal_AI_END_ADDR					167	
+
+#define Forward_Time_BASE_ADDR					168//正转时间（3*6）
+#define Forward_Time_END_ADDR					185
+
+#define Reversal_Time_BASE_ADDR					186//反转时间（3*6）
+#define Reversal_Time_END_ADDR					203
+
+#define Threshold_multiple_BASE_ADDR			204//阈值倍数存储(1*6)
+#define Threshold_multiple_END_ADDR				209
+
+#define A009_Seted								210//AI关联以及阈值倍数被设置
+#define A00A_Seted								211//（1*6）静止状态、正传、反转AI以及正传、反转时间被设置
 
 
 
@@ -271,28 +280,28 @@ private:
 	/* data */
 public:
 	bool Save_AI_Relation_Way(unsigned char* data);//存储AI关联路数
-	unsigned char* Read_AI_Relation_Way(void);//读取AI关联路数
+	unsigned char* Read_AI_Relation_Way(unsigned char which_Way);//读取AI关联路数
 	bool Clean_AI_Relation_Way(void);//清除AI关联路数
 
-	bool Save_Stop_AI(unsigned char* data);//存储静止状态AI
-	unsigned char* Read_Stop_AI(void);//读取静止状态AI
-	bool Clean_Stop_AI(void);//清除静止状态AI
+	bool Save_Stop_AI(unsigned int data,unsigned char which_Way);//存储静止状态AI
+	unsigned int Read_Stop_AI(unsigned char which_Way);//读取静止状态AI
+	bool Clean_Stop_AI(unsigned char which_Way);//清除静止状态AI
 
-	bool Save_Forward_AI(unsigned char* data);//存储正转AI
-	unsigned char* Read_Forward_AI(void);//读取正转AI
-	bool Clean_Forward_AI(void);//清除正转AI
+	bool Save_Forward_AI(unsigned int data,unsigned char which_Way);//存储正转AI
+	unsigned int Read_Forward_AI(unsigned char which_Way);//读取正转AI
+	bool Clean_Forward_AI(unsigned char which_Way);//清除正转AI
 
-	bool Save_Reversal_AI(unsigned char* data);//存储反转AI
-	unsigned char* Read_Reversal_AI(void);//读取反转AI
-	bool Clean_Reversal_AI(void);//清除反转AI
+	bool Save_Reversal_AI(unsigned int data,unsigned char which_Way);//存储反转AI
+	unsigned int Read_Reversal_AI(unsigned char which_Way);//读取反转AI
+	bool Clean_Reversal_AI(unsigned char which_Way);//清除反转AI
 
-	bool Save_Forward_Time(unsigned char* data);//存储正转时间
-	unsigned char* Read_Forward_Time(void);//读取正转时间
-	bool Clean_Forward_Time(void);//清除正转时间
+	bool Save_Forward_Time(unsigned int data,unsigned char which_Way);//存储正转时间
+	unsigned int Read_Forward_Time(unsigned char which_Way);//读取正转时间
+	bool Clean_Forward_Time(unsigned char which_Way);//清除正转时间
 
-	bool Save_Reversal_Time(unsigned char* data);//存储反转时间
-	unsigned char* Read_Reversal_Time(void);//读取反转时间
-	bool Clean_Reversal_Time(void);//清除反转时间
+	bool Save_Reversal_Time(unsigned int data,unsigned char which_Way);//存储反转时间
+	unsigned int Read_Reversal_Time(unsigned char which_Way);//读取反转时间
+	bool Clean_Reversal_Time(unsigned char which_Way);//清除反转时间
 
 	bool Save_Threshold_multiple(unsigned char* data);//阈值倍数
 	unsigned char* Read_Threshold_multiple(void);//阈值倍数
@@ -302,9 +311,9 @@ public:
 	bool Read_A009_Seted(void);//读取AI关联以及阈值倍数被设置
 	bool Clean_A009_Seted(void);//清除AI关联以及阈值倍数被设置
 
-	bool Save_A00A_Seted(void);//保存静止状态、正传、反转AI以及正传、反转时间被设置
-	bool Read_A00A_Seted(void);//读取静止状态、正传、反转AI以及正传、反转时间被设置
-	bool Clean_A00A_Seted(void);//清除静止状态、正传、反转AI以及正传、反转时间被设置
+	bool Save_A00A_Seted(unsigned char which_Way);//保存静止状态、正传、反转AI以及正传、反转时间被设置
+	bool Read_A00A_Seted(unsigned char which_Way);//读取静止状态、正传、反转AI以及正传、反转时间被设置
+	bool Clean_A00A_Seted(unsigned char which_Way);//清除静止状态、正传、反转AI以及正传、反转时间被设置
 };
 
 

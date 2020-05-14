@@ -24,14 +24,13 @@
 #include "Private_RTC.h"
 //#include "ModbusSerial.h"
 
+
 Command_Analysis LoRa_Command_Analysis;
 
 unsigned char Device_Mode;//设备的工作模式
 
-unsigned char Rece[512];
-unsigned char Len_Rece;
-unsigned char gReceiveCmd[512];   //接收LoRa数据缓存
-unsigned char gReceiveLength;     //接收LoRa数据长度
+unsigned char gReceiveCmd[300];   //接收LoRa数据缓存
+unsigned short gReceiveLength;     //接收LoRa数据长度
 bool gAccessNetworkFlag = true;   //是否已经注册到服务器标志位
 // bool gStopWorkFlag = false;       //是否要强制停止标志位
 bool gMassCommandFlag = false;    //接收的消息是否是群发标志位
@@ -73,7 +72,7 @@ unsigned char Delay_mode_OpenNum;//开启的数量
 unsigned int Delay_mode_EndWait;//结束等待的时间
 
 /* 正反转模式相关 */
-unsigned int Forward_Reverse_mode_Worktime[8];//4个开启时间
+unsigned int Forward_Reverse_mode_Worktime[12];//6个开启时间
 unsigned char Forward_Reverse_mode_Interval;//正反转模式的间隔时间
 bool Forward_Reverse_mode_NeedWait =false;//需要进行延时标志位
 unsigned int Forward_Reverse_mode_EndWait;//结束等待的时间
@@ -87,97 +86,96 @@ extern bool DO_interval_timing;//正在进行单个间隔时间的标志位
 extern bool gRTCTime_arrive_Flag;//RTC时间到达的标志位
 extern unsigned int KeyDI7_num;//按键DI7按下的次数
 
+/* 重置行程相关 */
+unsigned char A00A_WayUsed = 0x00;//
+bool Calculate_travel_Flag = false;//需要进行重置行程的标志
+bool A00A_WayUsed_Array[6] = {0x00};//需要进行重置行程的路数
+bool A00A_WayUsed_Array_Backup1[6] = {0x00};//需要进行重置行程的路数备份1
+bool A00A_WayUsed_Array_Backup2[6] = {0x00};//需要进行重置行程的路数备份2
+bool Get_StopAI_Complete_Flag = false;//得到静止AI完成的标志位
+unsigned int OldTime_Waitfor_Calculate_travel = 0;//老时间
+bool Wait_Reverse = false;//先等待反转
+bool Need_goto_Upper_limit = false;//需要到达上限位标志位
+bool Need_goto_Lower_limit = false;//需要到达下限位标志位
+bool collect_Forward_AI = false;//采集正转电流标志位
+bool collect_Reverse_AI = false;//采集反转电流标志位
+unsigned int Forward_Time[6] = {0x00};//正转时间
+unsigned int Reverse_Time[6] = {0x00};//反转时间
+unsigned int Forward_Start_Time[6] = {0x00};//正转开始时间
+unsigned int Reverse_Start_Time[6] = {0x00};//反转开始时间
 
+/* 远程升级 */
+unsigned char gRcvOtherFlag = 0;
 
 /*
  @brief   : 从网关接收LoRa数据（网关 ---> 本机），接受的指令有通用指令和本设备私有指令。
-			每条指令以0xFE为帧头，0x0D 0x0A 0x0D 0x0A 0x0D 0x0A，6个字节为帧尾。最大接受指令长度为128字节，超过将清空接收的数据和长度。
+            每条指令以0xFE为帧头，0x0D 0x0A 0x0D 0x0A 0x0D 0x0A，6个字节为帧尾。最大接受指令长度为128字节，超过将清空接收的数据和长度。
  @param   : 无
  @return  : 无
  */
 void Command_Analysis::Receive_LoRa_Cmd(void)
 {
-	unsigned long Beging_time = millis();
-	// unsigned char Timeout = 500;
-	bool Get_Frame = false;
+  unsigned char EndNum = 0;  //帧尾数量计数值
+  unsigned char FrameHeadDex = 0;
+  bool NoFrameHeadFlag = true;
+  unsigned long Rcv_OverTime;
 
-	iwdg_feed();
-	memset(Rece, 0x00, sizeof(Rece));
-	Len_Rece = 0;
+  gReceiveLength = 0;
+  iwdg_feed();
+  Rcv_OverTime = millis();
 
-	unsigned int Available_len = LoRa_Serial.available();
-	// Serial.println(String("Available_len = ")+Available_len);
-	if (Available_len >= 11)
-	{
-		Len_Rece = LoRa_Serial.readBytes(Rece,128);
-		
-		// Serial.println(String("Len_Rece = ") + Len_Rece);
-		
-		for (size_t i = 0; i < Len_Rece; i++)
-		{
-			if (Rece[i] == 0xFE)//得到了帧头
-			{
-				u_int Frame_Len = Rece[i+3];//得到长度
-				uint8_t start_position = i;
-				Debug_Serial.println(String("帧长度为：") + String(Frame_Len,HEX));
+  while ((LoRa_Serial.available() > 0) && (millis() < (Rcv_OverTime + 3000)))
+  {
+    gReceiveCmd[gReceiveLength++] = LoRa_Serial.read();
+    Serial.print(gReceiveCmd[gReceiveLength - 1], HEX);
+    Serial.print(" ");
+    /* 如果缓存里没有数据，等待一会儿 */
+    if (LoRa_Serial.available() <= 0) delay(4);
+    /*防止越界*/
+    if (gReceiveLength >= 300)  gReceiveLength = 0;
 
-				if (Frame_Len <= (Len_Rece-11-i))//判断是否越界
-				{
-					if (Rece[i+3 + Frame_Len+1+1] == 0x0D && Rece[i+3 + Frame_Len+1+2] == 0x0A &&
-						Rece[i+3 + Frame_Len+1+3] == 0x0D && Rece[i+3 + Frame_Len+1+4] == 0x0A && 
-						Rece[i+3 + Frame_Len+1+5] == 0x0D && Rece[i+3 + Frame_Len+1+6] == 0x0A)
-					{
-						Get_Frame = true;//得到了可以检验的一帧
-						Debug_Serial.print("完整帧为:");
-						
-						for (size_t c = 0; c < (3+1 + Frame_Len+1+6); c++)//这里将得到帧头帧尾的帧赋值给另一个数组
-						{
-							gReceiveCmd[c] = Rece[start_position++];
-							Debug_Serial.print(gReceiveCmd[c], HEX);
-							Debug_Serial.print(" ");
-							gReceiveLength++;
-						}
-						Debug_Serial.println("");
-						break;	
-					}
-					else
-					{
-						Debug_Serial.println("帧尾校验错误!!!重新截取下一帧");
-						break;
-					}
-				}
-				else
-				{
-					Debug_Serial.println("长度超出数组下标!!!重新截取下一帧");
-					break;
-				}	
-			}
-		}
-		memset(Rece, 0x00, sizeof(Rece));
-		Len_Rece = 0;
-	}
-	else
-	{
-		memset(Rece, 0x00, sizeof(Rece));
-		Len_Rece = 0;	
-	}
+    //记录帧头所在接收的数据包里的位置（因为噪音的干扰，第一个字节可能不是帧头）
+    if (NoFrameHeadFlag && gReceiveCmd[gReceiveLength - 1] == 0xFE)
+    {
+      FrameHeadDex = gReceiveLength - 1;
+      NoFrameHeadFlag = false;
+    }
 
-	iwdg_feed();
+    if (!NoFrameHeadFlag)
+    {
+      /*验证帧尾: 0D 0A 0D 0A 0D 0A*/
+      if (gReceiveCmd[gReceiveLength - 1] == 0x0D && (EndNum % 2 == 0))  //如果检测到第一个帧尾
+        EndNum += 1;
+      else if (gReceiveCmd[gReceiveLength - 1] == 0x0D && (EndNum % 2 == 1))  //防止校验位是0x0D的情况下取不到帧尾
+        EndNum = 1;
+      else if (gReceiveCmd[gReceiveLength - 1] == 0x0A && (EndNum % 2 == 1))
+        EndNum += 1;
+      else
+        EndNum = 0;
+    }
+  }
+  iwdg_feed();
 
-	if (Get_Frame)
-	{
-		Get_Frame = false;
-		Receive_Data_Analysis();//根据帧ID分析判断执行哪一个接收到的通用指令或私有指令
-	}
-	else
-	{
-		// memset(Rece, 0x00, sizeof(Rece));
-		// Len_Rece = 0;
-		memset(gReceiveCmd, 0x00, sizeof(gReceiveCmd));
-		gReceiveLength = 0;
-	}
-	
-	
+  if (EndNum == 6)  //帧尾校验正确
+  {
+    EndNum = 0;
+    //Serial.println("Get frame end... <Receive_LoRa_Cmd>");
+
+    Serial.println("Parsing LoRa command... <Receive_LoRa_Cmd>");
+
+    if (FrameHeadDex != 0)  //第一个字节不是0xFE，说明有噪音干扰，重新从0xFE开始组合出一帧
+    {
+      unsigned char HeadStart = FrameHeadDex;
+      for (unsigned char i = 0; i < (gReceiveLength - HeadStart); i++)
+      {
+        gReceiveCmd[i] = gReceiveCmd[FrameHeadDex++];
+      }
+    }
+    if (gIsHandleMsgFlag)
+      Receive_Data_Analysis();
+      
+    iwdg_feed();
+  }
 }
 
 /*
@@ -210,8 +208,9 @@ Frame_ID Command_Analysis::FrameID_Analysis(void)
 	//case 0xA021: return Opening;			break;
 	//case 0xA022: return Work_Limit;			break;
 
-	default: memset(gReceiveCmd, 0x00, sizeof(gReceiveCmd));return Non_existent; break;
+	default:gRcvOtherFlag = 1; Serial.println("RCV BT CMD"); BT_Receive_Protocol_Msg(&gReceiveCmd[0], &gReceiveLength, &gRcvOtherFlag);break;
 	}
+	return Non_existent;
 }
 
 /*
@@ -538,6 +537,7 @@ void Command_Analysis::Detailed_Work_Status(void)
  	//Frame head | Frame ID | Data Length | Device type ID |  mass flag |  Area number |   channel |   CRC8 |  |  Frame end
  	//  1 byte       2 byte      1 byte          2 byte        1 byte        1 byte         1 byte    1 byte      6 byte
 
+	// FE A015 05 C003 00 55 01 D6 0D0A0D0A0D0A
  	if (gAccessNetworkFlag == false)  return;  //如果设备还未注册到服务器，无视该指令
 
  	if (Verify_Frame_Validity(4, 5, true, false) == true)
@@ -546,82 +546,7 @@ void Command_Analysis::Detailed_Work_Status(void)
 		Debug_Serial.println("强制停止!!!");
 		Debug_Serial.flush();
 
-		iwdg_feed();
-		Stop_Timer4();//先停止计时
-		rtc_detach_interrupt(RTC_ALARM_SPECIFIC_INTERRUPT);//RTC报警特定中断,不知道具体是干嘛的，注释掉好像也一样的跑？
-
-		Cyclic_intervalFlag = false;//循环时间间隔的标志位
-		gRTCTime_arrive_Flag = false;//RTC时间到达的标志位
-		gTime_arrive_Flag = false; //定时器时间到达的标志位
-		Cyclic_timing = false;//正在进行循环时间间隔的标志位
-		Irrigation_use = false;//正在灌溉的标志位
-		//OpenSec = 0;//开启的时间
-		//DO_Interval = 0;//单个的间隔时间
-		//DO_Num = 0;//一次性开启的DO数量
-		//retryCnt = 0;//循环次数（）
-		Cyclic_interval = 0;//循环间隔时间
-		//fornum = 0;//一轮循环需要的循环次数，（例如开4路，每次开2路，fornum=2）
-		//fornum_backups = 0;//一轮循环需要的循环次数的备份，（例如开4路，每次开2路，fornum=2）
-		//Last_full = false;//最后一轮循环是否能开满，（例如开5路，每次开2路，最后一轮开不满）
-		//Last_num = 0;//最后一轮循环开不满时需要开启的个数
-		DO_intervalFlag = false;//单个间隔时间的标志位
-		DO_interval_timing = false;//正在进行单个间隔时间的标志位
-		DOStatus_Change = false;//DO的状态改变标志位
-		One_Cycle_Complete = false;//一轮循环完成的标志位
-
-		Need_Num = 0;	//需要开启继电器的个数
-		Complete_Num = 0;//完成开启的个数
-
-		KeyDI7_num = 0;//将按键按下次数清零，就可以让E014一直上报
-		Waiting_Collection = true;//下次回复状态需要等待采集
-
-		/* 延时模式相关 */
-		Delay_mode_OpenSec = 0;//
-		Delay_mode_Interval = 0;//
-		Delay_mode_DONum = 0;//
-		Delay_mode_NeedWait = false;//
-		Delay_mode_OpenNum = 0;//
-		Delay_mode_EndWait = 0;//
-
-		/* 正反转模式相关 */
-		Forward_Reverse_mode_NeedWait = false;//需要进行延时标志位
-		Forward_Reverse_mode_EndWait = 0;//结束等待的时间
-
-#if PLC_V1
-		for (size_t i = 0; i < 12; i++)
-		{
-			Delay_mode_Worktime[i] = 0;
-
-			Worktime[i] = 0;//16个开启时间
-			WorkInterval[i] = 0;//16个间隔时间
-			Worktime_backups[i] = 0;//16个开启时间的备份
-			WorkInterval_backups[i] = 0;//16个间隔时间的备份
-			retryCnt[i] = 0;//循环次数（）
-			DO_WayOpentime[i] = 0;//16路DO的开始时间
-			DO_WayClosetime[i] = 0;//16路DO的关闭时间
-			DO_WayIntervalBengin[i] = 0;//16路DO的间隔开始时间
-			DO_WayIntervalEnd[i] = 0;//16路DO的间隔结束时间
-			DO_WayOpen[i] = false; //16路DO打开的标志位
-			DO_WayInterval[i] = false;//16路DO间隔标志位
-			DO_WayComplete[i] = false;//16路DO完成的标志位
-			DO_Set[i] = false;//DO设置的标志位
-			Set_DO_relay(i, OFF);
-		}
-
-		/* 正反转模式相关 */
-		for (size_t i = 0; i < 8; i++)
-		{
-			Forward_Reverse_mode_Worktime[i] = 0;//
-		}
-
-
-		/*这里上报强制停止指令接收回执*/
-		Message_Receipt.General_Receipt(TrunOffOk, 2);
-
-#elif PLC_V2
-		Serial.println("");
-
-#endif	
+		Forced_Stop(true);
  	}
  	memset(gReceiveCmd, 0x00, gReceiveLength);
  }
@@ -1108,64 +1033,8 @@ void Command_Analysis::Irrigation_Controllor_control_command(void)
 		Debug_Serial.flush();
 
 		Enter_Work_State = true;
-		iwdg_feed();
-		Stop_Timer4();//先停止计时
-		rtc_detach_interrupt(RTC_ALARM_SPECIFIC_INTERRUPT);//RTC报警特定中断,不知道具体是干嘛的，注释掉好像也一样的跑？
-
-		Cyclic_intervalFlag = false;//循环时间间隔的标志位
-		gRTCTime_arrive_Flag = false;//RTC时间到达的标志位
-		gTime_arrive_Flag = false; //定时器时间到达的标志位
-		Cyclic_timing = false;//正在进行循环时间间隔的标志位
-		Irrigation_use = false;//正在灌溉的标志位
-		Cyclic_interval = 0;//循环间隔时间
-		DO_intervalFlag = false;//单个间隔时间的标志位
-		DO_interval_timing = false;//正在进行单个间隔时间的标志位
-		DOStatus_Change = false;//DO的状态改变标志位
-		One_Cycle_Complete = false;//一轮循环完成的标志位
-
-		Need_Num = 0;	//需要开启继电器的个数
-		Complete_Num = 0;//完成开启的个数
-
-		KeyDI7_num = 0;//将按键按下次数清零，就可以让E014一直上报
-		Waiting_Collection = true;//下次回复状态需要等待采集
-
-		/* 延时模式相关 */
-		Delay_mode_OpenSec = 0;//
-		Delay_mode_Interval = 0;//
-		Delay_mode_DONum = 0;//
-		Delay_mode_NeedWait = false;//
-		Delay_mode_OpenNum = 0;//
-		Delay_mode_EndWait = 0;//
-
-		/* 正反转模式相关 */
-		Forward_Reverse_mode_NeedWait = false;//需要进行延时标志位
-		Forward_Reverse_mode_EndWait = 0;//结束等待的时间
-		#if PLC_V1
-		for (size_t i = 0; i < 12; i++)
-		{
-			Delay_mode_Worktime[i] = 0;
-
-			Worktime[i] = 0;//16个开启时间
-			WorkInterval[i] = 0;//16个间隔时间
-			Worktime_backups[i] = 0;//16个开启时间的备份
-			WorkInterval_backups[i] = 0;//16个间隔时间的备份
-			retryCnt[i] = 0;//循环次数（）
-			DO_WayOpentime[i] = 0;//16路DO的开始时间
-			DO_WayClosetime[i] = 0;//16路DO的关闭时间
-			DO_WayIntervalBengin[i] = 0;//16路DO的间隔开始时间
-			DO_WayIntervalEnd[i] = 0;//16路DO的间隔结束时间
-			DO_WayOpen[i] = false; //16路DO打开的标志位
-			DO_WayInterval[i] = false;//16路DO间隔标志位
-			DO_WayComplete[i] = false;//16路DO完成的标志位
-			DO_Set[i] = false;//DO设置的标志位
-			Set_DO_relay(i, OFF);
-		}
-
-		/* 正反转模式相关 */
-		for (size_t i = 0; i < 8; i++)
-		{
-			Forward_Reverse_mode_Worktime[i] = 0;//
-		}
+		
+		Forced_Stop(false);
 
 		Device_Mode = Solenoid_mode;//定时DO模式（电磁阀）
 
@@ -1246,11 +1115,7 @@ void Command_Analysis::Irrigation_Controllor_control_command(void)
 		/*这里上报E003定时IO指令接收回执*/
 		Message_Receipt.Irrigation_control_Receipt(3, gReceiveCmd);
 
-		Start_Timer4();
-		#elif PLC_V2
-		Serial.println("");
-
-		#endif		
+		Start_Timer4();		
 	}
 	else
 	{
@@ -1283,66 +1148,8 @@ void Command_Analysis::Delay_Start_DO_Control_command()
 		Debug_Serial.flush();
 
 		Enter_Work_State = true;
-		iwdg_feed();
-		Stop_Timer4();//先停止计时
-		rtc_detach_interrupt(RTC_ALARM_SPECIFIC_INTERRUPT);//RTC报警特定中断,不知道具体是干嘛的，注释掉好像也一样的跑？
 
-		Cyclic_intervalFlag = false;//循环时间间隔的标志位
-		gRTCTime_arrive_Flag = false;//RTC时间到达的标志位
-		gTime_arrive_Flag = false; //定时器时间到达的标志位
-		Cyclic_timing = false;//正在进行循环时间间隔的标志位
-		Irrigation_use = false;//正在灌溉的标志位
-		Cyclic_interval = 0;//循环间隔时间
-		DO_intervalFlag = false;//单个间隔时间的标志位
-		DO_interval_timing = false;//正在进行单个间隔时间的标志位
-		DOStatus_Change = false;//DO的状态改变标志位
-		One_Cycle_Complete = false;//一轮循环完成的标志位
-
-		Need_Num = 0;	//需要开启继电器的个数
-		Complete_Num = 0;//完成开启的个数
-
-		KeyDI7_num = 0;//将按键按下次数清零，就可以让E014一直上报
-		Waiting_Collection = true;//下次回复状态需要等待采集
-
-		
-		/* 延时模式相关 */
-		Delay_mode_OpenSec = 0;//
-		Delay_mode_Interval = 0;//
-		Delay_mode_DONum = 0;//
-		Delay_mode_NeedWait = false;//
-		Delay_mode_OpenNum = 0;//
-		Delay_mode_EndWait = 0;//
-
-		/* 正反转模式相关 */
-		Forward_Reverse_mode_NeedWait = false;//需要进行延时标志位
-		Forward_Reverse_mode_EndWait = 0;//结束等待的时间
-#if PLC_V1
-		for (size_t i = 0; i < 12; i++)
-		{
-			Delay_mode_Worktime[i] = 0;
-
-			/*  */
-			Worktime[i] = 0;//16个开启时间
-			WorkInterval[i] = 0;//16个间隔时间
-			Worktime_backups[i] = 0;//16个开启时间的备份
-			WorkInterval_backups[i] = 0;//16个间隔时间的备份
-			retryCnt[i] = 0;//循环次数（）
-			DO_WayOpentime[i] = 0;//16路DO的开始时间
-			DO_WayClosetime[i] = 0;//16路DO的关闭时间
-			DO_WayIntervalBengin[i] = 0;//16路DO的间隔开始时间
-			DO_WayIntervalEnd[i] = 0;//16路DO的间隔结束时间
-			DO_WayOpen[i] = false; //16路DO打开的标志位
-			DO_WayInterval[i] = false;//16路DO间隔标志位
-			DO_WayComplete[i] = false;//16路DO完成的标志位
-			DO_Set[i] = false;//DO设置的标志位
-			Set_DO_relay(i, OFF);
-		}
-
-		/* 正反转模式相关 */
-		for (size_t i = 0; i < 8; i++)
-		{
-			Forward_Reverse_mode_Worktime[i] = 0;//
-		}
+		Forced_Stop(false);
 
 		Device_Mode = Delay_mode;//延时DO模式
 
@@ -1378,9 +1185,6 @@ void Command_Analysis::Delay_Start_DO_Control_command()
 		Message_Receipt.Delay_Start_DO_Control_Receipt(3, gReceiveCmd);
 
 		Start_Timer4();
-#elif PLC_V2
-	Serial.println("");
-#endif
 	}
 	else
 	{
@@ -1397,14 +1201,13 @@ void Command_Analysis::Delay_Start_DO_Control_command()
  */
 void Command_Analysis::Positive_negative_Control_command()
 {
-// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8-15    	16      	17    	18  	19~24        
-// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	WorkTime	interval	DOUsed	CRC8	frameEnd     
-// 长度（byte）	1        	2      	1      	2           	1          	1     	8       	1       	1     	1   	6            
-// 示例数据    	FE       	A005   	0E     	C003        	00         	01    	0A0A0A0A	03      	55/AA 	00  	0D0A0D 0A0D0A
-
+// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8-15    	16      	17       	18  	19~24        
+// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	WorkTime	interval	DOUsed   	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1      	2           	1          	1     	12      	1       	2        	1   	6            
+// 示例数据    	FE       	A005   	0x13   	C003        	00         	01    	000A000A	03      	5504/AA00	00  	0D0A0D 0A0D0A
 
 	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
-	//FE A005 0E C003 00 55 000A 000A 000A 000A 05 55 D6 0D0A0D0A0D0A  
+	//FE A005 13 C003 00 55 000A 000A 000A 000A 000A 000A 05 5504 D6 0D0A0D0A0D0A 
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
@@ -1412,74 +1215,23 @@ void Command_Analysis::Positive_negative_Control_command()
 		Debug_Serial.flush();
 
 		Enter_Work_State = true;
-		iwdg_feed();
-		Stop_Timer4();//先停止计时
-		rtc_detach_interrupt(RTC_ALARM_SPECIFIC_INTERRUPT);//RTC报警特定中断,不知道具体是干嘛的，注释掉好像也一样的跑？
-
-		Cyclic_intervalFlag = false;//循环时间间隔的标志位
-		gRTCTime_arrive_Flag = false;//RTC时间到达的标志位
-		gTime_arrive_Flag = false; //定时器时间到达的标志位
-		Cyclic_timing = false;//正在进行循环时间间隔的标志位
-		Irrigation_use = false;//正在灌溉的标志位
-		Cyclic_interval = 0;//循环间隔时间
-		DO_intervalFlag = false;//单个间隔时间的标志位
-		DO_interval_timing = false;//正在进行单个间隔时间的标志位
-		DOStatus_Change = false;//DO的状态改变标志位
-		One_Cycle_Complete = false;//一轮循环完成的标志位
-		Need_Num = 0;	//需要开启继电器的个数
-		Complete_Num = 0;//完成开启的个数
-
-		KeyDI7_num = 0;//将按键按下次数清零，就可以让E014一直上报
-		Waiting_Collection = true;//下次回复状态需要等待采集
-
 		
-		/* 延时模式相关 */
-		Delay_mode_OpenSec = 0;//
-		Delay_mode_Interval = 0;//
-		Delay_mode_DONum = 0;//
-		Delay_mode_NeedWait = false;//
-		Delay_mode_OpenNum = 0;//
-		Delay_mode_EndWait = 0;//
-
-		/* 正反转模式相关 */
-		Forward_Reverse_mode_NeedWait = false;//需要进行延时标志位
-		Forward_Reverse_mode_EndWait = 0;//结束等待的时间
-#if PLC_V1
-		for (size_t i = 0; i < 12; i++)
-		{
-			/* 延时模式 */
-			Delay_mode_Worktime[i] = 0;
-
-			/*通用*/
-			Worktime[i] = 0;//16个开启时间
-			WorkInterval[i] = 0;//16个间隔时间
-			Worktime_backups[i] = 0;//16个开启时间的备份
-			WorkInterval_backups[i] = 0;//16个间隔时间的备份
-			retryCnt[i] = 0;//循环次数（）
-			DO_WayOpentime[i] = 0;//16路DO的开始时间
-			DO_WayClosetime[i] = 0;//16路DO的关闭时间
-			DO_WayIntervalBengin[i] = 0;//16路DO的间隔开始时间
-			DO_WayIntervalEnd[i] = 0;//16路DO的间隔结束时间
-			DO_WayOpen[i] = false; //16路DO打开的标志位
-			DO_WayInterval[i] = false;//16路DO间隔标志位
-			DO_WayComplete[i] = false;//16路DO完成的标志位
-			DO_Set[i] = false;//DO设置的标志位
-			Set_DO_relay(i, OFF);
-		}
-
-		/* 正反转模式相关 */
-		for (size_t i = 0; i < 8; i++)
-		{
-			Forward_Reverse_mode_Worktime[i] = 0;//
-		}
+		Forced_Stop(false);
 		
-
 		Device_Mode = Forward_Reverse_mode;//正反转模式
 
 		byte bitn = 0; byte Bitread = 0;
-		for (size_t i = 0; i < 8; i++)
+		for (size_t i = 0; i < 12; i++)
 		{
-			Bitread = ((gReceiveCmd[17] >> bitn) & 0x01);
+			if (i>7)
+			{
+				Bitread = ((gReceiveCmd[22] >> bitn) & 0x01);
+			}
+			else
+			{
+				Bitread = ((gReceiveCmd[21] >> bitn) & 0x01);
+			}
+
 			if (Bitread)
 			{
 				//表示第几个需要开启
@@ -1490,16 +1242,13 @@ void Command_Analysis::Positive_negative_Control_command()
 			if (bitn == 8) bitn = 0;
 		}
 		
-		Forward_Reverse_mode_Interval = gReceiveCmd[16];
+		Forward_Reverse_mode_Interval = gReceiveCmd[20];
 		Debug_Serial.println(String("Forward_Reverse_mode_Interval = ") + Forward_Reverse_mode_Interval + "s");
 
 		/*这里上报E005正反转指令接收回执*/
 		Message_Receipt.Positive_negative_Control_Receipt(3, gReceiveCmd);
 
 		Start_Timer4();
-#elif PLC_V2
-	Serial.println("");
-#endif
 	}
 	else
 	{
@@ -1653,17 +1402,17 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 
 	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
 	//FE A009 0D C003 00 55 163245 121212121212 D6 0D0A0D0A0D0A  
-
+	//   FE A009 0D C003 00 1A 123400 010101010000 96 D A D A D A
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
 		Debug_Serial.println("A009 <Set_Forward_Reverse_mode_threshold>");
 		Debug_Serial.flush();
 
-		bool Illegal_AI_relation = false;//AI关联非法标志位
-		bool Illegal_threshold_multiple = false;//阈值倍数非法标志位
+		bool Illegal_AI_relation_Flag = false;//AI关联非法标志位
+		bool Illegal_threshold_multiple_Flag = false;//阈值倍数非法标志位
 
 		String Str_AI_Relation_Way = String(gReceiveCmd[8],HEX) + String(gReceiveCmd[9],HEX) + String(gReceiveCmd[10],HEX);
-		Debug_Serial.println("Str_AI_Relation_Way = " + Str_AI_Relation_Way);
+		// Debug_Serial.println("Str_AI_Relation_Way = " + Str_AI_Relation_Way);
 
 		unsigned char AI_Relation_Way_Array[6] = {0x00};
 		// Debug_Serial.println(String("Str_AI_Relation_Way.length = ") + Str_AI_Relation_Way.length());
@@ -1671,7 +1420,7 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 		for(int i=0;i < Str_AI_Relation_Way.length();i++)
 		{
 			unsigned char x = Str_AI_Relation_Way.charAt(i);
-			if(x >= '1' && x <= '6')
+			if(x >= '0' && x <= '8')
 			{
 				AI_Relation_Way_Array[i] = x - '0';
 				// Debug_Serial.print(Str_AI_Relation_Way.charAt(i));
@@ -1680,7 +1429,7 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 			}
 			else
 			{
-				Illegal_AI_relation = true;break;
+				Illegal_AI_relation_Flag = true;break;
 			}
 		}
 		Debug_Serial.println("<<<");
@@ -1690,7 +1439,7 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 		for (size_t i = 0; i < 6; i++)
 		{
 			unsigned char x = gReceiveCmd[11+i];
-			if(x >= 1 && x <= 100)
+			if(x >= 0 && x <= 100)
 			{
 				Threshold_multiple_Array[i] = x;
 				Debug_Serial.print(Threshold_multiple_Array[i]);
@@ -1698,20 +1447,20 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 			}
 			else
 			{
-				Illegal_threshold_multiple = true;break;
+				Illegal_threshold_multiple_Flag = true;break;
 			}
 		}
 		Debug_Serial.println("<<<");
 
-		if(Illegal_AI_relation)
+		if(Illegal_AI_relation_Flag)
 		{
 			Debug_Serial.println("AI关联非法!!! <Set_Forward_Reverse_mode_threshold>");
-			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd,0);
+			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd, Illegal_AI_relation);
 		}
-		else if(Illegal_threshold_multiple)
+		else if(Illegal_threshold_multiple_Flag)
 		{
 			Debug_Serial.println("阈值倍数非法!!! <Set_Forward_Reverse_mode_threshold>");
-			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd,1);
+			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd, Illegal_threshold_multiple);
 		}
 		else
 		{
@@ -1720,7 +1469,7 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 			Pos_Nega_mode.Save_Threshold_multiple(Threshold_multiple_Array);//保存阈值倍数
 			Pos_Nega_mode.Save_A009_Seted();//保存AI关联以及阈值倍数被设置
 			
-			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd,2);//
+			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd, E009_Success);//
 		}
 	}
 	else
@@ -1738,14 +1487,73 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
  */
 void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 {
+// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8      	9   	10~15        
+// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	WayUsed	CRC8	frameEnd     
+// 长度（byte）	1        	2      	1      	2           	1          	1     	1      	1   	6            
+// 示例数据    	FE       	A00A   	0x05(5)	C003        	00         	01    	0xFC   	D6  	0D0A0D 0A0D0A
+
 	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
-	//FE A007 0A C003 00 55 0005 003C D6 0D0A0D0A0D0A  
+	//FE A00A 05 C003 00 55 FC D6 0D0A0D0A0D0A  
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
 		Debug_Serial.println("A00A <Forward_Reverse_mode_Calculate_travel>");
 		Debug_Serial.flush();
 
+		Device_Mode = Forward_Reverse_mode;//正反转模式
+
+		A00A_WayUsed = gReceiveCmd[8];
+
+		if (!Pos_Nega_mode.Read_A009_Seted())
+		{
+			Debug_Serial.println("ERROR!!!未进行AI关联以及设置阈值倍数 <Forward_Reverse_mode_Calculate_travel>");
+			Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, A009_Seted_ERR);
+		}
+		else
+		{
+			memset(A00A_WayUsed_Array,0,6*sizeof(bool));
+			
+			byte bitn = 7;byte BitRead = 0;
+			for (size_t i = 0; i < 6; i++)
+			{
+				BitRead = ((A00A_WayUsed >> bitn) & 0x01);
+				if(BitRead)
+				{
+					//表示第几路需要重置，需要重置的路数需要清除正转和反转时间，以及静止状态AI，正转和反转AI
+					A00A_WayUsed_Array[i] = true;
+					A00A_WayUsed_Array_Backup1[i] = true;
+					A00A_WayUsed_Array_Backup2[i] = true;
+					Pos_Nega_mode.Clean_Forward_Time(i);//清除正转时间
+					Pos_Nega_mode.Clean_Reversal_Time(i);//清除反转时间
+					Pos_Nega_mode.Clean_Stop_AI(i);//清除静止AI
+					Pos_Nega_mode.Clean_Forward_AI(i);//清除正转AI
+					Pos_Nega_mode.Clean_Reversal_AI(i);//清除反转AI
+					Pos_Nega_mode.Clean_A00A_Seted(i);//清除被设置的标志位
+					Forward_Time[i] = 0x00;//正转时间
+					Reverse_Time[i] = 0x00;//反转时间
+					Forward_Start_Time[i] = 0x00;//正转开始时间
+					Reverse_Start_Time[i] = 0x00;//反转开始时间
+					Debug_Serial.println("");
+				}
+				bitn--;
+			}
+
+			Forced_Stop(false);//强制停止
+
+			Get_StopAI_Complete_Flag = false;//得到静止AI完成的标志位
+			OldTime_Waitfor_Calculate_travel = 0;//老时间
+			Wait_Reverse = false;//先等待反转
+			Need_goto_Upper_limit = false;//需要到达上限位标志位
+			Need_goto_Lower_limit = false;//需要达到下限位标志位
+			collect_Forward_AI = false;//采集正转电流标志位
+			collect_Reverse_AI = false;//采集反转电流标志位
+			
+			Calculate_travel_Flag = true;//计算行程标志位
+			Debug_Serial.println("正在开始计算行程... <Forward_Reverse_mode_Calculate_travel>");
+			Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, Begin_Calculate_travel);
+
+			Start_Timer4();//
+		}
 	}
 	else
 	{
@@ -1753,5 +1561,86 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
+}
+
+//强制停止
+void Command_Analysis::Forced_Stop(bool Need_Receipt)
+{
+	iwdg_feed();
+	Stop_Timer4();//先停止计时
+	rtc_detach_interrupt(RTC_ALARM_SPECIFIC_INTERRUPT);//RTC报警特定中断,不知道具体是干嘛的，注释掉好像也一样的跑？
+
+	Cyclic_intervalFlag = false;//循环时间间隔的标志位
+	gRTCTime_arrive_Flag = false;//RTC时间到达的标志位
+	gTime_arrive_Flag = false; //定时器时间到达的标志位
+	Cyclic_timing = false;//正在进行循环时间间隔的标志位
+	Irrigation_use = false;//正在灌溉的标志位
+	//OpenSec = 0;//开启的时间
+	//DO_Interval = 0;//单个的间隔时间
+	//DO_Num = 0;//一次性开启的DO数量
+	//retryCnt = 0;//循环次数（）
+	Cyclic_interval = 0;//循环间隔时间
+	//fornum = 0;//一轮循环需要的循环次数，（例如开4路，每次开2路，fornum=2）
+	//fornum_backups = 0;//一轮循环需要的循环次数的备份，（例如开4路，每次开2路，fornum=2）
+	//Last_full = false;//最后一轮循环是否能开满，（例如开5路，每次开2路，最后一轮开不满）
+	//Last_num = 0;//最后一轮循环开不满时需要开启的个数
+	DO_intervalFlag = false;//单个间隔时间的标志位
+	DO_interval_timing = false;//正在进行单个间隔时间的标志位
+	DOStatus_Change = false;//DO的状态改变标志位
+	One_Cycle_Complete = false;//一轮循环完成的标志位
+
+	Need_Num = 0;	//需要开启继电器的个数
+	Complete_Num = 0;//完成开启的个数
+
+	KeyDI7_num = 0;//将按键按下次数清零，就可以让E014一直上报
+	Waiting_Collection = true;//下次回复状态需要等待采集
+
+	/* 延时模式相关 */
+	Delay_mode_OpenSec = 0;//
+	Delay_mode_Interval = 0;//
+	Delay_mode_DONum = 0;//
+	Delay_mode_NeedWait = false;//
+	Delay_mode_OpenNum = 0;//
+	Delay_mode_EndWait = 0;//
+
+	/* 正反转模式相关 */
+	Forward_Reverse_mode_NeedWait = false;//需要进行延时标志位
+	Forward_Reverse_mode_EndWait = 0;//结束等待的时间
+
+#if PLC_V1
+	for (size_t i = 0; i < 12; i++)
+	{
+		/* 延时模式相关 */
+		Delay_mode_Worktime[i] = 0;
+
+		Worktime[i] = 0;//16个开启时间
+		WorkInterval[i] = 0;//16个间隔时间
+		Worktime_backups[i] = 0;//16个开启时间的备份
+		WorkInterval_backups[i] = 0;//16个间隔时间的备份
+		retryCnt[i] = 0;//循环次数（）
+		DO_WayOpentime[i] = 0;//16路DO的开始时间
+		DO_WayClosetime[i] = 0;//16路DO的关闭时间
+		DO_WayIntervalBengin[i] = 0;//16路DO的间隔开始时间
+		DO_WayIntervalEnd[i] = 0;//16路DO的间隔结束时间
+		DO_WayOpen[i] = false; //16路DO打开的标志位
+		DO_WayInterval[i] = false;//16路DO间隔标志位
+		DO_WayComplete[i] = false;//16路DO完成的标志位
+		DO_Set[i] = false;//DO设置的标志位
+		Set_DO_relay(i, OFF);
+
+		/* 正反转模式相关 */
+		Forward_Reverse_mode_Worktime[i] = 0;//
+	}
+
+	/*这里上报强制停止指令接收回执*/
+	if (Need_Receipt)
+	{
+		Message_Receipt.General_Receipt(TrunOffOk, 2);
+	}
+
+#elif PLC_V2
+	Serial.println("");
+
+#endif
 }
  

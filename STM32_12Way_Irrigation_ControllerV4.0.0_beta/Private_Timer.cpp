@@ -8,7 +8,7 @@
 #include <Arduino.h>
 
 /*Timer timing time*/
-#define TIMER_NUM             1000000L * 1 //1S
+#define TIMER_NUM             1000000L * 1 //1s
 #define CHECK_TIMER_NUM       1000000L
 
 volatile static unsigned int gSelfCheckNum;
@@ -23,7 +23,7 @@ volatile static unsigned int gStateReportNum;
  */
 void Realtime_Status_Reporting_Timer_Init(void)
 {
-	Timer2.setPeriod(TIMER_NUM); // in microseconds，1S
+	Timer2.setPeriod(100000); // in microseconds，100ms
 	Timer2.attachCompare1Interrupt(Timer2_Interrupt);
 	Timer2.setCount(0);
 }
@@ -129,7 +129,7 @@ void Timer2_Interrupt(void)
 	/*大于0秒 && 小于1800秒（30分钟）才能开启自动上报*/
 	if(Enter_Work_State)
 	{
-		if (gStateReportNum >= InitState.Read_WorkInterval()) //
+		if (gStateReportNum >= InitState.Read_WorkInterval()*10) //
 		{
 			gStateReportNum = 0;
 			gStateReportFlag = true;
@@ -137,12 +137,16 @@ void Timer2_Interrupt(void)
 	}
 	else
 	{
-		if (gStateReportNum >= InitState.Read_StopInterval()) //
+		if (gStateReportNum >= InitState.Read_StopInterval()*10) //
 		{
 			gStateReportNum = 0;
 			gStateReportFlag = true;
 		}
 	}
+	// Debug_Serial.println(String("BT_Query_CycVal = ") + BT_Query_CycVal);
+	// Debug_Serial.println(String("BT_Rand_Seed_Num = ") + BT_Rand_Seed_Num);
+	BT_Query_CycVal++;
+  	BT_Rand_Seed_Num++;
 }
 
 /*

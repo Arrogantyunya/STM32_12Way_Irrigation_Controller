@@ -3,6 +3,9 @@
 
 #include <Arduino.h>
 #include "User_Serial.h"
+#include "boot_config.h"
+#include "boot_mem.h"
+#include "boot_protocol.h"
 
 #define USE_LORA_RESET  1
 
@@ -112,6 +115,8 @@ private:
 	void Get_CSQ(unsigned char *addr_temp, unsigned char len, unsigned char *data_buffer);
 	// bool String_to_Hex(unsigned char *str, unsigned char len);
 };
+
+void LoRa_Send_Data_For_BT(unsigned char *buf, unsigned short len);
 
 /*Create LoRa object*/
 extern LoRa LoRa_MHL9LF;

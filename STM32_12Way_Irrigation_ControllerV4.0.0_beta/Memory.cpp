@@ -1423,8 +1423,8 @@ bool Positive_Negative_MODE::Save_AI_Relation_Way(unsigned char* data)
 	for (size_t i = 0; i < 6; i++)
 	{
 		AT24CXX_WriteOneByte(AI_Relation_Way_BASE_ADDR+i, data[i]);
-		Debug_Serial.print(AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+i));
-		Debug_Serial.print(" ");
+		// Debug_Serial.print(AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+i));
+		// Debug_Serial.print(" ");
 	}	
 	EEPROM_Write_Disable();
 
@@ -1437,14 +1437,27 @@ bool Positive_Negative_MODE::Save_AI_Relation_Way(unsigned char* data)
 @para      :
 @return    : 
 */
-unsigned char* Positive_Negative_MODE::Read_AI_Relation_Way(void)
+unsigned char* Positive_Negative_MODE::Read_AI_Relation_Way(unsigned char which_Way)
 {
 	static unsigned char data[6] = {0x00};
-	for (size_t i = 0; i < 6; i++)
+	switch (which_Way)
 	{
-		data[i] = AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+i);
+		case 0x00:data[0] = AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+which_Way);return data;
+		case 0x01:data[0] = AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+which_Way);return data;
+		case 0x02:data[0] = AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+which_Way);return data;
+		case 0x03:data[0] = AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+which_Way);return data;
+		case 0x04:data[0] = AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+which_Way);return data;
+		case 0x05:data[0] = AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+which_Way);return data;
+		case 0x55:
+	{
+		for (size_t i = 0; i < 6; i++)
+		{
+			data[i] = AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+i);
+		}
+		return data;
 	}
-	return data;
+	default: break;
+	}
 }
 
 /*
@@ -1472,48 +1485,243 @@ bool Positive_Negative_MODE::Clean_AI_Relation_Way(void)
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Save_Stop_AI(unsigned char* data)
+bool Positive_Negative_MODE::Save_Stop_AI(unsigned int data,unsigned char which_Way)
 {
+	unsigned char data_Array[12];
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 12; i++)
+	switch (which_Way)
 	{
-		AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR+i, data[i]);
-	}	
-	EEPROM_Write_Disable();
-
-	Debug_Serial.println("存储静止状态AI成功<Clean_AI_Relation_Way>");
-	return true;
+		case 0x00:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路静止状态AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Stop_AI>");
+			break;
+		}
+		case 0x01:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路静止状态AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Stop_AI>");
+			break;
+		}
+		case 0x02:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路静止状态AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Stop_AI>");
+			break;
+		}
+		case 0x03:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路静止状态AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Stop_AI>");
+			break;
+		}
+		case 0x04:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路静止状态AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Stop_AI>");
+			break;
+		}
+		case 0x05:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路静止状态AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Stop_AI>");
+			break;
+		}
+		// case 0x55:
+		// {
+		// 	for (size_t i = 0; i < 12; i++)
+		// 	{
+		// 		AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + i, data_Array[i]);
+		// 	}
+		// 	Debug_Serial.println(String("存储所有") + ("路静止状态AI成功<Save_Stop_AI>"));
+		// 	break;
+		// }
+		default:EEPROM_Write_Disable(); return false; break;
+	}
+	EEPROM_Write_Disable(); return true;
 }
 /*
 @brief     : 读取静止状态AI
 @para      :
 @return    : 
 */
-unsigned char* Positive_Negative_MODE::Read_Stop_AI(void)
+unsigned int Positive_Negative_MODE::Read_Stop_AI(unsigned char which_Way)
 {
 	static unsigned char data[12] = {0x00};
-	for (size_t i = 0; i < 12; i++)
+	unsigned int Value = 0;
+	switch (which_Way)
 	{
-		data[i] = AT24CXX_ReadOneByte(Stop_AI_BASE_ADDR+i);
+		case 0x00:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x01:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x02:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x03:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x04:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x05:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		// case 0x55:
+		// {
+		// 	for (size_t i = 0; i < 12; i++)
+		// 	{
+		// 		data[i] = AT24CXX_ReadOneByte(Stop_AI_BASE_ADDR + i);
+		// 	}
+		// 	return data;break;
+		// }	
+		default: break;
 	}
-	return data;
 }
 /*
 @brief     : 清除静止状态AI
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Clean_Stop_AI(void)
+bool Positive_Negative_MODE::Clean_Stop_AI(unsigned char which_Way)
 {
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 12; i++)
+	switch (which_Way)
 	{
-		AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR+i, 0x00);
-	}	
-	EEPROM_Write_Disable();
-
-	Debug_Serial.println("存储静止状态AI成功<Clean_AI_Relation_Way>");
-	return true;
+		case 0x00:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路静止状态AI成功<Clean_Stop_AI>"));
+			break;
+		}
+		case 0x01:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路静止状态AI成功<Clean_Stop_AI>"));
+			break;
+		}
+		case 0x02:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路静止状态AI成功<Clean_Stop_AI>"));
+			break;
+		}
+		case 0x03:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路静止状态AI成功<Clean_Stop_AI>"));
+			break;
+		}
+		case 0x04:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路静止状态AI成功<Clean_Stop_AI>"));
+			break;
+		}
+		case 0x05:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路静止状态AI成功<Clean_Stop_AI>"));
+			break;
+		}
+		// case 0x55:
+		// {
+		// 	for (size_t i = 0; i < 12; i++)
+		// 	{
+		// 		AT24CXX_WriteOneByte(Stop_AI_BASE_ADDR + i, 0x00);
+		// 	}
+		// 	Debug_Serial.println(String("清除所有") + ("路静止状态AI成功<Clean_Stop_AI>"));
+		// 	break;
+		// }
+		default:EEPROM_Write_Disable(); return false; break;
+	}
+	EEPROM_Write_Disable(); return true;
 }
 
 
@@ -1524,48 +1732,244 @@ bool Positive_Negative_MODE::Clean_Stop_AI(void)
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Save_Forward_AI(unsigned char* data)
+bool Positive_Negative_MODE::Save_Forward_AI(unsigned int data,unsigned char which_Way)
 {
+	unsigned char data_Array[2];
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 12; i++)
+	switch (which_Way)
 	{
-		AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR+i, data[i]);
-	}	
-	EEPROM_Write_Disable();
-
-	Debug_Serial.println("存储正转AI成功<Save_Forward_AI>");
-	return true;
+		case 0x00:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路正转AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Forward_AI>");
+			break;
+		}
+		case 0x01:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路正转AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Forward_AI>");
+			break;
+		}
+		case 0x02:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路正转AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Forward_AI>");
+			break;
+		}
+		case 0x03:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路正转AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Forward_AI>");
+			break;
+		}
+		case 0x04:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路正转AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Forward_AI>");
+			break;
+		}
+		case 0x05:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路正转AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Forward_AI>");
+			break;
+		}
+		// case 0x55:
+		// {
+		// 	for (size_t i = 0; i < 12; i++)
+		// 	{
+		// 		AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + i, data[i]);
+		// 	}
+		// 	Debug_Serial.println(String("存储所有") + ("路正转AI成功<Save_Forward_AI>"));
+		// 	break;
+		// }
+		default:EEPROM_Write_Disable(); return false; break;
+	}
+	EEPROM_Write_Disable(); return true;
 }
 /*
 @brief     : 读取正转AI
 @para      :
 @return    : 成功true，失败false
 */
-unsigned char* Positive_Negative_MODE::Read_Forward_AI(void)
+unsigned int Positive_Negative_MODE::Read_Forward_AI(unsigned char which_Way)
 {
-	static unsigned char data[12] = {0x00};
-	for (size_t i = 0; i < 12; i++)
+	static unsigned char data[2] = {0x00};
+	unsigned int Value = 0;
+	switch (which_Way)
 	{
-		data[i] = AT24CXX_ReadOneByte(Forward_AI_BASE_ADDR+i);
+		case 0x00:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x01:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x02:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x03:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x04:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x05:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		// case 0x55:
+		// {
+		// 	for (size_t i = 0; i < 12; i++)
+		// 	{
+		// 		data[i] = AT24CXX_ReadOneByte(Forward_AI_BASE_ADDR + i);
+		// 	}
+		// 	Value = data[0] << 8 | data[1];
+		// 	return Value;break;
+		// }	
+		default: break;
 	}
-	return data;
 }
 /*
 @brief     : 清除正转AI
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Clean_Forward_AI(void)
+bool Positive_Negative_MODE::Clean_Forward_AI(unsigned char which_Way)
 {
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 12; i++)
+	switch (which_Way)
 	{
-		AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR+i, 0x00);
-	}	
-	EEPROM_Write_Disable();
-
-	Debug_Serial.println("清除正转AI成功<Clean_AI_Relation_Way>");
-	return true;
+		case 0x00:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路正转AI成功<Clean_Forward_AI>"));
+			break;
+		}
+		case 0x01:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路正转AI成功<Clean_Forward_AI>"));
+			break;
+		}
+		case 0x02:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路正转AI成功<Clean_Forward_AI>"));
+			break;
+		}
+		case 0x03:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路正转AI成功<Clean_Forward_AI>"));
+			break;
+		}
+		case 0x04:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路正转AI成功<Clean_Forward_AI>"));
+			break;
+		}
+		case 0x05:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路正转AI成功<Clean_Forward_AI>"));
+			break;
+		}
+		// case 0x55:
+		// {
+		// 	for (size_t i = 0; i < 12; i++)
+		// 	{
+		// 		AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + i, 0x00);
+		// 	}
+		// 	Debug_Serial.println(String("清除所有") + ("路正转AI成功<Clean_Forward_AI>"));
+		// 	break;
+		// }
+		default:EEPROM_Write_Disable(); return false; break;
+	}
+	EEPROM_Write_Disable(); return true;
 }
 
 
@@ -1574,48 +1978,247 @@ bool Positive_Negative_MODE::Clean_Forward_AI(void)
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Save_Reversal_AI(unsigned char* data)
+bool Positive_Negative_MODE::Save_Reversal_AI(unsigned int data,unsigned char which_Way)
 {
+	unsigned char data_Array[2];
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 12; i++)
+	switch (which_Way)
 	{
-		AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR+i, data[i]);
-	}	
-	EEPROM_Write_Disable();
-
-	Debug_Serial.println("存储正转AI成功<Save_Reversal_AI>");
-	return true;
+		case 0x00:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路反转AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Reversal_AI>");
+			break;
+		}
+		case 0x01:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路反转AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Reversal_AI>");
+			break;
+		}
+		case 0x02:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路反转AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Reversal_AI>");
+			break;
+		}
+		case 0x03:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路反转AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Reversal_AI>");
+			break;
+		}
+		case 0x04:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路反转AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Reversal_AI>");
+			break;
+		}
+		case 0x05:
+		{
+			data_Array[0] = data >> 8; data_Array[1] = data;
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+			}
+			Debug_Serial.print(String("存储第") + which_Way + ("路反转AI成功:"));
+			Debug_Serial.println(String(data) + " <Save_Reversal_AI>");
+			break;
+		}
+		// case 0x55:
+		// {
+		// 	data_Array[0] = data >> 8; data_Array[1] = data;
+		// 	for (size_t i = 0; i < 2; i++)
+		// 	{
+		// 		AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
+		// 	}
+		// 	Debug_Serial.print(String("存储第") + which_Way + ("路反转AI成功:"));
+		// 	Debug_Serial.println(String(data) + " <Save_Reversal_AI>");
+		// 	break;
+		// }
+		default:EEPROM_Write_Disable(); return false; break;
+	}
+	EEPROM_Write_Disable(); return true;
 }
 /*
 @brief     : 读取反转AI
 @para      :
 @return    : 成功true，失败false
 */
-unsigned char* Positive_Negative_MODE::Read_Reversal_AI(void)
+unsigned int Positive_Negative_MODE::Read_Reversal_AI(unsigned char which_Way)
 {
-	static unsigned char data[12] = {0x00};
-	for (size_t i = 0; i < 12; i++)
+	static unsigned char data[2] = {0x00};
+	unsigned int Value = 0;
+
+	switch (which_Way)
 	{
-		data[i] = AT24CXX_ReadOneByte(Reversal_AI_BASE_ADDR+i);
+		case 0x00:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x01:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x02:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x03:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x04:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		case 0x05:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i);
+			}
+			Value = data[0] << 8 | data[1];
+			return Value;break;
+		}
+		// case 0x55:
+		// {
+		// 	for (size_t i = 0; i < 12; i++)
+		// 	{
+		// 		data[i] = AT24CXX_ReadOneByte(Reversal_AI_BASE_ADDR + i);
+		// 	}
+		// 	Value = data[0] << 8 | data[1];
+		// 	return Value;break;
+		// }	
+		default: break;
 	}
-	return data;
 }
 /*
 @brief     : 清除反转AI
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Clean_Reversal_AI(void)
+bool Positive_Negative_MODE::Clean_Reversal_AI(unsigned char which_Way)
 {
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 12; i++)
+	switch (which_Way)
 	{
-		AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR+i, 0x00);
-	}	
-	EEPROM_Write_Disable();
-
-	Debug_Serial.println("清除反转AI成功<Clean_AI_Relation_Way>");
-	return true;
+		case 0x00:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路反转AI成功<Clean_Reversal_AI>"));
+			break;
+		}
+		case 0x01:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路反转AI成功<Clean_Reversal_AI>"));
+			break;
+		}
+		case 0x02:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路反转AI成功<Clean_Reversal_AI>"));
+			break;
+		}
+		case 0x03:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路反转AI成功<Clean_Reversal_AI>"));
+			break;
+		}
+		case 0x04:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路反转AI成功<Clean_Reversal_AI>"));
+			break;
+		}
+		case 0x05:
+		{
+			for (size_t i = 0; i < 2; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路反转AI成功<Clean_Reversal_AI>"));
+			break;
+		}
+		// case 0x55:
+		// {
+		// 	for (size_t i = 0; i < 12; i++)
+		// 	{
+		// 		AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + i, 0x00);
+		// 	}
+		// 	Debug_Serial.println(String("清除所有") + ("路反转AI成功<Clean_Reversal_AI>"));
+		// 	break;
+		// }
+		default:EEPROM_Write_Disable(); return false; break;
+	}
+	EEPROM_Write_Disable(); return true;
 }
 
 
@@ -1625,16 +2228,95 @@ bool Positive_Negative_MODE::Clean_Reversal_AI(void)
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Save_Forward_Time(unsigned char* data)
+bool Positive_Negative_MODE::Save_Forward_Time(unsigned int data, unsigned char which_Way)
 {
+	unsigned char data_Array[3];
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 12; i++)
+	switch (which_Way)
 	{
-		AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR+i, data[i]);
-	}	
-	EEPROM_Write_Disable();
-
-	Debug_Serial.println("存储正转时间成功<Save_Forward_Time>");
+		case 0x00:
+		{
+			data_Array[0] = (data >> 16) & 0b11111111;
+			data_Array[1] = (data >> 8) & 0b11111111;
+			data_Array[2] = (data >> 0) & 0b11111111;
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
+			}
+			Debug_Serial.println(String("存储第") + which_Way + ("路正转时间成功<Save_Forward_Time>"));
+			break;
+		}
+		case 0x01:
+		{
+			data_Array[0] = (data >> 16) & 0b11111111;
+			data_Array[1] = (data >> 8) & 0b11111111;
+			data_Array[2] = (data >> 0) & 0b11111111;
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
+			}
+			Debug_Serial.println(String("存储第") + which_Way + ("路正转时间成功<Save_Forward_Time>"));
+			break;
+		}
+		case 0x02:
+		{
+			data_Array[0] = (data >> 16) & 0b11111111;
+			data_Array[1] = (data >> 8) & 0b11111111;
+			data_Array[2] = (data >> 0) & 0b11111111;
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
+			}
+			Debug_Serial.println(String("存储第") + which_Way + ("路正转时间成功<Save_Forward_Time>"));
+			break;
+		}
+		case 0x03:
+		{
+			data_Array[0] = (data >> 16) & 0b11111111;
+			data_Array[1] = (data >> 8) & 0b11111111;
+			data_Array[2] = (data >> 0) & 0b11111111;
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
+			}
+			Debug_Serial.println(String("存储第") + which_Way + ("路正转时间成功<Save_Forward_Time>"));
+			break;
+		}
+		case 0x04:
+		{
+			data_Array[0] = (data >> 16) & 0b11111111;
+			data_Array[1] = (data >> 8) & 0b11111111;
+			data_Array[2] = (data >> 0) & 0b11111111;
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
+			}
+			Debug_Serial.println(String("存储第") + which_Way + ("路正转时间成功<Save_Forward_Time>"));
+			break;
+		}
+		case 0x05:
+		{
+			data_Array[0] = (data >> 16) & 0b11111111;
+			data_Array[1] = (data >> 8) & 0b11111111;
+			data_Array[2] = (data >> 0) & 0b11111111;
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
+			}
+			Debug_Serial.println(String("存储第") + which_Way + ("路正转时间成功<Save_Forward_Time>"));
+			break;
+		}
+		// case 0x55:
+		// {
+		// 	for (size_t i = 0; i < 18; i++)
+		// 	{
+		// 		AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + i, data_Array[i]);
+		// 	}
+		// 	Debug_Serial.println(String("存储所有") + ("路正转时间成功<Save_Forward_Time>"));
+		// 	break;
+		// }
+		default: return false; break;
+	}
 	return true;
 }
 /*
@@ -1642,30 +2324,152 @@ bool Positive_Negative_MODE::Save_Forward_Time(unsigned char* data)
 @para      :
 @return    : 成功true，失败false
 */
-unsigned char* Positive_Negative_MODE::Read_Forward_Time(void)
+unsigned int Positive_Negative_MODE::Read_Forward_Time(unsigned char which_Way)
 {
-	static unsigned char data[12] = {0x00};
-	for (size_t i = 0; i < 12; i++)
+	static unsigned char data[3] = {0x00};
+	unsigned int value = 0;
+	switch (which_Way)
 	{
-		data[i] = AT24CXX_ReadOneByte(Forward_Time_BASE_ADDR+i);
+		case 0x00:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i);
+			}
+			value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
+			return value;break;
+		}
+		case 0x01:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i);
+			}
+			value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
+			return value;break;
+		}
+		case 0x02:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i);
+			}
+			value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
+			return value;break;
+		}
+		case 0x03:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i);
+			}
+			value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
+			return value;break;
+		}
+		case 0x04:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i);
+			}
+			value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
+			return value;break;
+		}
+		case 0x05:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i);
+			}
+			value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
+			return value;break;
+		}
+		// case 0x55:
+		// {
+		// 	for (size_t i = 0; i < 18; i++)
+		// 	{
+		// 		data[i] = AT24CXX_ReadOneByte(Forward_Time_BASE_ADDR + i);
+		// 	}
+		// 	return data;break;
+		// }	
+		default: break;
 	}
-	return data;
 }
 /*
 @brief     : 清除正转时间
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Clean_Forward_Time(void)
+bool Positive_Negative_MODE::Clean_Forward_Time(unsigned char which_Way)
 {
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 12; i++)
+	switch (which_Way)
 	{
-		AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR+i, 0x00);
-	}	
-	EEPROM_Write_Disable();
-
-	Debug_Serial.println("清除正转时间成功<Clean_Forward_Time>");
+		case 0x00:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路正转时间成功<Clean_Forward_Time>"));
+			break;
+		}
+		case 0x01:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路正转时间成功<Clean_Forward_Time>"));
+			break;
+		}
+		case 0x02:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路正转时间成功<Clean_Forward_Time>"));
+			break;
+		}
+		case 0x03:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路正转时间成功<Clean_Forward_Time>"));
+			break;
+		}
+		case 0x04:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路正转时间成功<Clean_Forward_Time>"));
+			break;
+		}
+		case 0x05:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路正转时间成功<Clean_Forward_Time>"));
+			break;
+		}
+		case 0x55:
+		{
+			for (size_t i = 0; i < 18; i++)
+			{
+				AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + i, 0x00);
+			}
+			Debug_Serial.println(String("清除所有") + ("路正转时间成功<Clean_Forward_Time>"));
+			break;
+		}
+		default: return false; break;
+	}
 	return true;
 }
 
@@ -1676,16 +2480,95 @@ bool Positive_Negative_MODE::Clean_Forward_Time(void)
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Save_Reversal_Time(unsigned char* data)
+bool Positive_Negative_MODE::Save_Reversal_Time(unsigned int data, unsigned char which_Way)
 {
+	unsigned char data_Array[3];
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 18; i++)
+	switch (which_Way)
 	{
-		AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR+i, data[i]);
-	}	
-	EEPROM_Write_Disable();
-
-	Debug_Serial.println("存储反转时间成功<Save_Reversal_Time>");
+		case 0x00:
+		{
+			data_Array[0] = (data >> 16) & 0b11111111;
+			data_Array[1] = (data >> 8) & 0b11111111;
+			data_Array[2] = (data >> 0) & 0b11111111;
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
+			}
+			Debug_Serial.println(String("存储第") + which_Way + ("路反转时间成功<Save_Reversal_Time>"));
+			break;
+		}
+		case 0x01:
+		{
+			data_Array[0] = (data >> 16) & 0b11111111;
+			data_Array[1] = (data >> 8) & 0b11111111;
+			data_Array[2] = (data >> 0) & 0b11111111;
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
+			}
+			Debug_Serial.println(String("存储第") + which_Way + ("路反转时间成功<Save_Reversal_Time>"));
+			break;
+		}
+		case 0x02:
+		{
+			data_Array[0] = (data >> 16) & 0b11111111;
+			data_Array[1] = (data >> 8) & 0b11111111;
+			data_Array[2] = (data >> 0) & 0b11111111;
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
+			}
+			Debug_Serial.println(String("存储第") + which_Way + ("路反转时间成功<Save_Reversal_Time>"));
+			break;
+		}
+		case 0x03:
+		{
+			data_Array[0] = (data >> 16) & 0b11111111;
+			data_Array[1] = (data >> 8) & 0b11111111;
+			data_Array[2] = (data >> 0) & 0b11111111;
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
+			}
+			Debug_Serial.println(String("存储第") + which_Way + ("路反转时间成功<Save_Reversal_Time>"));
+			break;
+		}
+		case 0x04:
+		{
+			data_Array[0] = (data >> 16) & 0b11111111;
+			data_Array[1] = (data >> 8) & 0b11111111;
+			data_Array[2] = (data >> 0) & 0b11111111;
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
+			}
+			Debug_Serial.println(String("存储第") + which_Way + ("路反转时间成功<Save_Reversal_Time>"));
+			break;
+		}
+		case 0x05:
+		{
+			data_Array[0] = (data >> 16) & 0b11111111;
+			data_Array[1] = (data >> 8) & 0b11111111;
+			data_Array[2] = (data >> 0) & 0b11111111;
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
+			}
+			Debug_Serial.println(String("存储第") + which_Way + ("路反转时间成功<Save_Reversal_Time>"));
+			break;
+		}
+		// case 0x55:
+		// {
+		// 	for (size_t i = 0; i < 18; i++)
+		// 	{
+		// 		AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + i, data[i]);
+		// 	}
+		// 	Debug_Serial.println(String("存储所有") + ("路反转时间成功<Save_Reversal_Time>"));
+		// 	break;
+		// }
+		default: return false; break;
+	}
 	return true;
 }
 /*
@@ -1693,30 +2576,152 @@ bool Positive_Negative_MODE::Save_Reversal_Time(unsigned char* data)
 @para      :
 @return    : 成功true，失败false
 */
-unsigned char* Positive_Negative_MODE::Read_Reversal_Time(void)
+unsigned int Positive_Negative_MODE::Read_Reversal_Time(unsigned char which_Way)
 {
-	static unsigned char data[18] = {0x00};
-	for (size_t i = 0; i < 18; i++)
+	static unsigned char data[3] = {0x00};
+	unsigned int value = 0;
+	switch (which_Way)
 	{
-		data[i] = AT24CXX_ReadOneByte(Reversal_Time_BASE_ADDR+i);
+		case 0x00:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i);
+			}
+			value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
+			return value;break;
+		}
+		case 0x01:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i);
+			}
+			value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
+			return value;break;
+		}
+		case 0x02:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i);
+			}
+			value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
+			return value;break;
+		}
+		case 0x03:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i);
+			}
+			value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
+			return value;break;
+		}
+		case 0x04:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i);
+			}
+			value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
+			return value;break;
+		}
+		case 0x05:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				data[i] = AT24CXX_ReadOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i);
+			}
+			value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
+			return value;break;
+		}
+		// case 0x55:
+		// {
+		// 	for (size_t i = 0; i < 18; i++)
+		// 	{
+		// 		data[i] = AT24CXX_ReadOneByte(Reversal_Time_BASE_ADDR + i);
+		// 	}
+		// 	return data;break;
+		// }	
+		default: break;
 	}
-	return data;
 }
 /*
 @brief     : 清除反转时间
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Clean_Reversal_Time(void)
+bool Positive_Negative_MODE::Clean_Reversal_Time(unsigned char which_Way)
 {
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 18; i++)
+	switch (which_Way)
 	{
-		AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR+i, 0x00);
-	}	
-	EEPROM_Write_Disable();
-
-	Debug_Serial.println("清除反转时间成功<Clean_Reversal_Time>");
+		case 0x00:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路反转时间成功<Clean_Reversal_Time>"));
+			break;
+		}
+		case 0x01:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路反转时间成功<Clean_Reversal_Time>"));
+			break;
+		}
+		case 0x02:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路反转时间成功<Clean_Reversal_Time>"));
+			break;
+		}
+		case 0x03:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路反转时间成功<Clean_Reversal_Time>"));
+			break;
+		}
+		case 0x04:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路反转时间成功<Clean_Reversal_Time>"));
+			break;
+		}
+		case 0x05:
+		{
+			for (size_t i = 0; i < 3; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+			}
+			Debug_Serial.println(String("清除第") + which_Way + ("路反转时间成功<Clean_Reversal_Time>"));
+			break;
+		}
+		case 0x55:
+		{
+			for (size_t i = 0; i < 18; i++)
+			{
+				AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + i, 0x00);
+			}
+			Debug_Serial.println(String("清除所有") + ("路反转时间成功<Clean_Reversal_Time>"));
+			break;
+		}
+		default: return false; break;
+	}
 	return true;
 }
 
@@ -1734,8 +2739,8 @@ bool Positive_Negative_MODE::Save_Threshold_multiple(unsigned char* data)
 	for (size_t i = 0; i < 6; i++)
 	{
 		AT24CXX_WriteOneByte(Threshold_multiple_BASE_ADDR+i, data[i]);
-		Debug_Serial.print(AT24CXX_ReadOneByte(Threshold_multiple_BASE_ADDR+i));
-		Debug_Serial.print(" ");
+		// Debug_Serial.print(AT24CXX_ReadOneByte(Threshold_multiple_BASE_ADDR+i));
+		// Debug_Serial.print(" ");
 	}	
 	EEPROM_Write_Disable();
 
@@ -1827,29 +2832,101 @@ bool Positive_Negative_MODE::Clean_A009_Seted(void)
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Save_A00A_Seted(void)
+bool Positive_Negative_MODE::Save_A00A_Seted(unsigned char which_Way)
 {
 	EEPROM_Write_Enable();
-	AT24CXX_WriteOneByte(A00A_Seted, 0x55);	
-	EEPROM_Write_Disable();
-
-	Debug_Serial.println("保存静止状态、正传、反转AI以及正传、反转时间被设置<Save_A00A_Seted>");
-	return true;
+	switch (which_Way)
+	{
+		case 0x00:
+		{
+			AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x55);
+			Debug_Serial.println(String("存储第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Save_A00A_Seted>"));
+			break;
+		}
+		case 0x01:
+		{
+			AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x55);
+			Debug_Serial.println(String("存储第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Save_A00A_Seted>"));
+			break;
+		}
+		case 0x02:
+		{
+			AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x55);
+			Debug_Serial.println(String("存储第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Save_A00A_Seted>"));
+			break;
+		}
+		case 0x03:
+		{
+			AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x55);
+			Debug_Serial.println(String("存储第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Save_A00A_Seted>"));
+			break;
+		}
+		case 0x04:
+		{
+			AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x55);
+			Debug_Serial.println(String("存储第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Save_A00A_Seted>"));
+			break;
+		}
+		case 0x05:
+		{
+			AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x55);
+			Debug_Serial.println(String("存储第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Save_A00A_Seted>"));
+			break;
+		}
+		case 0x55:
+		{
+			for (size_t i = 0; i < 6; i++)
+			{
+				AT24CXX_WriteOneByte(A00A_Seted + i, 0x55);
+			}
+			
+			Debug_Serial.println(String("存储所有") + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Save_A00A_Seted>"));
+			break;
+		}
+		default:EEPROM_Write_Disable(); return false; break;
+	}
+	EEPROM_Write_Disable();return true;
 }
 /*
 @brief     : 读取静止状态、正传、反转AI以及正传、反转时间被设置
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Read_A00A_Seted(void)
+bool Positive_Negative_MODE::Read_A00A_Seted(unsigned char which_Way)
 {
-	if (AT24CXX_ReadOneByte(A00A_Seted) == 0x55)
+	switch (which_Way)
 	{
-		return true;
-	}
-	else
-	{
-		return false;
+		case 0x00:
+		{
+			if (AT24CXX_ReadOneByte(A00A_Seted+which_Way) == 0x55) return true;
+			return false;
+		}
+		case 0x01:
+		{
+			if (AT24CXX_ReadOneByte(A00A_Seted+which_Way) == 0x55) return true;
+			return false;
+		}
+		case 0x02:
+		{
+			if (AT24CXX_ReadOneByte(A00A_Seted+which_Way) == 0x55) return true;
+			return false;
+		}
+		case 0x03:
+		{
+			if (AT24CXX_ReadOneByte(A00A_Seted+which_Way) == 0x55) return true;
+			return false;
+		}
+		case 0x04:
+		{
+			if (AT24CXX_ReadOneByte(A00A_Seted+which_Way) == 0x55) return true;
+			return false;
+		}
+		case 0x05:
+		{
+			if (AT24CXX_ReadOneByte(A00A_Seted+which_Way) == 0x55) return true;
+			return false;
+		}
+		default:EEPROM_Write_Disable(); return false; break;
 	}
 }
 /*
@@ -1857,12 +2934,87 @@ bool Positive_Negative_MODE::Read_A00A_Seted(void)
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Clean_A00A_Seted(void)
+bool Positive_Negative_MODE::Clean_A00A_Seted(unsigned char which_Way)
 {
 	EEPROM_Write_Enable();
-	AT24CXX_WriteOneByte(A00A_Seted, 0x00);	
-	EEPROM_Write_Disable();
+	switch (which_Way)
+	{
+		case 0x00:
+		{
+			AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x00);
+			Debug_Serial.println(String("清除第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Clean_A00A_Seted>"));
+			break;
+		}
+		case 0x01:
+		{
+			AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x00);
+			Debug_Serial.println(String("清除第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Clean_A00A_Seted>"));
+			break;
+		}
+		case 0x02:
+		{
+			AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x00);
+			Debug_Serial.println(String("清除第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Clean_A00A_Seted>"));
+			break;
+		}
+		case 0x03:
+		{
+			AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x00);
+			Debug_Serial.println(String("清除第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Clean_A00A_Seted>"));
+			break;
+		}
+		case 0x04:
+		{
+			AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x00);
+			Debug_Serial.println(String("清除第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Clean_A00A_Seted>"));
+			break;
+		}
+		case 0x05:
+		{
+			AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x00);
+			Debug_Serial.println(String("清除第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Clean_A00A_Seted>"));
+			break;
+		}
+		case 0x55:
+		{
+			for (size_t i = 0; i < 6; i++)
+			{
+				AT24CXX_WriteOneByte(A00A_Seted + i, 0x00);
+			}
+	
+			Debug_Serial.println(String("清除所有") + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Clean_A00A_Seted>"));
+			break;
+		}
+		default:EEPROM_Write_Disable(); return false; break;
+	}
+	EEPROM_Write_Disable();return true;
+}
 
-	Debug_Serial.println("保存静止状态、正传、反转AI以及正传、反转时间被设置<Clean_A00A_Seted>");
-	return true;
+bt_u8 BT_MEM_Write_Bytes(bt_u8 base_addr, bt_u8 *buf, bt_u8 len)
+{
+    uint8_t i;
+
+    EEPROM_Write_Enable();
+    for (i = 0; i < len; i++)
+        AT24C_02.AT24CXX_WriteOneByte(base_addr + i, buf[i]);
+    EEPROM_Write_Disable();
+
+    return 1;
+}
+
+bt_u8 BT_MEM_Read_Bytes(bt_u8 base_addr, bt_u8 *buf, bt_u8 len)
+{
+    uint8_t i;
+
+    for (i = 0; i < len; i++)
+        buf[i] = AT24C_02.AT24CXX_ReadOneByte(base_addr + i);
+
+    return 1;
+}
+
+void BT_Fill_ReservedByte(bt_u8 *re_buf) 
+{
+    SN.Read_SN_Code(&re_buf[0]);
+    re_buf[9] = SN.Read_Area_Number();
+    re_buf[10] = 0;
 }

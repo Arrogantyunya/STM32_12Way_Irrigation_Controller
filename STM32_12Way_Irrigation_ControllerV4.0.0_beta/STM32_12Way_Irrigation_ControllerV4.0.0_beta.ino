@@ -37,6 +37,9 @@
 #include "Private_Timer.h"
 #include "Private_RTC.h"
 #include "User_Serial.h"
+#include "boot_config.h"
+#include "boot_mem.h"
+#include "boot_protocol.h"
 
 /* 测试宏 */
 #define DEBUG_PRINT 	false 	//打印调试信息
@@ -62,6 +65,8 @@
 #define Hardware_version_low 	0x00	//硬件版本的低位
 #define Init_Area				0x01	//初始区域ID
 #define Waiting_Collection_Time 2000	//等待采集的时间（ms）
+
+unsigned char SoftVer[2] = {0,40};
 
 
 //全局变量
@@ -99,7 +104,8 @@ bool Delay_mode_DO_OFF(unsigned char i);//延时DO定时关闭
 
 void Forward_Reverse_DO_ON(void);				//正反转DO开启
 bool Forward_Reverse_DO_OFF(unsigned char i);	//正反转DO关闭
-
+void Forward_Reverse_Calculate_travel(void);	//正反转计算行程
+void Forward_Reverse_Threshold_alarm(void);		//正反转阈值报警
 
 
 // the setup function runs once when you press reset or power the board
@@ -149,9 +155,12 @@ void setup()
 	#else
 		LoRa_Para_Config.Save_LoRa_Com_Mode(0xF0);//这里是写入模式为节点模式
 	#endif
-		LoRa_MHL9LF.Parameter_Init(false);//LORA参数设置
+		// LoRa_MHL9LF.Parameter_Init(false);//LORA参数设置
 		LoRa_Para_Config.Save_LoRa_Config_Flag();//保存LORA参数配置完成标志位
 #endif
+
+	BT_Mount_Dev_And_Init(LoRa_Send_Data_For_BT);
+	BT_Save_S_Version(&SoftVer[0]);
 
 #if SOFT_HARD_VERSION
 	Debug_Serial.println("");
@@ -248,6 +257,9 @@ void setup()
 
 	Debug_Serial.println("All configuration items are initialized. Welcome to use!!!  ~(*^__^*)~ ");//所有的设置项初始化完成，欢迎使用
 	Debug_Serial.println("");
+
+	InitState.Save_WorkInterval(0x00,0x05);
+	InitState.Save_StopInterval(0x00,0x0A);
 }
 
 /*
@@ -275,7 +287,15 @@ void loop()
 	}
 	else if (Device_Mode == Forward_Reverse_mode)//正反转模式
 	{
-		Forward_Reverse_DO_ON();//正反转DO开启
+		if (Calculate_travel_Flag)
+		{
+			Forward_Reverse_Calculate_travel();//正反转计算行程
+		}
+		else
+		{
+			Forward_Reverse_DO_ON();//正反转DO开启
+			Forward_Reverse_Threshold_alarm();//正反转阈值报警
+		}
 	}
 	else
 	{
@@ -284,15 +304,17 @@ void loop()
 	
 	Check_Store_Param_And_LoRa(); //检查存储参数以及LORA参数
 
-	Regular_status_report();//定时状态上报
+	// Regular_status_report();//定时状态上报
 
-	Change_status_report();//状态改变上报
+	// Change_status_report();//状态改变上报
 
 	Key_cycle_irrigationV3();//按键启动循环灌溉
 
 	Serial_Port_Configuration();//串口设置循环间隔
 
 	Project_Debug();
+
+	BT_Cycle_Query_SW_Version();//
 }
 
 /*
@@ -413,22 +435,22 @@ void Regular_status_report(void)
 			while (millis() - Now < 2000)
 			{
 				LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
-				if (Device_Mode == Solenoid_mode)//电磁阀模式
-				{
-					Solenoid_mode_DO_ON();//灌溉分时打开
-				}
-				else if(Device_Mode == Delay_mode)//延时开启模式（）
-				{
-					Delay_mode_DO_ON();//延时DO开启
-				}
-				else if (Device_Mode == Forward_Reverse_mode)//正反转模式
-				{
-					Forward_Reverse_DO_ON();//正反转DO开启
-				}
-				else
-				{
+				// if (Device_Mode == Solenoid_mode)//电磁阀模式
+				// {
+				// 	Solenoid_mode_DO_ON();//灌溉分时打开
+				// }
+				// else if(Device_Mode == Delay_mode)//延时开启模式（）
+				// {
+				// 	Delay_mode_DO_ON();//延时DO开启
+				// }
+				// else if (Device_Mode == Forward_Reverse_mode)//正反转模式
+				// {
+				// 	Forward_Reverse_DO_ON();//正反转DO开启
+				// }
+				// else
+				// {
 					
-				}
+				// }
 				// Serial.println("Waiting_Collection......");
 				// delay(500);
 			}
@@ -500,22 +522,22 @@ void Change_status_report(void)
 			while (millis() - Now < 2000)
 			{
 				LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
-				if (Device_Mode == Solenoid_mode)//电磁阀模式
-				{
-					Solenoid_mode_DO_ON();//灌溉分时打开
-				}
-				else if(Device_Mode == Delay_mode)//延时开启模式（）
-				{
-					Delay_mode_DO_ON();//延时DO开启
-				}
-				else if (Device_Mode == Forward_Reverse_mode)//正反转模式
-				{
-					Forward_Reverse_DO_ON();//正反转DO开启
-				}
-				else
-				{
+				// if (Device_Mode == Solenoid_mode)//电磁阀模式
+				// {
+				// 	Solenoid_mode_DO_ON();//灌溉分时打开
+				// }
+				// else if(Device_Mode == Delay_mode)//延时开启模式（）
+				// {
+				// 	Delay_mode_DO_ON();//延时DO开启
+				// }
+				// else if (Device_Mode == Forward_Reverse_mode)//正反转模式
+				// {
+				// 	Forward_Reverse_DO_ON();//正反转DO开启
+				// }
+				// else
+				// {
 					
-				}
+				// }
 				// Serial.println("Waiting_Collection......");
 				// delay(500);
 			}
@@ -1064,19 +1086,19 @@ void Delay_mode_DO_ON(void)
 			{
 				switch (i)
 				{
-				case 0:if (Delay_mode_DO_OFF(i)) {return;}	break;
-				case 1:if (Delay_mode_DO_OFF(i)) {return;}	break;
-				case 2:if (Delay_mode_DO_OFF(i)) {return;}	break;
-				case 3:if (Delay_mode_DO_OFF(i)) {return;}	break;
-				case 4:if (Delay_mode_DO_OFF(i)) {return;}	break;
-				case 5:if (Delay_mode_DO_OFF(i)) {return;}	break;
-				case 6:if (Delay_mode_DO_OFF(i)) {return;}	break;
-				case 7:if (Delay_mode_DO_OFF(i)) {return;}	break;
-				case 8:if (Delay_mode_DO_OFF(i)) {return;}	break;
-				case 9:if (Delay_mode_DO_OFF(i)) {return;}	break;
-				case 10:if (Delay_mode_DO_OFF(i)) {return;}break;
-				case 11:if (Delay_mode_DO_OFF(i)) {return;}break;
-				default:Debug_Serial.println("default");	break;
+					case 0:if (Delay_mode_DO_OFF(i)) {return;}	break;
+					case 1:if (Delay_mode_DO_OFF(i)) {return;}	break;
+					case 2:if (Delay_mode_DO_OFF(i)) {return;}	break;
+					case 3:if (Delay_mode_DO_OFF(i)) {return;}	break;
+					case 4:if (Delay_mode_DO_OFF(i)) {return;}	break;
+					case 5:if (Delay_mode_DO_OFF(i)) {return;}	break;
+					case 6:if (Delay_mode_DO_OFF(i)) {return;}	break;
+					case 7:if (Delay_mode_DO_OFF(i)) {return;}	break;
+					case 8:if (Delay_mode_DO_OFF(i)) {return;}	break;
+					case 9:if (Delay_mode_DO_OFF(i)) {return;}	break;
+					case 10:if (Delay_mode_DO_OFF(i)) {return;}break;
+					case 11:if (Delay_mode_DO_OFF(i)) {return;}break;
+					default:Debug_Serial.println("default");	break;
 				}
 			}
 		}
@@ -1134,9 +1156,9 @@ bool Delay_mode_DO_OFF(unsigned char i)
  */
 void Forward_Reverse_DO_ON(void)
 {
-	if (Complete_Num!=8)//等待本轮循环结束
+	if (Complete_Num!=12)//等待本轮循环结束
 	{
-		for (size_t i = 0; i < 8; i++)
+		for (size_t i = 0; i < 12; i++)
 		{
 			if (Forward_Reverse_mode_NeedWait)//次数开始等待延时
 			{
@@ -1176,7 +1198,7 @@ void Forward_Reverse_DO_ON(void)
 					Complete_Num++;//完成了一路，不用开启代表直接完成
 					Debug_Serial.println(String("完成个数 = ") + Complete_Num);
 					Debug_Serial.flush();
-					if (Complete_Num == 8)
+					if (Complete_Num == 12)
 					{
 						Debug_Serial.println("已完成本轮循环 Cycle completed<Forward_Reverse_DO_ON>");
 						One_Cycle_Complete = true;//一轮循环已完成
@@ -1212,7 +1234,7 @@ void Forward_Reverse_DO_ON(void)
 		Enter_Work_State = false;
 		Complete_Num = 0;
 
-		for (size_t i = 0; i < 8; i++)
+		for (size_t i = 0; i < 12; i++)
 		{
 			Forward_Reverse_mode_Worktime[i] = 0;//
 		}
@@ -1248,4 +1270,332 @@ bool Forward_Reverse_DO_OFF(unsigned char i)
 		}
 	}
 	return false;
+}
+
+/*
+ @brief   : 正反转计算行程
+ @para    : 无
+ @return  : 无
+ */
+void Forward_Reverse_Calculate_travel(void)
+{
+	// Debug_Serial.println("正反转计算行程 <Forward_Reverse_Calculate_travel>");
+	if (!Get_StopAI_Complete_Flag)
+	{
+		for (size_t i = 0; i < 6; i++)
+		{
+			if (A00A_WayUsed_Array[i] == true)
+			{
+				/* 保存静止AI */
+				unsigned char* _AI_Way = Pos_Nega_mode.Read_AI_Relation_Way(i);
+				unsigned char AI_Way = *_AI_Way;//163245
+				Pos_Nega_mode.Save_Stop_AI(Read_which_Way_AI(AI_Way),i);
+
+				/* 先统一反转8S,然后正转到限位,获取正转的AI*/
+				Set_DO_relay(2*i,OFF); 
+				Set_DO_relay((2*i)+1,ON);
+
+				OldTime_Waitfor_Calculate_travel = Time_Count;
+			}
+		}
+		Get_StopAI_Complete_Flag = true;
+		Wait_Reverse = true;
+	}
+	/* 等待反转到8秒 */
+	if (Time_Count - OldTime_Waitfor_Calculate_travel >= 8 && Wait_Reverse)
+	{
+		Debug_Serial.println("反转时间已经到达，关闭DO");
+		for (size_t i = 0; i < 6; i++)
+		{
+			if (A00A_WayUsed_Array[i] == true)
+			{
+				/* 此时关闭DO */
+				Set_DO_relay(2*i,OFF); 
+				Set_DO_relay((2*i)+1,OFF);
+			}
+		}
+		
+		iwdg_feed();
+		delay(2000);//延时2000ms，保证不拉闸
+
+		/* 开始正转 */
+		
+		for (size_t i = 0; i < 6; i++)
+		{
+			if (A00A_WayUsed_Array[i] == true)
+			{
+				/* 开始正转直到上限位 */
+				Forward_Start_Time[i] = Time_Count;//开始记录正转开始时间
+				Set_DO_relay(2*i,ON); 
+				Set_DO_relay((2*i)+1,OFF);
+			}	
+		}
+		Wait_Reverse = false;
+		Need_goto_Upper_limit = true;//直到到达上限位
+		collect_Forward_AI = true;
+		Debug_Serial.println("开始正转,等待到达上限位,计算正转时长,采集并保存正转电流");
+
+		OldTime_Waitfor_Calculate_travel = Time_Count;
+	}
+
+	/* 等待所有的路数均已到达上限位 */
+	if (Need_goto_Upper_limit && Time_Count - OldTime_Waitfor_Calculate_travel >= 5)
+	{
+		// Wait_goto_Upper_limit();
+
+		/* 开始采集正转AI */
+		if (collect_Forward_AI)
+		{
+			/* 这里需要判断是否有路数没接，暂时不处理 */
+			Debug_Serial.println("开始采集正转电流>>>");
+			for (size_t i = 0; i < 6; i++)
+			{
+				if (A00A_WayUsed_Array[i] == true)
+				{
+					/* 得到这些组的正转AI */
+					unsigned char* _AI_Way = Pos_Nega_mode.Read_AI_Relation_Way(i);
+					unsigned char AI_Way = *_AI_Way;//163245
+					Pos_Nega_mode.Save_Forward_AI(Read_which_Way_AI(AI_Way),i);//保存正转AI
+				}
+			}
+			collect_Forward_AI = false;
+			Debug_Serial.println("<<<结束采集正转电流");
+		}
+		
+
+		unsigned char Arrive_Upper_limit = 0x00;//用来判断是否所有需要重置的路都到达上限位
+		for (size_t i = 0; i < 6; i++)
+		{
+			if (A00A_WayUsed_Array_Backup1[i] == true)//这里使用备份1的数组
+			{
+				unsigned char* _AI_Way = Pos_Nega_mode.Read_AI_Relation_Way(i);
+				unsigned char AI_Way = *_AI_Way;//163245
+				unsigned int x = Read_which_Way_AI(AI_Way); 
+				unsigned int y = Pos_Nega_mode.Read_Stop_AI(AI_Way);
+				unsigned int z = Pos_Nega_mode.Read_Forward_AI(AI_Way);
+				if (x <= ((z-y)/2))//判断电流到达了上限位
+				{
+					Forward_Time[i] = Time_Count - Forward_Start_Time[i];
+					Debug_Serial.print(String("第") + i + "路已经到达上限位,时间为: " + Forward_Time[i] + "S");
+					Debug_Serial.println(String("第") + i + "路的电流为: " + x);
+					Debug_Serial.println(String("第") + i + "路的静止电流为: " + y);
+					Debug_Serial.println(String("第") + i + "路的正转电流为: " + z);
+					A00A_WayUsed_Array_Backup1[i] = false;
+				}
+				else
+				{
+					// Debug_Serial.println(String("第") + i + "路未到达限位");
+					// delay(500);
+					Arrive_Upper_limit++;
+				}
+			}
+		}
+		// Debug_Serial.println("");
+		if (Arrive_Upper_limit == 0x00)
+		{
+			Debug_Serial.println("需要重置的路数均已到达到达上限位,开始保存正转上限位时间");
+			for (size_t i = 0; i < 6; i++)
+			{
+				if (A00A_WayUsed_Array[i] == true)
+				{
+					Pos_Nega_mode.Save_Forward_Time(Forward_Time[i],i);
+					Debug_Serial.println(String("值：") + Pos_Nega_mode.Read_Forward_Time(i));
+				}
+			}
+			
+			Need_goto_Upper_limit = false;
+
+			for (size_t i = 0; i < 6; i++)
+			{
+				if (A00A_WayUsed_Array[i] == true)
+				{
+					/* 此时关闭DO */
+					Set_DO_relay(2*i,OFF); 
+					Set_DO_relay((2*i)+1,OFF);
+
+					/* 开始保存时间 */
+					// Pos_Nega_mode.Save_Forward_Time();
+				}
+			}
+
+			delay(2000);//等待2S，防止拉闸
+
+			/* 开启反转DO */
+
+			Debug_Serial.println("开始反转,等待到达下限位,计算反转时长,采集并保存反转电流");
+			for (size_t i = 0; i < 6; i++)
+			{
+				if (A00A_WayUsed_Array[i] == true)
+				{
+					/* 开始反转，然后反转到限位,获取反转的AI*/
+					Set_DO_relay(2*i,OFF); 
+					Set_DO_relay((2*i)+1,ON);
+				}
+			}
+			OldTime_Waitfor_Calculate_travel = Time_Count;
+			Need_goto_Lower_limit = true;
+			collect_Forward_AI = true;
+		}
+	}
+
+	/* 等待所有的路数均已到达下限位 */
+	if (Need_goto_Lower_limit && Time_Count - OldTime_Waitfor_Calculate_travel >= 5)
+	{
+		// Wait_goto_Lower_limit();
+		
+		/* 开始采集反转AI */
+		if (collect_Forward_AI)
+		{
+			/* 这里需要判断是否有路数没接，暂时不处理 */
+			Debug_Serial.println("开始采集反转转电流>>>");
+			for (size_t i = 0; i < 6; i++)
+			{
+				if (A00A_WayUsed_Array[i] == true)
+				{
+					/* 得到这些组的反转转AI */
+					unsigned char* _AI_Way = Pos_Nega_mode.Read_AI_Relation_Way(i);
+					unsigned char AI_Way = *_AI_Way;//163245
+					Pos_Nega_mode.Save_Reversal_AI(Read_which_Way_AI(AI_Way),i);//保存反转AI
+				}
+			}
+			collect_Forward_AI = false;
+			Debug_Serial.println("<<<结束采集反转电流");
+		}
+
+		unsigned char Arrive_Lower_limit = 0x00;//用来判断是否所有需要重置的路都到达下限位
+		for (size_t i = 0; i < 6; i++)
+		{
+			if (A00A_WayUsed_Array_Backup2[i] == true)//这里使用备份2的数组
+			{
+				unsigned char* _AI_Way = Pos_Nega_mode.Read_AI_Relation_Way(i);
+				unsigned char AI_Way = *_AI_Way;//163245
+				unsigned int x = Read_which_Way_AI(AI_Way); 
+				unsigned int y = Pos_Nega_mode.Read_Stop_AI(AI_Way);
+				unsigned int z = Pos_Nega_mode.Read_Reversal_AI(AI_Way);
+				if (x <= ((z-y)/2))//判断电流到达了下限位
+				{
+					Reverse_Time[i] = Time_Count - Reverse_Start_Time[i];
+					Debug_Serial.print(String("第") + i + "路已经到达下限位,时间为: " + Reverse_Time[i] + "S");
+					Debug_Serial.println(String("第") + i + "路的电流为: " + x);
+					A00A_WayUsed_Array_Backup2[i] = false;
+				}
+				else
+				{
+					// Debug_Serial.println(String("第") + i + "路未到达限位");
+					// delay(500);
+					Arrive_Lower_limit++;
+				}
+			}
+		}
+		// Debug_Serial.println("");
+		if (Arrive_Lower_limit == 0x00)
+		{
+			Debug_Serial.println("需要重置的路数均已到达到达下限位,开始保存反转下限位时间");
+			for (size_t i = 0; i < 6; i++)
+			{
+				if (A00A_WayUsed_Array[i] == true)
+				{
+					Pos_Nega_mode.Save_Reversal_Time(Forward_Time[i],i);
+					Debug_Serial.println(String("值：") + Pos_Nega_mode.Read_Reversal_Time(i));
+				}
+			}
+
+			for (size_t i = 0; i < 6; i++)
+			{
+				/* 此时关闭DO */
+				Set_DO_relay(2*i,OFF); 
+				Set_DO_relay((2*i)+1,OFF);
+			}
+			Need_goto_Lower_limit = false;
+			Calculate_travel_Flag = false;//重置行程结束
+			Stop_Timer4();
+
+			Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, complete_Calculate_travel);
+		}
+	}
+}
+
+//读取某路AI
+unsigned int Read_which_Way_AI(unsigned char which_Way)
+{
+	unsigned int AI_Value = 0; static unsigned char AI_Value_Array[2] = {0x00};
+	switch (which_Way)
+	{
+		case 0: 
+		{
+			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI1);delay(10);}
+			AI_Value = AI_Value/10;
+			return AI_Value;
+		}
+		case 1:
+		{
+			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI2);delay(10);}
+			AI_Value = AI_Value/10;
+			return AI_Value;
+		}
+		case 2:
+		{
+			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI3);delay(10);}
+			AI_Value = AI_Value/10;
+			return AI_Value;
+		}
+		case 3:
+		{
+			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI4);delay(10);}
+			AI_Value = AI_Value/10;
+			return AI_Value;
+		}
+		case 4:
+		{
+			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI5);delay(10);}
+			AI_Value = AI_Value/10;
+			return AI_Value;
+		}
+		case 5:
+		{
+			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI6);delay(10);}
+			AI_Value = AI_Value/10;
+			return AI_Value;
+		}
+		case 6:
+		{
+			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI7);delay(10);}
+			AI_Value = AI_Value/10;
+			return AI_Value;
+		}
+		case 7:
+		{
+			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI8);delay(10);}
+			AI_Value = AI_Value/10;
+			return AI_Value;
+		}
+		default: return AI_Value; break;
+	}
+}
+
+//正反转阈值报警
+void Forward_Reverse_Threshold_alarm(void)
+{
+	if (Time_Count == 30)
+	{
+		for (size_t i = 0; i < 4; i++)
+		{
+			// Way0_Over_threshold
+			Message_Receipt.Abnormal_Route_Way_Receipt(2,i);
+		}
+	}
+}
+
+
+
+void BT_Stop_Interrupt(void)
+{
+  Timer2.detachCompare1Interrupt();
+  Timer3.detachCompare1Interrupt();
+  Timer4.detachCompare1Interrupt();
+//   detachInterrupt(DEC_MANUAL_DOWN_PIN);
+//   detachInterrupt(DEC_MANUAL_UP_PIN);
+  	LoRa_Serial.end();
+  	Debug_Serial.end();
+	RS485_Serial.end();
 }
