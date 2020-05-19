@@ -1379,6 +1379,31 @@ void Command_Analysis::Set_Lora_parameter_command()
 		Debug_Serial.println("A008 <Set_Lora_parameter_command>");
 		Debug_Serial.flush();
 
+		/* 设置LoRa的通信模式 */
+		if(LoRa_Para_Config.Save_LoRa_Com_Mode(gReceiveCmd[8]))
+		{
+			// Message_Receipt.General_Receipt(SetLoRaModeOk, 2);
+			LoRa_MHL9LF.Parameter_Init(true);
+			// Message_Receipt.Working_Parameter_Receipt(2);
+		}
+		else 
+		{
+			// Message_Receipt.General_Receipt(SetLoRaModeErr, 2);
+			Serial.println("Set LoRa Mode Err! <Set_Lora_parameter_command>");
+		}
+
+		/* 设置SYNC */
+		if()
+
+		/* 设置TFREQ */
+
+		/* 设置RFREQ */
+
+		/* 设置TSF */
+
+		/* 设置RSF */
+
+		/* Allocate */
 	}
 	else
 	{
@@ -1644,7 +1669,7 @@ void Command_Analysis::Forced_Stop(bool Need_Receipt)
 	/*这里上报强制停止指令接收回执*/
 	if (Need_Receipt)
 	{
-		Message_Receipt.General_Receipt(TrunOffOk, 2);
+		Message_Receipt.General_Receipt(TrunOffOk, 3);
 	}
 
 #elif PLC_V2

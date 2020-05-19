@@ -374,7 +374,7 @@ void LoRa::Get_CSQ(unsigned char *addr_temp, unsigned char len, unsigned char *d
 
 		if(addr_temp[i] >= '0' && addr_temp[i] <= '9')
 		{
-			addr_temp[i] -= '0';
+			addr_temp[i] -= '0';//转换为整数而不是ASCII码的字符
 		}
 		
 		if(!Division)
@@ -394,7 +394,7 @@ void LoRa::Get_CSQ(unsigned char *addr_temp, unsigned char len, unsigned char *d
 			if(addr_temp[i] == '-')
 			{
 				Debug_Serial.println("RSSI为负数");	
-				data_buffer[3] = 0xF0;//如果SNR为负数，那么将数组第4个置为F0，代表为负
+				data_buffer[3] = 0xF0;//如果RSSI为负数，那么将数组第4个置为F0，代表为负
 			}
 			else
 			{
@@ -713,19 +713,14 @@ void LoRa::Parameter_Init(bool only_net)
 		}
 		else
 		{
-#if USE_LORA_RESET
-			if (LoRa_Para_Config.Read_LoRa_Com_Mode() == 0xF1)
-				// StatusBuffer[i++] = Param_Check(AT_NET_, "01", true);    //配置成网关模式
-				StatusBuffer[i++] = Param_Check(AT_NET_, "01", false);    //配置成网关模式
-			else
-				// StatusBuffer[i++] = Param_Check(AT_NET_, "00", true);    //配置成节点模式    
-				StatusBuffer[i++] = Param_Check(AT_NET_, "00", false);    //配置成节点模式    
-
-
-#else
-			// StatusBuffer[i++] = Param_Check(AT_NET_, "01", true);
-			StatusBuffer[i++] = Param_Check(AT_NET_, "01", false);
-#endif
+			#if USE_LORA_RESET
+				if (LoRa_Para_Config.Read_LoRa_Com_Mode() == 0xF1)
+					StatusBuffer[i++] = Param_Check(AT_NET_, "01", false);    //配置成网关模式
+				else
+					StatusBuffer[i++] = Param_Check(AT_NET_, "00", false);    //配置成节点模式    
+			#else
+				StatusBuffer[i++] = Param_Check(AT_NET_, "01", false);
+			#endif
 		}
 
 		for (unsigned char j = 0; j < i; j++)
@@ -736,11 +731,11 @@ void LoRa::Parameter_Init(bool only_net)
 				SetStatusFlag = false;
 				Debug_Serial.println("Param init Err, Try again...");
 
-#if USE_LORA_RESET
-				AlarmLEDRunNum++;
-				LoRa_Restart();
-				LoRa_Shutdown();
-#endif
+				#if USE_LORA_RESET
+					AlarmLEDRunNum++;
+					LoRa_Restart();
+					LoRa_Shutdown();
+				#endif
 				iwdg_feed();
 
 				break;

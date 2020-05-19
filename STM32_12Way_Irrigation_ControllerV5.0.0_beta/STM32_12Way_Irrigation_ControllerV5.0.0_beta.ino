@@ -155,7 +155,7 @@ void setup()
 	#else
 		LoRa_Para_Config.Save_LoRa_Com_Mode(0xF0);//这里是写入模式为节点模式
 	#endif
-		// LoRa_MHL9LF.Parameter_Init(false);//LORA参数设置
+		LoRa_MHL9LF.Parameter_Init(false);//LORA参数设置
 		LoRa_Para_Config.Save_LoRa_Config_Flag();//保存LORA参数配置完成标志位
 #endif
 
@@ -304,9 +304,9 @@ void loop()
 	
 	Check_Store_Param_And_LoRa(); //检查存储参数以及LORA参数
 
-	// Regular_status_report();//定时状态上报
+	Regular_status_report();//定时状态上报
 
-	// Change_status_report();//状态改变上报
+	Change_status_report();//状态改变上报
 
 	Key_cycle_irrigationV3();//按键启动循环灌溉
 
@@ -1286,29 +1286,18 @@ void Forward_Reverse_Calculate_travel(void)
 			/* 保存静止AI */
 			Pos_Nega_mode.Save_Stop_AI(5,i);
 			// Debug_Serial.println(String("第") + i + "路的静止AI为：" + Pos_Nega_mode.Read_Stop_AI(i));
-		}
-		for (unsigned char i = 0; i < 6; i++)
-		{
+		
 			/* 保存正转AI */
 			Pos_Nega_mode.Save_Forward_AI(900,i);
 			// Debug_Serial.println(String("第") + i + "路的正转AI为：" + Pos_Nega_mode.Read_Forward_AI(i));
-		}
-		for (unsigned char i = 0; i < 6; i++)
-		{
 			/* 保存反转AI */
 			Pos_Nega_mode.Save_Reversal_AI(875,i);
 			// Debug_Serial.println(String("第") + i + "路的反转AI为：" + Pos_Nega_mode.Read_Reversal_AI(i));
-		}
-
 		
-		for (unsigned char i = 0; i < 6; i++)
-		{
 			/* 保存正转时间 */
 			Pos_Nega_mode.Save_Forward_Time(1500,i);
 			// Debug_Serial.println(String("第") + i + "路的正转时间为：" + Pos_Nega_mode.Read_Forward_Time(i));
-		}
-		for (unsigned char i = 0; i < 6; i++)
-		{
+
 			/* 保存反转时间 */
 			Pos_Nega_mode.Save_Reversal_Time(1300,i);
 			// Debug_Serial.println(String("第") + i + "路的反转时间为：" + Pos_Nega_mode.Read_Reversal_Time(i));
@@ -1396,14 +1385,14 @@ unsigned short Read_which_Way_AI(unsigned char which_Way)
 //正反转阈值报警
 void Forward_Reverse_Threshold_alarm(void)
 {
-	if (Time_Count == 30)
-	{
-		for (size_t i = 0; i < 4; i++)
-		{
-			// Way0_Over_threshold
-			Message_Receipt.Abnormal_Route_Way_Receipt(2,i);
-		}
-	}
+	// if (Time_Count == 30)
+	// {
+	// 	for (size_t i = 0; i < 4; i++)
+	// 	{
+	// 		// Way0_Over_threshold
+	// 		Message_Receipt.Abnormal_Route_Way_Receipt(2,i);
+	// 	}
+	// }
 }
 
 
