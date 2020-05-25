@@ -152,6 +152,7 @@ void Command_Analysis::Receive_LoRa_Cmd(void)
         EndNum += 1;
       else
         EndNum = 0;
+	  if (EndNum == 6) break;
     }
   }
   iwdg_feed();
@@ -1372,7 +1373,7 @@ void Command_Analysis::Set_Lora_parameter_command()
 // 示例数据    	FE       	A008   	0x18(24)	C003        	00         	01    	F1      	12  	1C578DE0	1C03A180	09  	09  	0000000 	D6  	0D0A0D 0A0D0A
 
 	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
-	//FE A008 18 C003 00 55 F1 12 1C578DE0 1C03A180 09 09 0000000000000000 D6 0D0A0D0A0D0A  
+//61 0C3E4818 000000 FE A008 18 C003 00 55 F1 12 19DE5080 19CF0E40 09 09 0000000000000000 D6 0D0A0D0A0D0A  
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
@@ -1394,15 +1395,51 @@ void Command_Analysis::Set_Lora_parameter_command()
 
 		/* 设置SYNC */
 
+
 		/* 设置TFREQ */
+		// 487.1	1D088E60‬
+		// unsigned char TFREQ_Array[4] = {0x19,0xCF,0x0E,0x40};
+		// String Str_TFREQ = "";
+		// for (size_t i = 0; i < sizeof(TFREQ_Array); i++)
+		// {
+		// 	if (TFREQ_Array[i] <= 0x0F)
+		// 	{
+		// 		Str_TFREQ += String(0,HEX);
+		// 	}
+		// 	Str_TFREQ += String(TFREQ_Array[i],HEX);
+		// }
+		// Debug_Serial.println("Str_TFREQ = " + Str_TFREQ);
+		// const char* C_TFREQ = Str_TFREQ.c_str();
+
+		// LoRa_MHL9LF.Param_Check(AT_TFREQ_, C_TFREQ, false);//433.000.000
+		// Debug_Serial.println("设置TFREQ成功");
 
 		/* 设置RFREQ */
+		// 470.5	1C0B42A0‬
+		// unsigned char RFREQ_Array[4] = {0x19,0xDE,0x50,0x80};
+		// String Str_RFREQ = "";
+		// for (size_t i = 0; i < sizeof(RFREQ_Array); i++)
+		// {
+		// 	if (RFREQ_Array[i] <= 0x0F)
+		// 	{
+		// 		Str_RFREQ += String(0,HEX);
+		// 	}
+		// 	Str_RFREQ += String(RFREQ_Array[i],HEX);
+		// }
+		// Debug_Serial.println("Str_RFREQ = " + Str_RFREQ);
+
+		// const char* C_RFREQ = Str_RFREQ.c_str();
+		// LoRa_MHL9LF.Param_Check(AT_RFREQ_, C_RFREQ, false);//434.000.000
+		// Debug_Serial.println("设置RFREQ成功");
 
 		/* 设置TSF */
 
+
 		/* 设置RSF */
 
+
 		/* Allocate */
+
 	}
 	else
 	{
