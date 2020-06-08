@@ -59,7 +59,7 @@
 #define EEPROM_RESET		false 	//重置EEPROM的所有值【测试使用】
 /* 替换宏 */
 #define Software_version_high 	0x05 	//软件版本的高位
-#define Software_version_low 	0x10 	//软件版本的低位
+#define Software_version_low 	0x11 	//软件版本的低位
 #define Hardware_version_high 	0x02 	//硬件版本的高位
 #define Hardware_version_low 	0x00	//硬件版本的低位
 #define Init_Area				0x01	//初始区域ID
@@ -648,6 +648,7 @@ void Serial_Port_Configuration(void)
 			unsigned char x = (unsigned char) Str_x.toInt();//使用long来接收,所以强转为unsigned char
 			LoRa_Para_Config.Save_LoRa_TRMode(x);
 			Lora_TRMode = LoRa_Para_Config.Read_LoRa_TRMode();
+			Debug_Serial.println(String("Lora_TRMode = ") + String(Lora_TRMode,HEX));
 		}
 		else if (comdata.startsWith("SET_LORA_SYNC="))//SET_LORA_SYNC=12
 		{
@@ -656,6 +657,7 @@ void Serial_Port_Configuration(void)
 			unsigned char x = (unsigned char) Str_x.toInt();//使用long来接收,所以强转为unsigned char
 			LoRa_Para_Config.Save_LoRa_SYNC(x);
 			LORA_SYNC = LoRa_Para_Config.Read_LoRa_SYNC();
+			Debug_Serial.println(String("LORA_SYNC = ") + String(LORA_SYNC,HEX));
 		}
 		else if(comdata == String("LORA_INIT"))
 		{
