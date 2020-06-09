@@ -117,6 +117,10 @@ public:
 	unsigned char Get_DO_1to8(void);	//得到DO1-8的值
 	unsigned char Get_DO_9to16(void);	//得到DO9-16的值
 	unsigned char* Get_AI_1to8(void);	//得到AI1-8的值
+
+	unsigned short Get_which_AI(which_Way);//得到某路的AI()
+	// film_u32 Film_Read_Analog_Ele_Current_CH(film_u8 ch)//读取一路电机的电流值，单位是mA
+	// void Film_Ctrl_Motor_CH(film_u8 ch, Film_DIR dir);//根据传入的路数和方向，控制该路电机转动
 };
 
 void Set_DO_relay(unsigned char way,bool value);

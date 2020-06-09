@@ -88,21 +88,8 @@ extern unsigned int KeyDI7_num;//按键DI7按下的次数
 
 /* 重置行程相关 */
 unsigned char A00A_WayUsed = 0x00;//
+bool A00A_WayUsed_Array[8] = {0x00};//需要进行重置行程的路数
 bool Calculate_travel_Flag = false;//需要进行重置行程的标志
-bool A00A_WayUsed_Array[6] = {0x00};//需要进行重置行程的路数
-bool A00A_WayUsed_Array_Backup1[6] = {0x00};//需要进行重置行程的路数备份1
-bool A00A_WayUsed_Array_Backup2[6] = {0x00};//需要进行重置行程的路数备份2
-bool Get_StopAI_Complete_Flag = false;//得到静止AI完成的标志位
-unsigned int OldTime_Waitfor_Calculate_travel = 0;//老时间
-bool Wait_Reverse = false;//先等待反转
-bool Need_goto_Upper_limit = false;//需要到达上限位标志位
-bool Need_goto_Lower_limit = false;//需要到达下限位标志位
-bool collect_Forward_AI = false;//采集正转电流标志位
-bool collect_Reverse_AI = false;//采集反转电流标志位
-unsigned int Forward_Time[6] = {0x00};//正转时间
-unsigned int Reverse_Time[6] = {0x00};//反转时间
-unsigned int Forward_Start_Time[6] = {0x00};//正转开始时间
-unsigned int Reverse_Start_Time[6] = {0x00};//反转开始时间
 
 /* 远程升级 */
 unsigned char gRcvOtherFlag = 0;
@@ -200,6 +187,7 @@ Frame_ID Command_Analysis::FrameID_Analysis(void)
 	case 0xA008: return Set_Lora_parameter;			break;//服务器设置LORA参数(A008)
 	case 0xA009: return Set_threshold;				break;//服务器设置正反转模式阈值（A009）
 	case 0xA00A: return Calculate_travel;			break;//服务器发送正反转模式计算行程（A00A）
+	case 0xA00B: return Opening_Control;			break;//服务器发送正反转模式开度控制指令（A00B）
 	case 0xA011: return Work_Para;					break;//基地服务器查询LoRa设备当前工作参数(A011)
 	case 0xA012: return Set_Group_Num;				break;//基地服务器设置LoRa设备工作组编号(A012)
 	case 0xA013: return SN_Area_Channel;			break;//基地服务器设置设备（主/子）SN及子设备总路数(A013)
@@ -381,6 +369,7 @@ void Command_Analysis::Receive_Data_Analysis(void)
 	case Set_Lora_parameter: Set_Lora_parameter_command(); break;//服务器设置LORA参数(A008)
 	case Set_threshold: Set_Forward_Reverse_mode_threshold(); break;//服务器设置正反转模式阈值（A009）
 	case Calculate_travel: Forward_Reverse_mode_Calculate_travel();break;//服务器发送正反转模式计算行程（A00A）
+	case Opening_Control: Forward_Reverse_mode_Opening_Control();break;//服务器发送正反转模式开度控制指令（A00B）
 	}
 }
 
@@ -1456,14 +1445,13 @@ void Command_Analysis::Set_Lora_parameter_command()
  */
 void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 {
-// 数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	AI_Relation_Way	Threshold_multiple	CRC8	frameEnd     
-// 字节索引    	0        	1-2    	3       	4-5         	6          	7     	8-10           	11-16             	17  	18-23        
-// 长度（byte）	1        	2      	1       	2           	1          	1     	3              	6                 	1   	6            
-// 示例数据    	FE       	A009   	0x0D(13)	C003        	00         	01    	163245         	121212121212      	00  	0D0A0D 0A0D0A
+//   数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	AI_Relation_Way	Threshold_multiple	IS_Reverse	CRC8	frameEnd     
+//   字节索引    	0        	1-2    	3       	4-5         	6          	7     	8-11           	12-19             	20        	21  	22-27        
+//   长度（byte）	1        	2      	1       	2           	1          	1     	4              	8                 	1         	1   	6            
+//   示例数据    	FE       	A009   	0x11(17)	C003        	00         	01    	16324578       	121212121212      	00        	00  	0D0A0D0A0D0A
 
 	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
-	//FE A009 0D C003 00 55 163245 121212121212 D6 0D0A0D0A0D0A  
-	//   FE A009 0D C003 00 1A 123400 010101010000 96 D A D A D A
+	//FE A009 11 C003 00 55 16324578 1212121212121212 00 D6 0D0A0D0A0D0A  
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
 		Debug_Serial.println("A009 <Set_Forward_Reverse_mode_threshold>");
@@ -1472,13 +1460,13 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 		bool Illegal_AI_relation_Flag = false;//AI关联非法标志位
 		bool Illegal_threshold_multiple_Flag = false;//阈值倍数非法标志位
 
-		String Str_AI_Relation_Way = String(gReceiveCmd[8],HEX) + String(gReceiveCmd[9],HEX) + String(gReceiveCmd[10],HEX);
-		// Debug_Serial.println("Str_AI_Relation_Way = " + Str_AI_Relation_Way);
+		String Str_AI_Relation_Way = String(gReceiveCmd[8],HEX) + String(gReceiveCmd[9],HEX) + String(gReceiveCmd[10],HEX) + String(gReceiveCmd[11],HEX);
+		Debug_Serial.println("Str_AI_Relation_Way = " + Str_AI_Relation_Way);
 
-		unsigned char AI_Relation_Way_Array[6] = {0x00};
+		unsigned char AI_Relation_Way_Array[8] = {0x00};
 		// Debug_Serial.println(String("Str_AI_Relation_Way.length = ") + Str_AI_Relation_Way.length());
 		Debug_Serial.print(">>>");
-		for(int i=0;i < Str_AI_Relation_Way.length();i++)
+		for(int i=0; i < Str_AI_Relation_Way.length(); i++)
 		{
 			unsigned char x = Str_AI_Relation_Way.charAt(i);
 			if(x >= '0' && x <= '8')
@@ -1493,13 +1481,13 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 				Illegal_AI_relation_Flag = true;break;
 			}
 		}
-		Debug_Serial.println("<<<");
+		Debug_Serial.println("<<< AI关联");
 
 		Debug_Serial.print(">>>");
-		unsigned char Threshold_multiple_Array[6] = {0x00};
-		for (size_t i = 0; i < 6; i++)
+		unsigned char Threshold_multiple_Array[8] = {0x00};
+		for (size_t i = 0; i < 8; i++)
 		{
-			unsigned char x = gReceiveCmd[11+i];
+			unsigned char x = gReceiveCmd[12+i];
 			if(x >= 0 && x <= 100)
 			{
 				Threshold_multiple_Array[i] = x;
@@ -1511,7 +1499,19 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 				Illegal_threshold_multiple_Flag = true;break;
 			}
 		}
-		Debug_Serial.println("<<<");
+		Debug_Serial.println("<<< 阈值倍数");
+
+		Debug_Serial.print(">>>");
+		unsigned char IS_Reverse_Array[8] = {0x00};
+		for (size_t i = 0; i < 8; i++)
+		{
+			if (gReceiveCmd[20] >> i)
+			{
+				IS_Reverse_Array[i] = 0x01;
+			}
+			Debug_Serial.print(IS_Reverse_Array[i]);
+		}
+		Debug_Serial.println("<<< 反向路数");
 
 		if(Illegal_AI_relation_Flag)
 		{
@@ -1525,11 +1525,15 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 		}
 		else
 		{
-			Debug_Serial.println("AI关联以及阈值倍数设置成功... <Set_Forward_Reverse_mode_threshold>");
 			Pos_Nega_mode.Save_AI_Relation_Way(AI_Relation_Way_Array);//保存AI的关联
-			Pos_Nega_mode.Save_Threshold_multiple(Threshold_multiple_Array);//保存阈值倍数
+			Pos_Nega_mode.Save_WayIS_Reverse(IS_Reverse_Array);//保存是否反向的信息
 			Pos_Nega_mode.Save_A009_Seted();//保存AI关联以及阈值倍数被设置
-			
+
+			/* 这里调用卷膜库的写入阈值函数 */
+
+
+			Debug_Serial.println("AI关联以及阈值倍数设置成功... <Set_Forward_Reverse_mode_threshold>");
+
 			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd, E009_Success);//
 		}
 	}
@@ -1548,10 +1552,11 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
  */
 void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 {
-// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8      	9   	10~15        
-// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	WayUsed	CRC8	frameEnd     
-// 长度（byte）	1        	2      	1      	2           	1          	1     	1      	1   	6            
-// 示例数据    	FE       	A00A   	0x05(5)	C003        	00         	01    	0xFC   	D6  	0D0A0D 0A0D0A
+//   字节索引    	0        	1-2    	3      	4-5         	6          	7     	8      	9   	10~15       
+//   数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	WayUsed	CRC8	frameEnd    
+//   长度（byte）	1        	2      	1      	2           	1          	1     	1      	1   	6           
+//   示例数据    	FE       	A00A   	0x05(5)	C003        	00         	01    	0xFC   	00  	0D0A0D0A0D0A
+
 
 	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
 	//FE A00A 05 C003 00 55 FC D6 0D0A0D0A0D0A  
@@ -1572,62 +1577,103 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 		}
 		else
 		{
-			for (unsigned char i = 0; i < 6; i++)
+			for (unsigned char i = 0; i < 8; i++)
 			{
 				A00A_WayUsed_Array[i] = false;
-				A00A_WayUsed_Array_Backup1[i] = false;
-				A00A_WayUsed_Array_Backup2[i] = false;
 			}
 			
 			// memset(A00A_WayUsed_Array,0,6*sizeof(bool));
-			// memset(A00A_WayUsed_Array_Backup1,0,6*sizeof(bool));
-			// memset(A00A_WayUsed_Array_Backup2,0,6*sizeof(bool));
 			
 			byte bitn = 7;byte BitRead = 0;
-			for (unsigned char i = 0; i < 6; i++)
+			for (unsigned char i = 0; i < 8; i++)
 			{
 				BitRead = ((A00A_WayUsed >> bitn) & 0x01);
 				if(BitRead)
 				{
-					//表示第几路需要重置，需要重置的路数需要清除正转和反转时间，以及静止状态AI，正转和反转AI
+					//表示第几路需要重置
 					A00A_WayUsed_Array[i] = true;
-					A00A_WayUsed_Array_Backup1[i] = true;
-					A00A_WayUsed_Array_Backup2[i] = true;
-					Pos_Nega_mode.Clean_Forward_Time(i);//清除正转时间
-					Pos_Nega_mode.Clean_Reversal_Time(i);//清除反转时间
-					Pos_Nega_mode.Clean_Stop_AI(i);//清除静止AI
-					Pos_Nega_mode.Clean_Forward_AI(i);//清除正转AI
-					Pos_Nega_mode.Clean_Reversal_AI(i);//清除反转AI
-					Pos_Nega_mode.Clean_A00A_Seted(i);//清除被设置的标志位
-					Forward_Time[i] = 0x00;//正转时间
-					Reverse_Time[i] = 0x00;//反转时间
-					Forward_Start_Time[i] = 0x00;//正转开始时间
-					Reverse_Start_Time[i] = 0x00;//反转开始时间
-					Debug_Serial.println("");
+					Debug_Serial.println(String("第") + i + "路需要进行重置");
 				}
 				bitn--;
 			}
 
-			Forced_Stop(false);//强制停止
-
-			Get_StopAI_Complete_Flag = false;//得到静止AI完成的标志位
-			OldTime_Waitfor_Calculate_travel = 0;//老时间
-			Wait_Reverse = false;//先等待反转
-			Need_goto_Upper_limit = false;//需要到达上限位标志位
-			Need_goto_Lower_limit = false;//需要达到下限位标志位
-			collect_Forward_AI = false;//采集正转电流标志位
-			collect_Reverse_AI = false;//采集反转电流标志位
+			// Forced_Stop(false);//强制停止
 			
-			Calculate_travel_Flag = true;//计算行程标志位
+			// Calculate_travel_Flag = true;//计算行程标志位
+
+			/* 这里加入卷膜库的重置行程参数 */
+
+
 			Debug_Serial.println("正在开始计算行程... <Forward_Reverse_mode_Calculate_travel>");
 			Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, Begin_Calculate_travel);
 
-			Start_Timer4();//
+			/* 测试 */
+			delay(2000);
+			Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, complete_Calculate_travel);
+
+			// Start_Timer4();//
 		}
 	}
 	else
 	{
 		Debug_Serial.println("不用理会的A00A指令!!!!");
+	}
+	
+	memset(gReceiveCmd, 0x00, gReceiveLength);
+}
+
+/*
+ @brief     : 服务器发送正反转模式开度控制指令（A00B）（网关 ---> 本机）
+ @param     : 无
+ @return    : 无
+ */
+void Command_Analysis::Forward_Reverse_mode_Opening_Control()
+{
+//   字节索引    	0        	1-2    	3       	4-5         	6          	  7   	8-15          	16      	17  	18~23       
+//   数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	TargetOpenRate	interval	CRC8	frameEnd    
+//   长度（byte）	1        	2      	1       	2           	1          	  1   	8             	1       	1   	6           
+//   示例数据    	FE       	A00B   	0x0D（13）	C003        	00         	  01  	646464646464  	02      	00  	0D0A0D0A0D0A
+
+	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
+	//FE A00B 0D C003 00 55 6464646464646464 02 D6 0D0A0D0A0D0A  
+
+	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
+	{
+		Debug_Serial.println("A00B <Forward_Reverse_mode_Opening_Control>");
+		Debug_Serial.flush();
+
+		for (size_t i = 0; i < 8; i++)
+		{
+			if (gReceiveCmd[8+i] == 0xff)
+			{
+				Debug_Serial.println(String("第") + i + "路维持当前开度");
+			}
+			else if (gReceiveCmd[8+i] >= 0x00 && gReceiveCmd[8+i] <= 0x64)
+			{
+				Debug_Serial.println(String("第") + i + "路设置目标开度为" + gReceiveCmd[8+i]);
+			}
+			else if (gReceiveCmd[8+i] == 0xF0)
+			{
+				Debug_Serial.println(String("第") + i + "路强制全关");
+			}
+			else if (gReceiveCmd[8+i] == 0xF1)
+			{
+				Debug_Serial.println(String("第") + i + "路强制全开");
+			}
+			else
+			{
+				Debug_Serial.println(String("第") + i + "路设置的开度不存在，维持当前开度");
+			}
+		}
+		
+		unsigned char A00B_Interval = gReceiveCmd[16];
+		Debug_Serial.println(String("每路开启的间隔时间为：") + A00B_Interval + "s");
+
+		Message_Receipt.
+	}
+	else
+	{
+		Debug_Serial.println("不用理会的A00B指令!!!!");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);

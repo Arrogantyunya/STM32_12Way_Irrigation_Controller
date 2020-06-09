@@ -14,7 +14,7 @@
 /*使用EEPROM储存芯片的宏定义地址*/
 /*EEPROM硬件特性*/
 #define EEPROM_MIN_ADDR                         0
-#define EEPROM_MAX_ADDR                         255 
+#define EEPROM_MAX_ADDR                         16384//128*128 
 
 /*SN码相关操作保存地址*/
 #define SN_OPERATION_FLAG_ADDR                  11
@@ -114,29 +114,14 @@
 #define Lora_SYNC_Set_ADDR                      129
 
 /* 正反转模式相关存储 */
-#define AI_Relation_Way_BASE_ADDR				130//AI关联路数地址（1*6）
-#define AI_Relation_Way_END_ADDR				135
+#define AI_Relation_Way_BASE_ADDR				130//AI关联路数地址（1*8）
+#define AI_Relation_Way_END_ADDR				137
 
-#define Stop_AI_BASE_ADDR						136//静止状态AI（2*6）
-#define Stop_AI_END_ADDR						147
+#define WayIS_Reverse							138//是否反向
 
-#define Forward_AI_BASE_ADDR					148//正转AI（2*6）
-#define Forward_AI_END_ADDR						159
+#define A009_Seted								139//AI关联以及阈值倍数被设置
 
-#define Reversal_AI_BASE_ADDR					160//反转AI（2*6）
-#define Reversal_AI_END_ADDR					171	
 
-#define Forward_Time_BASE_ADDR					172//正转时间（3*6）
-#define Forward_Time_END_ADDR					189
-
-#define Reversal_Time_BASE_ADDR					190//反转时间（3*6）
-#define Reversal_Time_END_ADDR					207
-
-#define Threshold_multiple_BASE_ADDR			208//阈值倍数存储(1*6)
-#define Threshold_multiple_END_ADDR				213
-
-#define A009_Seted								214//AI关联以及阈值倍数被设置
-#define A00A_Seted								215//（1*6）静止状态、正传、反转AI以及正传、反转时间被设置
 
 
 
@@ -297,37 +282,13 @@ public:
 	unsigned char Read_AI_Relation_Way(unsigned char which_Way);//读取AI关联路数
 	bool Clean_AI_Relation_Way(void);//清除AI关联路数
 
-	bool Save_Stop_AI(unsigned short data,unsigned char which_Way);//存储静止状态AI
-	unsigned short Read_Stop_AI(unsigned char which_Way);//读取静止状态AI
-	bool Clean_Stop_AI(unsigned char which_Way);//清除静止状态AI
-
-	bool Save_Forward_AI(unsigned short data,unsigned char which_Way);//存储正转AI
-	unsigned short Read_Forward_AI(unsigned char which_Way);//读取正转AI
-	bool Clean_Forward_AI(unsigned char which_Way);//清除正转AI
-
-	bool Save_Reversal_AI(unsigned short data,unsigned char which_Way);//存储反转AI
-	unsigned short Read_Reversal_AI(unsigned char which_Way);//读取反转AI
-	bool Clean_Reversal_AI(unsigned char which_Way);//清除反转AI
-
-	bool Save_Forward_Time(unsigned int data,unsigned char which_Way);//存储正转时间
-	unsigned int Read_Forward_Time(unsigned char which_Way);//读取正转时间
-	bool Clean_Forward_Time(unsigned char which_Way);//清除正转时间
-
-	bool Save_Reversal_Time(unsigned int data,unsigned char which_Way);//存储反转时间
-	unsigned int Read_Reversal_Time(unsigned char which_Way);//读取反转时间
-	bool Clean_Reversal_Time(unsigned char which_Way);//清除反转时间
-
-	bool Save_Threshold_multiple(unsigned char* data);//阈值倍数
-	unsigned char Read_Threshold_multiple(unsigned char which_Way);//阈值倍数
-	bool Clean_Threshold_multiple(void);//阈值倍数
+	bool Save_WayIS_Reverse(unsigned char* data);//存储是否反向
+	unsigned char Read_WayIS_Reverse(unsigned char which_Way);//读取是否反向
+	bool Clean_WayIS_Reverse(void);//清除是否反向
 
 	bool Save_A009_Seted(void);//保存AI关联以及阈值倍数被设置
 	bool Read_A009_Seted(void);//读取AI关联以及阈值倍数被设置
 	bool Clean_A009_Seted(void);//清除AI关联以及阈值倍数被设置
-
-	bool Save_A00A_Seted(unsigned char which_Way);//保存静止状态、正传、反转AI以及正传、反转时间被设置
-	bool Read_A00A_Seted(unsigned char which_Way);//读取静止状态、正传、反转AI以及正传、反转时间被设置
-	bool Clean_A00A_Seted(unsigned char which_Way);//清除静止状态、正传、反转AI以及正传、反转时间被设置
 };
 
 

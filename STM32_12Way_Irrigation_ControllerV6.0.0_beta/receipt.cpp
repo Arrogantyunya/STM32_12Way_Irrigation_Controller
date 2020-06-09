@@ -965,10 +965,11 @@ void Receipt::SignalQuality_Version_Receipt(bool use_random_wait,unsigned char s
  */
 void Receipt::Set_threshold_Receipt(unsigned char send_times,unsigned char* gReceiveCmd,unsigned char E009status)
 {
-// 数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	AI_Relation_Way	Threshold_multiple	E009_Status	CRC8	frameEnd     
-// 字节索引    	0        	1-2    	3       	4-5         	6          	7     	8-10           	11-16             	17         	18  	19-24        
-// 长度（byte）	1        	2      	1       	2           	1          	1     	3              	6                 	1          	1   	6            
-// 示例数据    	FE       	E009   	0x0E(14)	C003        	00         	01    	163245         	121212121212      	01         	D6  	0D0A0D 0A0D0A
+//数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	AI_Relation_Way	Threshold_multiple	Is_Reverse	E009_Status	CRC8	frameEnd     
+//字节索引    	0        	1-2    	3       	4-5         	6          	7     	8-11           	12-19             	20        	21         	22  	23-28        
+//长度（byte）	1        	2      	1       	2           	1          	1     	4              	8                 	1         	1          	1   	6            
+//示例数据    	FE       	E009   	0x12(18)	C003        	00         	01    	16324578       	1212121212121212  	00        	01         	D6  	0D0A0D0A0D0A
+
 
 	iwdg_feed();
 	Debug_Serial.println("正反转模式阈值回执 <Set_threshold_Receipt>");
@@ -984,7 +985,7 @@ void Receipt::Set_threshold_Receipt(unsigned char send_times,unsigned char* gRec
 	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
 	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
 	ReceiptFrame[ReceiptLength++] = 0x09; //
-	ReceiptFrame[ReceiptLength++] = 0x0E; //数据长度
+	ReceiptFrame[ReceiptLength++] = 0x12; //数据长度
 
 	/*设备类型*/
 	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
@@ -997,16 +998,19 @@ void Receipt::Set_threshold_Receipt(unsigned char send_times,unsigned char* gRec
 	ReceiptFrame[ReceiptLength++] = SN.Read_Area_Number();
 
 	/*AI_Relation_Way*/
-	for (size_t i = 0; i < 3; i++)
+	for (size_t i = 0; i < 4; i++)
 	{
 		ReceiptFrame[ReceiptLength++] = gReceiveCmd[x++];
 	}
 
 	/*Threshold_multiple*/
-	for (size_t i = 0; i < 6; i++)
+	for (size_t i = 0; i < 8; i++)
 	{
 		ReceiptFrame[ReceiptLength++] = gReceiveCmd[x++];
 	}
+
+	/*Is_Reverse*/
+	ReceiptFrame[ReceiptLength++] = gReceiveCmd[x++];
 	
 	/* E009status */
 	ReceiptFrame[ReceiptLength++] = E009status;
@@ -1036,11 +1040,10 @@ void Receipt::Set_threshold_Receipt(unsigned char send_times,unsigned char* gRec
  */
 void Receipt::Calculate_travel_Receipt(unsigned char send_times,unsigned char WayUsed,unsigned char E00Astatus)
 {
-// 字节索引    	0        	1-2    	3       	4-5         	6          	7     	8      	9          	10-27       	28-45        	46  	47-52        
-// 数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	WayUsed	E00A_Status	Forward_time	Reversal_time	CRC8	frameEnd     
-// 长度（byte）	1        	2      	1       	2           	1          	1     	1      	1          	18          	18           	1   	6            
-// 示例数据    	FE       	E00A   	0x2A(42)	C003        	00         	01    	FC     	02         	0000        	0000         	00  	0D0A0D 0A0D0A
-
+//   字节索引    	0        	1-2    	3      	4-5         	6          	7     	8      	9          	10  	11-16       
+//   数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	WayUsed	E00A_Status	CRC8	frameEnd    
+//   长度（byte）	1        	2      	1      	2           	1          	1     	1      	1          	1   	6           
+//   示例数据    	FE       	E00A   	0x06(6)	C003        	00         	01    	FC     	02         	00  	0D0A0D0A0D0A
 
 	iwdg_feed();
 	Debug_Serial.println("正反转模式计算行程回执 <Calculate_travel_Receipt>");
@@ -1056,7 +1059,7 @@ void Receipt::Calculate_travel_Receipt(unsigned char send_times,unsigned char Wa
 	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
 	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
 	ReceiptFrame[ReceiptLength++] = 0x0A; //
-	ReceiptFrame[ReceiptLength++] = 0x2A; //数据长度
+	ReceiptFrame[ReceiptLength++] = 0x06; //数据长度
 
 	/*设备类型*/
 	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
@@ -1073,39 +1076,77 @@ void Receipt::Calculate_travel_Receipt(unsigned char send_times,unsigned char Wa
 
 	/* E00Astatus */
 	ReceiptFrame[ReceiptLength++] = E00Astatus;
+	
+	/*CRC8*/
+	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
 
+	/*帧尾*/
+	for (unsigned char i = 0; i < 6; i++)
+		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	// 感觉这里直接从EP读取就行了，在开机的时候初始化，被设置过的就不清除EP，没被设置过的就清除为0x00
-	// 然后在需要重置某路的时候就清除某路的EP。
-	// [这样的风险，除了一重置就擦除了EP，假如重置失败就没法复原，不过需要重置的路数的值本来就不对，留着也没有意义]
-	// 这样在该部分就能直接从EP读取数据发送给服务器。
-	/*Forward_time*/
-	for (size_t i = 0; i < 6; i++)
+	Debug_Serial.println("LoRa parameter receipt...");
+	Print_Debug(&ReceiptFrame[0], ReceiptLength);
+
+	for (unsigned char i = 0; i < send_times; i++)
 	{
-		unsigned int forward_time = Pos_Nega_mode.Read_Forward_Time(i);
-		unsigned char forward_time_Array[3] = {0x00};
-		forward_time_Array[0] = (forward_time >> 0) & 0b11111111;
-		forward_time_Array[0] = (forward_time >> 8) & 0b11111111;
-		forward_time_Array[0] = (forward_time >> 16) & 0b11111111;
-		for (size_t j = 0; j < 3; j++)
-		{
-			ReceiptFrame[ReceiptLength++] = forward_time_Array[j];
-		}
+		iwdg_feed();
+		LoRa_Serial.write(&ReceiptFrame[0], ReceiptLength);
+		delayMicroseconds(SEND_DATA_DELAY * 1000);
+	}
+}
+
+void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E00Bstatus)//EOOB开度控制回执
+{
+//   字节索引    	0        	1-2    	3       	4-5         	6          	7     	8     	9-16           	17-32	33  	34~39       
+//   数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	Status	current_opening	AI   	CRC8	frameEnd    
+//   长度（byte）	1        	2      	1       	2           	1          	1     	1     	8              	16   	1   	6           
+//   示例数据    	FE       	E00B   	0x1D（29）	C003        	00         	01    	01    	646464646464   	     	00  	0D0A0D0A0D0A
+
+
+	iwdg_feed();
+	Debug_Serial.println("正反转模式开度回执 <Opening_Control_Receipt>");
+	Debug_Serial.flush();
+	unsigned char ReceiptFrame[50] = { 0x00 };
+	unsigned char ReceiptLength = 0;
+	unsigned char x = 8;
+
+#if CLEAR_BUFFER_FLAG
+	Clear_Server_LoRa_Buffer();
+#endif
+
+	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
+	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
+	ReceiptFrame[ReceiptLength++] = 0x0B; //
+	ReceiptFrame[ReceiptLength++] = 0x1D; //数据长度
+
+	/*设备类型*/
+	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
+	ReceiptFrame[ReceiptLength++] = lowByte(DEVICE_TYPE_ID);
+
+	/*是否是群发*/
+	gMassCommandFlag == true ? ReceiptFrame[ReceiptLength++] = 0x55 : ReceiptFrame[ReceiptLength++] = 0x00;
+
+	/*区域号*/
+	ReceiptFrame[ReceiptLength++] = SN.Read_Area_Number();
+
+	/* E00Bstatus */
+	ReceiptFrame[ReceiptLength++] = E00Bstatus;
+
+	/* current_opening */
+	for (size_t i = 0; i < 8; i++)
+	{
+		/* 这里放入查询开度的代码 */
+		ReceiptFrame[ReceiptLength++] = 0x64;
 	}
 	
-	/*Reversal_time*/
-	for (size_t i = 0; i < 6; i++)
+
+	/* AI */
+	
+	for (size_t i = 0; i < 16; i++)
 	{
-		unsigned int reversal_time = Pos_Nega_mode.Read_Forward_Time(i);
-		unsigned char reversal_time_Array[3] = {0x00};
-		reversal_time_Array[0] = (reversal_time >> 0) & 0b11111111;
-		reversal_time_Array[0] = (reversal_time >> 8) & 0b11111111;
-		reversal_time_Array[0] = (reversal_time >> 16) & 0b11111111;
-		for (size_t j = 0; j < 3; j++)
-		{
-			ReceiptFrame[ReceiptLength++] = reversal_time_Array[j];
-		}
+		ReceiptFrame[ReceiptLength++] = 0x64;
 	}
+	
 	
 	/*CRC8*/
 	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);

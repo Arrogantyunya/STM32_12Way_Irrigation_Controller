@@ -106,8 +106,6 @@ bool Delay_mode_DO_OFF(unsigned char i);//延时DO定时关闭
 
 void Forward_Reverse_DO_ON(void);				//正反转DO开启
 bool Forward_Reverse_DO_OFF(unsigned char i);	//正反转DO关闭
-void Forward_Reverse_Calculate_travel(void);	//正反转计算行程
-void Forward_Reverse_Threshold_alarm(void);		//正反转阈值报警
 
 
 // the setup function runs once when you press reset or power the board
@@ -172,7 +170,7 @@ void setup()
 	LORA_SYNC = LoRa_Para_Config.Read_LoRa_SYNC();
 	Debug_Serial.println(String("LORA_SYNC = ") + String(LORA_SYNC));
 	
-	LoRa_MHL9LF.Parameter_Init(false);//LORA参数设置
+	// LoRa_MHL9LF.Parameter_Init(false);//LORA参数设置
 	LoRa_Para_Config.Save_LoRa_Config_Flag();//保存LORA参数配置完成标志位
 #endif
 
@@ -221,7 +219,7 @@ void setup()
 
 	Project_Debug(); //工程模式
 
-	SN.Clear_SN_Access_Network_Flag(); //清除注册到服务器标志位
+	// SN.Clear_SN_Access_Network_Flag(); //清除注册到服务器标志位
 
 	/*Request access network(request gateway to save the device's SN code and channel)*/
 	Request_Access_Network(); //检查是否注册到服务器
@@ -304,15 +302,7 @@ void loop()
 	}
 	else if (Device_Mode == Forward_Reverse_mode)//正反转模式
 	{
-		if (Calculate_travel_Flag)
-		{
-			Forward_Reverse_Calculate_travel();//正反转计算行程
-		}
-		else
-		{
-			Forward_Reverse_DO_ON();//正反转DO开启
-			Forward_Reverse_Threshold_alarm();//正反转阈值报警
-		}
+		Forward_Reverse_DO_ON();//正反转DO开启
 	}
 	else
 	{
@@ -321,7 +311,7 @@ void loop()
 	
 	Check_Store_Param_And_LoRa(); //检查存储参数以及LORA参数
 
-	Regular_status_report();//定时状态上报
+	// Regular_status_report();//定时状态上报
 
 	Change_status_report();//状态改变上报
 
@@ -1301,130 +1291,6 @@ bool Forward_Reverse_DO_OFF(unsigned char i)
 	}
 	return false;
 }
-
-/*
- @brief   : 正反转计算行程
- @para    : 无
- @return  : 无
- */
-void Forward_Reverse_Calculate_travel(void)
-{
-	if (!Get_StopAI_Complete_Flag)
-	{
-		for (unsigned char i = 0; i < 6; i++)
-		{
-			/* 保存静止AI */
-			Pos_Nega_mode.Save_Stop_AI(5,i);
-			// Debug_Serial.println(String("第") + i + "路的静止AI为：" + Pos_Nega_mode.Read_Stop_AI(i));
-		
-			/* 保存正转AI */
-			Pos_Nega_mode.Save_Forward_AI(900,i);
-			// Debug_Serial.println(String("第") + i + "路的正转AI为：" + Pos_Nega_mode.Read_Forward_AI(i));
-			/* 保存反转AI */
-			Pos_Nega_mode.Save_Reversal_AI(875,i);
-			// Debug_Serial.println(String("第") + i + "路的反转AI为：" + Pos_Nega_mode.Read_Reversal_AI(i));
-		
-			/* 保存正转时间 */
-			Pos_Nega_mode.Save_Forward_Time(1500,i);
-			// Debug_Serial.println(String("第") + i + "路的正转时间为：" + Pos_Nega_mode.Read_Forward_Time(i));
-
-			/* 保存反转时间 */
-			Pos_Nega_mode.Save_Reversal_Time(1300,i);
-			// Debug_Serial.println(String("第") + i + "路的反转时间为：" + Pos_Nega_mode.Read_Reversal_Time(i));
-		}
-
-		unsigned char AIII[6] = {6,5,4,3,2,1};
-		Pos_Nega_mode.Save_AI_Relation_Way(AIII);
-		unsigned char beishu[6] = {11,11,11,11,11,11};
-		Pos_Nega_mode.Save_Threshold_multiple(beishu);
-		
-		
-		for (unsigned char i = 0; i < 6; i++)
-		{
-			Debug_Serial.println(String("第") + i + "路的静止AI为：" + Pos_Nega_mode.Read_Stop_AI(i));
-			Debug_Serial.println(String("第") + i + "路的正转AI为：" + Pos_Nega_mode.Read_Forward_AI(i));
-			Debug_Serial.println(String("第") + i + "路的反转AI为：" + Pos_Nega_mode.Read_Reversal_AI(i));
-			Debug_Serial.println(String("第") + i + "路的正转时间为：" + Pos_Nega_mode.Read_Forward_Time(i));
-			Debug_Serial.println(String("第") + i + "路的反转时间为：" + Pos_Nega_mode.Read_Reversal_Time(i));
-			Debug_Serial.println(String("第") + i + "路的关联AI为：" + Pos_Nega_mode.Read_AI_Relation_Way(i));
-			Debug_Serial.println(String("第") + i + "路的阈值倍数为：" + Pos_Nega_mode.Read_Threshold_multiple(i));
-		}
-		
-	}
-	Get_StopAI_Complete_Flag = true;
-}
-
-//读取某路AI
-unsigned short Read_which_Way_AI(unsigned char which_Way)
-{
-	unsigned short AI_Value = 0; static unsigned char AI_Value_Array[2] = {0x00};
-	switch (which_Way)
-	{
-		case 0: 
-		{
-			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI1);delay(10);}
-			AI_Value = AI_Value/10;
-			return AI_Value;
-		}
-		case 1:
-		{
-			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI2);delay(10);}
-			AI_Value = AI_Value/10;
-			return AI_Value;
-		}
-		case 2:
-		{
-			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI3);delay(10);}
-			AI_Value = AI_Value/10;
-			return AI_Value;
-		}
-		case 3:
-		{
-			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI4);delay(10);}
-			AI_Value = AI_Value/10;
-			return AI_Value;
-		}
-		case 4:
-		{
-			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI5);delay(10);}
-			AI_Value = AI_Value/10;
-			return AI_Value;
-		}
-		case 5:
-		{
-			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI6);delay(10);}
-			AI_Value = AI_Value/10;
-			return AI_Value;
-		}
-		case 6:
-		{
-			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI7);delay(10);}
-			AI_Value = AI_Value/10;
-			return AI_Value;
-		}
-		case 7:
-		{
-			for (size_t i = 0; i < 10; i++){ AI_Value += analogRead(AI8);delay(10);}
-			AI_Value = AI_Value/10;
-			return AI_Value;
-		}
-		default:Debug_Serial.println("default <Read_which_Way_AI>"); return AI_Value; break;
-	}
-}
-
-//正反转阈值报警
-void Forward_Reverse_Threshold_alarm(void)
-{
-	// if (Time_Count == 30)
-	// {
-	// 	for (size_t i = 0; i < 4; i++)
-	// 	{
-	// 		// Way0_Over_threshold
-	// 		Message_Receipt.Abnormal_Route_Way_Receipt(2,i);
-	// 	}
-	// }
-}
-
 
 
 void BT_Stop_Interrupt(void)

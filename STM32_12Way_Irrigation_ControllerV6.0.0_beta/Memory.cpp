@@ -1487,7 +1487,7 @@ bool ModbusController_InitState::Clean_CyclicInterval(void)
 bool Positive_Negative_MODE::Save_AI_Relation_Way(unsigned char* data)
 {
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 6; i++)
+	for (size_t i = 0; i < 8; i++)
 	{
 		AT24CXX_WriteOneByte(AI_Relation_Way_BASE_ADDR+i, data[i]);
 		// Debug_Serial.print(AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+i));
@@ -1495,8 +1495,19 @@ bool Positive_Negative_MODE::Save_AI_Relation_Way(unsigned char* data)
 	}	
 	EEPROM_Write_Disable();
 
-	Debug_Serial.println("储存AI_Relation_Way成功<Save_AI_Relation_Way>");
-	return true;
+	for (unsigned char i = 0; i < 8; i++)
+	{
+		if (AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+i) == data[i])
+		{
+			Debug_Serial.println("储存AI_Relation_Way成功 <Save_AI_Relation_Way>");
+			return true;
+		}
+		else
+		{
+			Debug_Serial.println("储存AI_Relation_Way失败!!! <Save_AI_Relation_Way>");
+			return false;
+		}
+	}
 }
 
 /*
@@ -1522,436 +1533,108 @@ unsigned char Positive_Negative_MODE::Read_AI_Relation_Way(unsigned char which_W
 bool Positive_Negative_MODE::Clean_AI_Relation_Way(void)
 {
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 6; i++)
+	for (size_t i = 0; i < 8; i++)
 	{
 		AT24CXX_WriteOneByte(AI_Relation_Way_BASE_ADDR + i, 0x00);
 	}	
 	EEPROM_Write_Disable();
+
+	for (unsigned char i = 0; i < 8; i++)
+	{
+		if (AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+i) == 0x00)
+		{
+			
+		}
+		else
+		{
+			Debug_Serial.println("清除AI_Relation_Way失败!!! <Clean_AI_Relation_Way>");
+			return false;
+		}
+	}
 
 	Debug_Serial.println("清除AI_Relation_Way成功<Clean_AI_Relation_Way>");
 	return true;
 }
 
 
-
 /*
-@brief     : 存储静止状态AI
+@brief     : 保存是否反向
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Save_Stop_AI(unsigned short data,unsigned char which_Way)
+bool Positive_Negative_MODE::Save_WayIS_Reverse(unsigned char* data)
 {
-	if (which_Way > 5){Debug_Serial.println(String("Save_Stop_AI ERROR") + which_Way); return false; }
-
-	unsigned char data_Array[2];
-
 	EEPROM_Write_Enable();
-	data_Array[0] = (data >> 8) & 0xFF; 
-	data_Array[1] = data & 0XFF;
-
-	// which_Way *= 2;
-
-	for (unsigned char i = 0; i < 2; i++)
+	for (size_t i = 0; i < 8; i++)
 	{
-		AT24CXX_WriteOneByte((Stop_AI_BASE_ADDR + (which_Way*2) + i), data_Array[i]);
+		AT24CXX_WriteOneByte(WayIS_Reverse + i, data[i]);
 	}
-
-	Debug_Serial.print(String("存储第") + which_Way + ("路静止状态AI成功:"));
-	Debug_Serial.println(String(data) + " <Save_Stop_AI>");
-
-	EEPROM_Write_Disable(); 
-	return true;
-}
-/*
-@brief     : 读取静止状态AI
-@para      :
-@return    : 
-*/
-unsigned short Positive_Negative_MODE::Read_Stop_AI(unsigned char which_Way)
-{
-	if (which_Way > 5){Debug_Serial.println("Read_Stop_AI ERROR :" + which_Way); return 0; }
-
-	unsigned char data[2] = {0x00};
-	unsigned short Value = 0;
-
-	// which_Way *= 2;
-
-	for (unsigned char i = 0; i < 2; i++)
-	{
-		data[i] = AT24CXX_ReadOneByte(Stop_AI_BASE_ADDR + (which_Way*2) + i);
-	}
-
-	Value = ((data[0] << 8) | data[1]);
-
-	return Value;
-}
-/*
-@brief     : 清除静止状态AI
-@para      :
-@return    : 成功true，失败false
-*/
-bool Positive_Negative_MODE::Clean_Stop_AI(unsigned char which_Way)
-{
-	if (which_Way > 5) return false;
-
-	which_Way *= 2;
-
-	EEPROM_Write_Enable();
-
-	for (unsigned char i = 0; i < 2; i++)
-	{
-		AT24CXX_WriteOneByte((Stop_AI_BASE_ADDR + which_Way + i), 0x00);
-	}
-
-	Debug_Serial.println(String("清除第") + which_Way / 2 + ("路静止状态AI成功<Clean_Stop_AI>"));
-
-	EEPROM_Write_Disable(); 
-
-	return true;
-}
-
-
-
-
-/*
-@brief     : 存储正转AI
-@para      :
-@return    : 成功true，失败false
-*/
-bool Positive_Negative_MODE::Save_Forward_AI(unsigned short data,unsigned char which_Way)
-{
-	if (which_Way > 5){ Debug_Serial.println(String("Save_Forward_AI ERROR: ") + which_Way); return false; }
-
-	unsigned char data_Array[2];
-
-	EEPROM_Write_Enable();
-
-	data_Array[0] = (data >> 8) & 0xFF; 
-	data_Array[1] = data & 0XFF;
-
-	for (size_t i = 0; i < 2; i++)
-	{
-		AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + (which_Way*2) + i, data_Array[i]);
-	}
-
-	Debug_Serial.print(String("存储第") + which_Way + ("路正转AI成功:"));
-	Debug_Serial.println(String(data) + " <Save_Forward_AI>");
-
-	return true;
-}
-/*
-@brief     : 读取正转AI
-@para      :
-@return    : 成功true，失败false
-*/
-unsigned short Positive_Negative_MODE::Read_Forward_AI(unsigned char which_Way)
-{
-	if (which_Way > 5){Debug_Serial.println("Read_Forward_AI ERROR"); return 0;}
-
-	unsigned char data[2] = {0x00};
-	unsigned short Value = 0;
-
-	which_Way *= 2;
-
-	for (size_t i = 0; i < 2; i++)
-	{
-		data[i] = AT24CXX_ReadOneByte(Forward_AI_BASE_ADDR + which_Way + i);
-	}
-
-	Value = ((data[0] << 8) | data[1]);
-
-	return Value;
-}
-/*
-@brief     : 清除正转AI
-@para      :
-@return    : 成功true，失败false
-*/
-bool Positive_Negative_MODE::Clean_Forward_AI(unsigned char which_Way)
-{
-	if(which_Way > 5) { Debug_Serial.println("Clean_Forward_AI ERROR"); return false;}
-
-	EEPROM_Write_Enable();
-
-	which_Way *= 2;
-
-	for (size_t i = 0; i < 2; i++)
-	{
-		AT24CXX_WriteOneByte(Forward_AI_BASE_ADDR + which_Way + i, 0x00);
-	}
-
-	Debug_Serial.println(String("清除第") + which_Way/2 + ("路正转AI成功<Clean_Forward_AI>"));
-
-	EEPROM_Write_Disable();
-	
-	return true;
-}
-
-
-/*
-@brief     : 存储反转AI
-@para      :
-@return    : 成功true，失败false
-*/
-bool Positive_Negative_MODE::Save_Reversal_AI(unsigned short data,unsigned char which_Way)
-{
-	if (which_Way > 5){ Debug_Serial.println(String("Save_Reversal_AI ERROR: ") + which_Way); return false; }
-
-	unsigned char data_Array[2];
-
-	which_Way *= 2;
-	
-	EEPROM_Write_Enable();
-
-	data_Array[0] = (data >> 8) & 0xFF; 
-	data_Array[1] = data & 0XFF;
-
-	for (size_t i = 0; i < 2; i++)
-	{
-		AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + which_Way + i, data_Array[i]);
-	}
-
-	Debug_Serial.print(String("存储第") + which_Way/2 + ("路反转AI成功:"));
-
-	Debug_Serial.println(String(data) + " <Save_Reversal_AI>");
-
-	return true;
-}
-/*
-@brief     : 读取反转AI
-@para      :
-@return    : 成功true，失败false
-*/
-unsigned short Positive_Negative_MODE::Read_Reversal_AI(unsigned char which_Way)
-{
-	if(which_Way > 5){ Debug_Serial.println("Read_Reversal_AI ERROR"); return 0;}
-
-	unsigned char data[2] = {0x00};
-	unsigned short Value = 0;
-
-	which_Way *= 2;
-
-	for (size_t i = 0; i < 2; i++)
-	{
-		data[i] = AT24CXX_ReadOneByte(Reversal_AI_BASE_ADDR + which_Way + i);
-	}
-
-	Value = ((data[0] << 8) | data[1]);
-
-	return Value;
-}
-/*
-@brief     : 清除反转AI
-@para      :
-@return    : 成功true，失败false
-*/
-bool Positive_Negative_MODE::Clean_Reversal_AI(unsigned char which_Way)
-{
-	if (which_Way > 5){ Debug_Serial.println("Clean_Reversal_AI ERROR!!!"); return false; }
-	
-	EEPROM_Write_Enable();
-
-	for (size_t i = 0; i < 2; i++)
-	{
-		AT24CXX_WriteOneByte(Reversal_AI_BASE_ADDR + (which_Way*2) + i, 0x00);
-	}
-	Debug_Serial.println(String("清除第") + which_Way + ("路反转AI成功<Clean_Reversal_AI>"));
-
-	EEPROM_Write_Disable();
-	return true;
-}
-
-
-
-/*
-@brief     : 存储正转时间
-@para      :
-@return    : 成功true，失败false
-*/
-bool Positive_Negative_MODE::Save_Forward_Time(unsigned int data, unsigned char which_Way)
-{
-	if (which_Way > 5){ Debug_Serial.println("Clean_Reversal_AI ERROR!!!"); return false; }
-
-	unsigned char data_Array[3];
-
-	EEPROM_Write_Enable();
-
-	data_Array[0] = (data >> 16) & 0b11111111;
-	data_Array[1] = (data >> 8) & 0b11111111;
-	data_Array[2] = (data >> 0) & 0b11111111;
-
-	for (size_t i = 0; i < 3; i++)
-	{
-		AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
-	}
-
-	Debug_Serial.println(String("存储第") + which_Way + ("路正转时间成功<Save_Forward_Time>"));
-
-	EEPROM_Write_Disable();
-	return true;
-}
-/*
-@brief     : 读取正转时间
-@para      :
-@return    : 成功true，失败false
-*/
-unsigned int Positive_Negative_MODE::Read_Forward_Time(unsigned char which_Way)
-{
-	if (which_Way > 5){ Debug_Serial.println("Read_Forward_Time ERROR!!!"); return 0; }
-
-	unsigned char data[3] = {0x00};
-	unsigned int value = 0;
-	for (size_t i = 0; i < 3; i++)
-	{
-		data[i] = AT24CXX_ReadOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i);
-	}
-	value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
-	return value;
-}
-/*
-@brief     : 清除正转时间
-@para      :
-@return    : 成功true，失败false
-*/
-bool Positive_Negative_MODE::Clean_Forward_Time(unsigned char which_Way)
-{
-	if (which_Way > 5){ Debug_Serial.println("Read_Forward_Time ERROR!!!"); return false; }
-
-	EEPROM_Write_Enable();
-
-	for (size_t i = 0; i < 3; i++)
-	{
-		AT24CXX_WriteOneByte(Forward_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
-	}
-	Debug_Serial.println(String("清除第") + which_Way + ("路正转时间成功<Clean_Forward_Time>"));
-	
-	EEPROM_Write_Disable();
-	return true;
-}
-
-
-
-/*
-@brief     : 存储反转时间
-@para      :
-@return    : 成功true，失败false
-*/
-bool Positive_Negative_MODE::Save_Reversal_Time(unsigned int data, unsigned char which_Way)
-{
-	if (which_Way > 5){ Debug_Serial.println("Save_Reversal_Time ERROR!!!"); return false; }
-
-	unsigned char data_Array[3];
-	EEPROM_Write_Enable();
-
-	data_Array[0] = (data >> 16) & 0b11111111;
-	data_Array[1] = (data >> 8) & 0b11111111;
-	data_Array[2] = (data >> 0) & 0b11111111;
-	for (size_t i = 0; i < 3; i++)
-	{
-		AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, data_Array[i]);
-	}
-	Debug_Serial.println(String("存储第") + which_Way + ("路反转时间成功<Save_Reversal_Time>"));
-
 	EEPROM_Write_Disable();
 
-	return true;
-}
-/*
-@brief     : 读取反转时间
-@para      :
-@return    : 成功true，失败false
-*/
-unsigned int Positive_Negative_MODE::Read_Reversal_Time(unsigned char which_Way)
-{
-	if (which_Way > 5){ Debug_Serial.println("Read_Reversal_Time ERROR!!!"); return false; }
-
-	unsigned char data[3] = {0x00};
-	unsigned int value = 0;
-
-	for (size_t i = 0; i < 3; i++)
+	for (unsigned char i = 0; i < 8; i++)
 	{
-		data[i] = AT24CXX_ReadOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i);
-	}
-	value = (data[0] << 16) | (data[1] << 8) | (data[2] << 0);
-	return value;
-}
-/*
-@brief     : 清除反转时间
-@para      :
-@return    : 成功true，失败false
-*/
-bool Positive_Negative_MODE::Clean_Reversal_Time(unsigned char which_Way)
-{
-	if (which_Way > 5){ Debug_Serial.println("Clean_Reversal_Time ERROR!!!"); return false; }
-
-	EEPROM_Write_Enable();
-
-	for (size_t i = 0; i < 3; i++)
-	{
-		AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR + (which_Way*3) + i, 0x00);
+		if (AT24CXX_ReadOneByte(WayIS_Reverse + i) == data[i])
+		{
+			
+		}
+		else
+		{
+			Debug_Serial.println("保存是否反向失败!!! <Save_WayIS_Reverse>");
+			return false;
+		}
 	}
 
-	Debug_Serial.println(String("清除第") + which_Way + ("路反转时间成功<Clean_Reversal_Time>"));
-
-	EEPROM_Write_Disable();
-
+	Debug_Serial.println("保存是否反向成功 <Save_WayIS_Reverse>");
 	return true;
 }
 
-
-
-
 /*
-@brief     : 保存阈值倍数
+@brief     : 读取是否反向
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Save_Threshold_multiple(unsigned char* data)
+unsigned char Positive_Negative_MODE::Read_WayIS_Reverse(unsigned char which_Way)
 {
-	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 6; i++)
-	{
-		AT24CXX_WriteOneByte(Threshold_multiple_BASE_ADDR+i, data[i]);
-		// Debug_Serial.print(AT24CXX_ReadOneByte(Threshold_multiple_BASE_ADDR+i));
-		// Debug_Serial.print(" ");
-	}	
-	EEPROM_Write_Disable();
-
-	Debug_Serial.println("存储阈值倍数成功<Save_Threshold_multiple>");
-	return true;
-}
-/*
-@brief     : 读取阈值倍数
-@para      :
-@return    : 成功true，失败false
-*/
-unsigned char Positive_Negative_MODE::Read_Threshold_multiple(unsigned char which_Way)
-{
-	if(which_Way > 5){Debug_Serial.println("Read_Threshold_multiple ERROR"); return 0;}
+	if (which_Way > 5) return 0;
 
 	unsigned char data = 0;
 
-	data = AT24CXX_ReadOneByte(Threshold_multiple_BASE_ADDR + which_Way);
-	
+	data = AT24CXX_ReadOneByte(WayIS_Reverse + which_Way);
+
 	return data;
 }
+
 /*
-@brief     : 清除阈值倍数
+@brief     : 清除是否反向
 @para      :
 @return    : 成功true，失败false
 */
-bool Positive_Negative_MODE::Clean_Threshold_multiple(void)
+bool Positive_Negative_MODE::Clean_WayIS_Reverse(void)
 {
 	EEPROM_Write_Enable();
-	for (size_t i = 0; i < 6; i++)
+	for (size_t i = 0; i < 8; i++)
 	{
-		AT24CXX_WriteOneByte(Reversal_Time_BASE_ADDR+i, 0x00);
-	}	
+		AT24CXX_WriteOneByte(WayIS_Reverse + i, 0x00);
+	}
 	EEPROM_Write_Disable();
 
-	Debug_Serial.println("清除阈值倍数成功<Clean_Reversal_Time>");
+	for (unsigned char i = 0; i < 8; i++)
+	{
+		if (AT24CXX_ReadOneByte(WayIS_Reverse + i) == 0x00)
+		{
+			
+		}
+		else
+		{
+			Debug_Serial.println("清除是否反向失败!!! <Save_WayIS_Reverse>");
+			return false;
+		}
+	}
+
+	Debug_Serial.println("清除是否反向成功 <Save_WayIS_Reverse>");
 	return true;
 }
+
 
 /*
 @brief     : 保存AI关联以及阈值倍数被设置
@@ -1964,8 +1647,16 @@ bool Positive_Negative_MODE::Save_A009_Seted(void)
 	AT24CXX_WriteOneByte(A009_Seted, 0x55);	
 	EEPROM_Write_Disable();
 
-	Debug_Serial.println("保存AI关联以及阈值倍数被设置成功<Save_A009_Seted>");
-	return true;
+	if (AT24CXX_ReadOneByte(A009_Seted) == 0x55)
+	{
+		Debug_Serial.println("保存AI关联以及反向标志位成功 <Save_A009_Seted>");
+		return true;
+	}
+	else
+	{
+		Debug_Serial.println("保存AI关联以及反向标志位失败!!! <Save_A009_Seted>");
+		return false;
+	}
 }
 /*
 @brief     : 读取AI关联以及阈值倍数被设置
@@ -1994,62 +1685,20 @@ bool Positive_Negative_MODE::Clean_A009_Seted(void)
 	AT24CXX_WriteOneByte(A009_Seted, 0x00);	
 	EEPROM_Write_Disable();
 
-	Debug_Serial.println("清除AI关联以及阈值倍数被设置成功<Clean_A009_Seted>");
-	return true;
+	if (AT24CXX_ReadOneByte(A009_Seted) == 0x00)
+	{
+		Debug_Serial.println("清除AI关联以及反向标志位成功 <Clean_A009_Seted>");
+		return true;
+	}
+	else
+	{
+		Debug_Serial.println("清除AI关联以及反向标志位失败!!! <Clean_A009_Seted>");
+		return false;
+	}
 }
 
 
 
-
-/*
-@brief     : 保存静止状态、正传、反转AI以及正传、反转时间被设置
-@para      :
-@return    : 成功true，失败false
-*/
-bool Positive_Negative_MODE::Save_A00A_Seted(unsigned char which_Way)
-{
-	if(which_Way > 5){ Debug_Serial.println("Save_A00A_Seted ERROR"); return false;}
-
-	EEPROM_Write_Enable();
-	
-	AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x55);
-	Debug_Serial.println(String("存储第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Save_A00A_Seted>"));
-
-	EEPROM_Write_Disable();
-
-	return true;
-}
-/*
-@brief     : 读取静止状态、正传、反转AI以及正传、反转时间被设置
-@para      :
-@return    : 成功true，失败false
-*/
-bool Positive_Negative_MODE::Read_A00A_Seted(unsigned char which_Way)
-{
-	if(which_Way > 5){ Debug_Serial.println("Read_A00A_Seted ERROR"); return false;}
-
-	if (AT24CXX_ReadOneByte(A00A_Seted+which_Way) == 0x55) return true;
-
-	return false;
-}
-/*
-@brief     : 清除静止状态、正传、反转AI以及正传、反转时间被设置
-@para      :
-@return    : 成功true，失败false
-*/
-bool Positive_Negative_MODE::Clean_A00A_Seted(unsigned char which_Way)
-{
-	if(which_Way > 5){ Debug_Serial.println("Save_A00A_Seted ERROR"); return false;}
-
-	EEPROM_Write_Enable();
-
-	AT24CXX_WriteOneByte(A00A_Seted + which_Way, 0x00);
-	Debug_Serial.println(String("清除第") + which_Way + ("路静止状态、正传、反转AI以及正传、反转时间被设置成功<Clean_A00A_Seted>"));
-
-	EEPROM_Write_Disable();
-
-	return true;
-}
 
 // bt_u8 BT_MEM_Write_Bytes(bt_u8 base_addr, bt_u8 *buf, bt_u8 len)
 // {

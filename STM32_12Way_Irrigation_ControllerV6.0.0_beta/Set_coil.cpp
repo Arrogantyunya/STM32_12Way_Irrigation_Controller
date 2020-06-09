@@ -736,6 +736,32 @@ unsigned char * Modbus_Coils::Get_AI_1to8(void)
 #endif // PLC_V1
 }
 
+/*
+ @brief   : 得到某路的AI()
+ @param   : void
+ @return  :
+ */
+unsigned short Modbus_Coils::Get_which_AI(which_Way)
+{
+#if PLC_V1
+	switch (which_Way)
+	{
+		// case 0:	x[0] += analogRead(AI1);delay(10);break;
+		// case 1:	x[1] += analogRead(AI2);delay(10);break;
+		// case 2:	x[2] += analogRead(AI3);delay(10);break;
+		// case 3:	x[3] += analogRead(AI4);delay(10);break;
+		// case 4:	x[4] += analogRead(AI5);delay(10);break;
+		// case 5:	x[5] += analogRead(AI6);delay(10);break;
+		// case 6:	x[6] += analogRead(AI7);delay(10);break;
+		// case 7:	x[7] += analogRead(AI8);delay(10);break;
+		// default:break;
+	}
+#elif PLC_V2
+
+#endif// PLC_V1
+}
+
+//设置继电器的开启
 void Set_DO_relay(unsigned char way, bool value)
 {
 	switch (way)

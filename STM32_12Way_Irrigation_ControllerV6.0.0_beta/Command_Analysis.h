@@ -16,7 +16,7 @@ enum Frame_ID {
 	Modbus_Control, R_Modbus_Control,Output_default,Work_Para, Set_Group_Num, SN_Area_Channel, Work_Status,
 	/*ResetRoll, Opening, Work_Limit,*/ Stop_Work,Irrigation_Control,Delay_Start_DO_Control,
 	Positive_negative_Control,Query_SignalQuality_Version,Set_Reporting_Interval,Set_Lora_parameter,Non_existent,
-	Set_threshold,Calculate_travel
+	Set_threshold,Calculate_travel,Opening_Control
 };
 
 class Command_Analysis {
@@ -54,6 +54,7 @@ private:
 	void Set_Lora_parameter_command();//服务器设置LORA参数(A008)
 	void Set_Forward_Reverse_mode_threshold();//服务器设置正反转模式阈值（A009）
 	void Forward_Reverse_mode_Calculate_travel();//服务器发送正反转模式计算行程（A00A）
+	void Forward_Reverse_mode_Opening_Control();//服务器发送正反转模式开度控制指令（A00B）
 
 	void Forced_Stop(bool Need_Receipt);//强制停止
 };
@@ -111,20 +112,7 @@ extern unsigned int Forward_Reverse_mode_EndWait;//结束等待的时间
 
 /* 重置行程相关 */
 extern unsigned char A00A_WayUsed;//
-extern bool Calculate_travel_Flag;//需要进行重置行程的标志
-extern bool A00A_WayUsed_Array[6];//需要进行重置行程的路数
-extern bool A00A_WayUsed_Array_Backup1[6];//需要进行重置行程的路数备份1
-extern bool A00A_WayUsed_Array_Backup2[6];//需要进行重置行程的路数备份2
-extern bool Get_StopAI_Complete_Flag;//得到静止AI完成的标志位
-extern unsigned int OldTime_Waitfor_Calculate_travel;//老时间
-extern bool Wait_Reverse;//先等待反转
-extern bool Need_goto_Upper_limit;//需要到达上限位标志位
-extern bool Need_goto_Lower_limit;//需要到达下限位标志位
-extern bool collect_Forward_AI;//采集正转电流标志位
-extern bool collect_Reverse_AI;//采集反转电流标志位
-extern unsigned int Forward_Time[6];//正转时间
-extern unsigned int Reverse_Time[6];//反转时间
-extern unsigned int Forward_Start_Time[6];//正转开始时间
-extern unsigned int Reverse_Start_Time[6];//反转开始时间
+// extern bool Calculate_travel_Flag;//需要进行重置行程的标志
+extern bool A00A_WayUsed_Array[8];//需要进行重置行程的路数
 
 #endif
