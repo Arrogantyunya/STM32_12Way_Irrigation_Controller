@@ -11,6 +11,7 @@
 #include "Memory.h"
 #include "User_CRC8.h"
 #include "fun_periph.h"
+#include "Set_coil.h"
 #include <libmaple/bkp.h>
 #include <libmaple/iwdg.h>
 
@@ -1047,7 +1048,11 @@ bool ModbusController_InitState::Save_DO_InitState(unsigned char *data)
 	unsigned char DO_Init[8] = {0x00};
 
 	EEPROM_Write_Enable();
+	#if B400
+	for (size_t i = 0; i < 4; i++)
+	#else
 	for (size_t i = 0; i < 8; i++)
+	#endif
 	{
 		//Serial.println(String(*(data+i)));
 		AT24CXX_WriteOneByte(DO_INIT_STATE_BASE_ADDR + i, *(data + i));
@@ -1057,7 +1062,11 @@ bool ModbusController_InitState::Save_DO_InitState(unsigned char *data)
 	AT24CXX_WriteOneByte(DO_INIT_STATE_VERIFY_ADDR, DO_CRC8);
 	//Serial.println(String("DO_CRC8 = ") + DO_CRC8);
 
+	#if B400
+	for (size_t i = 0; i < 4; i++)
+	#else
 	for (size_t i = 0; i < 8; i++)
+	#endif
 	{
 		DO_Init[i] = AT24CXX_ReadOneByte(DO_INIT_STATE_BASE_ADDR + i);
 	}
@@ -1487,7 +1496,11 @@ bool ModbusController_InitState::Clean_CyclicInterval(void)
 bool Positive_Negative_MODE::Save_AI_Relation_Way(unsigned char* data)
 {
 	EEPROM_Write_Enable();
+	#if B400
+	for (size_t i = 0; i < 4; i++)
+	#else
 	for (size_t i = 0; i < 8; i++)
+	#endif
 	{
 		AT24CXX_WriteOneByte(AI_Relation_Way_BASE_ADDR+i, data[i]);
 		// Debug_Serial.print(AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+i));
@@ -1495,7 +1508,11 @@ bool Positive_Negative_MODE::Save_AI_Relation_Way(unsigned char* data)
 	}	
 	EEPROM_Write_Disable();
 
-	for (unsigned char i = 0; i < 8; i++)
+	#if B400
+	for (size_t i = 0; i < 4; i++)
+	#else
+	for (size_t i = 0; i < 8; i++)
+	#endif
 	{
 		if (AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+i) == data[i])
 		{
@@ -1533,7 +1550,11 @@ unsigned char Positive_Negative_MODE::Read_AI_Relation_Way(unsigned char which_W
 bool Positive_Negative_MODE::Clean_AI_Relation_Way(void)
 {
 	EEPROM_Write_Enable();
+	#if B400
+	for (size_t i = 0; i < 4; i++)
+	#else
 	for (size_t i = 0; i < 8; i++)
+	#endif
 	{
 		AT24CXX_WriteOneByte(AI_Relation_Way_BASE_ADDR + i, 0x00);
 	}	
@@ -1565,7 +1586,11 @@ bool Positive_Negative_MODE::Clean_AI_Relation_Way(void)
 bool Positive_Negative_MODE::Save_WayIS_Reverse(unsigned char* data)
 {
 	EEPROM_Write_Enable();
+	#if B400
+	for (size_t i = 0; i < 4; i++)
+	#else
 	for (size_t i = 0; i < 8; i++)
+	#endif
 	{
 		AT24CXX_WriteOneByte(WayIS_Reverse + i, data[i]);
 	}
@@ -1612,7 +1637,11 @@ unsigned char Positive_Negative_MODE::Read_WayIS_Reverse(unsigned char which_Way
 bool Positive_Negative_MODE::Clean_WayIS_Reverse(void)
 {
 	EEPROM_Write_Enable();
+	#if B400
+	for (size_t i = 0; i < 4; i++)
+	#else
 	for (size_t i = 0; i < 8; i++)
+	#endif
 	{
 		AT24CXX_WriteOneByte(WayIS_Reverse + i, 0x00);
 	}

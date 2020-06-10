@@ -2,9 +2,13 @@
 #define _SET_COIL_H
 
 #include <Arduino.h>
+#include "film_lib\film_config.h"
+#include "film_lib\film_mem.h"
+#include "film_lib\film.h"
 
 #define PLC_V1	true
 #define PLC_V2	false
+#define B400	true
 
 
 // Modbus Registers Offsets (0-9999)
@@ -118,12 +122,21 @@ public:
 	unsigned char Get_DO_9to16(void);	//得到DO9-16的值
 	unsigned char* Get_AI_1to8(void);	//得到AI1-8的值
 
-	unsigned short Get_which_AI(which_Way);//得到某路的AI()
-	// film_u32 Film_Read_Analog_Ele_Current_CH(film_u8 ch)//读取一路电机的电流值，单位是mA
-	// void Film_Ctrl_Motor_CH(film_u8 ch, Film_DIR dir);//根据传入的路数和方向，控制该路电机转动
+	unsigned short Get_which_AI(unsigned char which_Way);//得到某路的AI(得到的是份数)
 };
 
 void Set_DO_relay(unsigned char way,bool value);
+film_u32 Film_Read_Analog_Ele_Current_CH(film_u8 ch);//读取一路电机的电流值，单位是mA
+void Film_Ctrl_Motor_CH(film_u8 ch, Film_DIR dir);//根据传入的路数和方向，控制该路电机转动
+
+void Set_Way_Motor(unsigned char ch, unsigned char status);
+// void Set_Way1_Motor(unsigned char status);
+// void Set_Way2_Motor(unsigned char status);
+// void Set_Way3_Motor(unsigned char status);
+// void Set_Way4_Motor(unsigned char status);
+// void Set_Way5_Motor(unsigned char status);
+// void Set_Way6_Motor(unsigned char status);
+// void Set_Way7_Motor(unsigned char status);
 
 extern Modbus_Coils Modbus_Coil;
 extern bool gTime_arrive_Flag;

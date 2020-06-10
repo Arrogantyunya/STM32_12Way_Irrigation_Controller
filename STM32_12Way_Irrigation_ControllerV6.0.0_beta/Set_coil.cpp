@@ -4,13 +4,14 @@
 #include "ModbusSerial.h"
 #include "fun_periph.h"
  #include "Memory.h"
-// #include "Command_Analysis.h"
+#include "Command_Analysis.h"
 // #include "receipt.h"
 // #include "Private_Timer.h"
 // #include "fun_periph.h"
 // #include "LoRa.h"
 #include<math.h>
 #include <Arduino.h>
+
 
 Modbus_Coils Modbus_Coil;
 ModbusSerial mb;
@@ -741,24 +742,84 @@ unsigned char * Modbus_Coils::Get_AI_1to8(void)
  @param   : void
  @return  :
  */
-unsigned short Modbus_Coils::Get_which_AI(which_Way)
+unsigned short Modbus_Coils::Get_which_AI(unsigned char which_Way)
 {
-#if PLC_V1
-	switch (which_Way)
-	{
-		// case 0:	x[0] += analogRead(AI1);delay(10);break;
-		// case 1:	x[1] += analogRead(AI2);delay(10);break;
-		// case 2:	x[2] += analogRead(AI3);delay(10);break;
-		// case 3:	x[3] += analogRead(AI4);delay(10);break;
-		// case 4:	x[4] += analogRead(AI5);delay(10);break;
-		// case 5:	x[5] += analogRead(AI6);delay(10);break;
-		// case 6:	x[6] += analogRead(AI7);delay(10);break;
-		// case 7:	x[7] += analogRead(AI8);delay(10);break;
-		// default:break;
-	}
-#elif PLC_V2
+	unsigned short data = 0;
 
-#endif// PLC_V1
+	#if PLC_V1
+		switch (which_Way)
+		{
+			case 0:	data = analogRead(AI1);delay(10);break;
+			case 1:	data = analogRead(AI2);delay(10);break;
+			case 2:	data = analogRead(AI3);delay(10);break;
+			case 3:	data = analogRead(AI4);delay(10);break;
+			case 4:	data = analogRead(AI5);delay(10);break;
+			case 5:	data = analogRead(AI6);delay(10);break;
+			case 6:	data = analogRead(AI7);delay(10);break;
+			case 7:	data = analogRead(AI8);delay(10);break;
+			default: break;
+		}
+		return data;
+	#elif PLC_V2
+
+	#endif// PLC_V1
+}
+
+film_u32 Film_Read_Analog_Ele_Current_CH(film_u8 ch)//读取一路电机的电流值，单位是mA
+{
+	film_u32 data = Modbus_Coil.Get_which_AI(ch);
+	return data;
+}
+
+// Film_Forward,
+// Film_Reversal,
+// Film_Stop
+void Film_Ctrl_Motor_CH(film_u8 ch, Film_DIR dir)//根据传入的路数和方向，控制该路电机转动
+{
+	Set_Way_Motor(ch, dir);
+}
+
+
+//设置电机的正反转与停止
+void Set_Way_Motor(unsigned char ch, unsigned char status)
+{
+	if (status == Film_Forward)
+	{
+		if (!Pos_Nega_mode.Read_WayIS_Reverse(ch))
+		{
+			Set_DO_relay((2*ch),ON);
+			Set_DO_relay(((2*ch)+1),OFF);
+		}
+		else
+		{
+			Set_DO_relay((2*ch),OFF);
+			Set_DO_relay(((2*ch)+1),ON);
+		}
+	}
+	else if (status == Film_Reversal)
+	{
+		if (!Pos_Nega_mode.Read_WayIS_Reverse(0))
+		{
+			Set_DO_relay((2*ch),OFF);
+			Set_DO_relay(((2*ch)+1),ON);
+		}
+		else
+		{
+			Set_DO_relay((2*ch),ON);
+			Set_DO_relay(((2*ch)+1),OFF);
+		}
+	}
+	else if (status == Film_Stop)
+	{
+		Set_DO_relay((2*ch),OFF);
+		Set_DO_relay(((2*ch)+1),OFF);
+	}
+	else
+	{
+		Debug_Serial.println("异常电机工作状态设置!!! <Set_Way_Motor>");
+		Set_DO_relay((2*ch),OFF);
+		Set_DO_relay(((2*ch)+1),OFF);
+	}
 }
 
 //设置继电器的开启
@@ -766,18 +827,18 @@ void Set_DO_relay(unsigned char way, bool value)
 {
 	switch (way)
 	{
-	case 0:digitalWrite(KCZJ1, value);value>0?mb.Coil(KCZJ1_COIL,0x0000):mb.Coil(KCZJ1_COIL,0xff00); break;
-	case 1:digitalWrite(KCZJ2, value);value>0?mb.Coil(KCZJ2_COIL,0x0000):mb.Coil(KCZJ2_COIL,0xff00); break;
-	case 2:digitalWrite(KCZJ3, value);value>0?mb.Coil(KCZJ3_COIL,0x0000):mb.Coil(KCZJ3_COIL,0xff00); break;
-	case 3:digitalWrite(KCZJ4, value);value>0?mb.Coil(KCZJ4_COIL,0x0000):mb.Coil(KCZJ4_COIL,0xff00); break;
-	case 4:digitalWrite(KCZJ5, value);value>0?mb.Coil(KCZJ5_COIL,0x0000):mb.Coil(KCZJ5_COIL,0xff00); break;
-	case 5:digitalWrite(KCZJ6, value);value>0?mb.Coil(KCZJ6_COIL,0x0000):mb.Coil(KCZJ6_COIL,0xff00); break;
-	case 6:digitalWrite(KCZJ7, value);value>0?mb.Coil(KCZJ7_COIL,0x0000):mb.Coil(KCZJ7_COIL,0xff00); break;
-	case 7:digitalWrite(KCZJ8, value);value>0?mb.Coil(KCZJ8_COIL,0x0000):mb.Coil(KCZJ8_COIL,0xff00); break;
-	case 8:digitalWrite(KCZJ9, value);value>0?mb.Coil(KCZJ9_COIL,0x0000):mb.Coil(KCZJ9_COIL,0xff00); break;
-	case 9:digitalWrite(KCZJ10, value);value>0?mb.Coil(KCZJ10_COIL,0x0000):mb.Coil(KCZJ10_COIL,0xff00); break;
-	case 10:digitalWrite(KCZJ11, value);value>0?mb.Coil(KCZJ11_COIL,0x0000):mb.Coil(KCZJ11_COIL,0xff00); break;
-	case 11:digitalWrite(KCZJ12, value);value>0?mb.Coil(KCZJ12_COIL,0x0000):mb.Coil(KCZJ12_COIL,0xff00); break;
-	default:/*强制停止*/	Serial.println("异常!!强制停止");		break;
+		case 0:digitalWrite(KCZJ1, value);value>0?mb.Coil(KCZJ1_COIL,0x0000):mb.Coil(KCZJ1_COIL,0xff00); break;
+		case 1:digitalWrite(KCZJ2, value);value>0?mb.Coil(KCZJ2_COIL,0x0000):mb.Coil(KCZJ2_COIL,0xff00); break;
+		case 2:digitalWrite(KCZJ3, value);value>0?mb.Coil(KCZJ3_COIL,0x0000):mb.Coil(KCZJ3_COIL,0xff00); break;
+		case 3:digitalWrite(KCZJ4, value);value>0?mb.Coil(KCZJ4_COIL,0x0000):mb.Coil(KCZJ4_COIL,0xff00); break;
+		case 4:digitalWrite(KCZJ5, value);value>0?mb.Coil(KCZJ5_COIL,0x0000):mb.Coil(KCZJ5_COIL,0xff00); break;
+		case 5:digitalWrite(KCZJ6, value);value>0?mb.Coil(KCZJ6_COIL,0x0000):mb.Coil(KCZJ6_COIL,0xff00); break;
+		case 6:digitalWrite(KCZJ7, value);value>0?mb.Coil(KCZJ7_COIL,0x0000):mb.Coil(KCZJ7_COIL,0xff00); break;
+		case 7:digitalWrite(KCZJ8, value);value>0?mb.Coil(KCZJ8_COIL,0x0000):mb.Coil(KCZJ8_COIL,0xff00); break;
+		case 8:digitalWrite(KCZJ9, value);value>0?mb.Coil(KCZJ9_COIL,0x0000):mb.Coil(KCZJ9_COIL,0xff00); break;
+		case 9:digitalWrite(KCZJ10, value);value>0?mb.Coil(KCZJ10_COIL,0x0000):mb.Coil(KCZJ10_COIL,0xff00); break;
+		case 10:digitalWrite(KCZJ11, value);value>0?mb.Coil(KCZJ11_COIL,0x0000):mb.Coil(KCZJ11_COIL,0xff00); break;
+		case 11:digitalWrite(KCZJ12, value);value>0?mb.Coil(KCZJ12_COIL,0x0000):mb.Coil(KCZJ12_COIL,0xff00); break;
+		default:/*强制停止*/	Serial.println("异常!!强制停止");		break;
 	}
 }

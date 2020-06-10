@@ -29,6 +29,10 @@ enum E00A_Status{
 	A009_Seted_ERR = 0,Begin_Calculate_travel,complete_Calculate_travel
 };
 
+enum EOOB_Status{
+	Auto_Report = 0 ,Opening_SetOK ,Opening_SetErr 
+};
+
 enum E00C_Status{
 	Way0_Over_threshold = 0,Way1_Over_threshold,Way2_Over_threshold,Way3_Over_threshold,Way4_Over_threshold,
 	Way5_Over_threshold,Way6_Over_threshold

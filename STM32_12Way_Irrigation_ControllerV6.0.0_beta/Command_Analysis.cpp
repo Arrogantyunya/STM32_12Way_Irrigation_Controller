@@ -1485,7 +1485,11 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 
 		Debug_Serial.print(">>>");
 		unsigned char Threshold_multiple_Array[8] = {0x00};
+		#if B400
+		for (size_t i = 0; i < 4; i++)
+		#else
 		for (size_t i = 0; i < 8; i++)
+		#endif
 		{
 			unsigned char x = gReceiveCmd[12+i];
 			if(x >= 0 && x <= 100)
@@ -1503,7 +1507,11 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 
 		Debug_Serial.print(">>>");
 		unsigned char IS_Reverse_Array[8] = {0x00};
+		#if B400
+		for (size_t i = 0; i < 4; i++)
+		#else
 		for (size_t i = 0; i < 8; i++)
+		#endif
 		{
 			if (gReceiveCmd[20] >> i)
 			{
@@ -1641,8 +1649,11 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 	{
 		Debug_Serial.println("A00B <Forward_Reverse_mode_Opening_Control>");
 		Debug_Serial.flush();
-
+		#if B400
+		for (size_t i = 0; i < 4; i++)
+		#else
 		for (size_t i = 0; i < 8; i++)
+		#endif
 		{
 			if (gReceiveCmd[8+i] == 0xff)
 			{
@@ -1669,7 +1680,8 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 		unsigned char A00B_Interval = gReceiveCmd[16];
 		Debug_Serial.println(String("每路开启的间隔时间为：") + A00B_Interval + "s");
 
-		Message_Receipt.
+		Message_Receipt.Opening_Control_Receipt(3,Opening_SetOK);
+		// Message_Receipt.Opening_Control_Receipt(3,Opening_SetErr);
 	}
 	else
 	{

@@ -488,10 +488,6 @@ void Change_status_report(void)
 	DI_NumNow = Modbus_Coil.Get_DI_1to8();//得到当前DI的状态
 	DO_NumNow = Modbus_Coil.Get_DO_1to8() + Modbus_Coil.Get_DO_9to16();//得到当前DO的状态
 
-	/*得到随机值*/
-	unsigned char random_1 = random(0, 255);
-	unsigned char random_2 = random(0, 255);
-
 #if DI_CHANGE_REPORT
 	if (DI_NumLast != DI_NumNow)//8路DI的值有所改变
 	{
