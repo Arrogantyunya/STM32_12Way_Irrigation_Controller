@@ -33,7 +33,7 @@ void Realtime_Status_Reporting_Timer_Init(void)
  @param   : 无
  @return  : 无
  */
-void Self_Check_Parameter_Timer_Init(void)
+void Timer3_Init(void)
 {
 	Timer3.setPeriod(TIMER_NUM); // in microseconds，1S
 	Timer3.attachCompare1Interrupt(Timer3_Interrupt);
@@ -69,7 +69,7 @@ void Start_Status_Report_Timing(void)
  @param   : 无
  @return  : 无
  */
-void Start_Self_Check_Timing(void)
+void Start_Timer3(void)
 {
 	Timer3.resume();
 	Timer3.setCount(0);
@@ -102,7 +102,7 @@ void Stop_Status_Report_Timing(void)
  @param   : 无
  @return  : 无
  */
-void Stop_Self_Check_Timing(void)
+void Stop_Timer3(void)
 {
 	Timer3.pause();
 }
@@ -156,22 +156,7 @@ void Timer2_Interrupt(void)
  */
 void Timer3_Interrupt(void)
 {
-	// gSelfCheckNum++;
-	// gStateReportNum++;
-	// if (gSelfCheckNum >= 14400) //4 hours	14400
-	// {
-	// 	gSelfCheckNum = 0;
-	// 	gCheckStoreParamFlag = true;
-	// }
-	// /*大于0秒 && 小于1800秒（30分钟）才能开启自动上报*/
-	// if (InitState.Read_E014Auto_report() > 0 && InitState.Read_E014Auto_report() <= 1800)
-	// {
-	// 	if (gStateReportNum >= InitState.Read_E014Auto_report()) //
-	// 	{
-	// 		gStateReportNum = 0;
-	// 		gStateReportFlag = true;
-	// 	}
-	// }
+	Film_Load_Tim_Var();
 }
 
 /*

@@ -262,7 +262,7 @@ void Receipt::Request_Device_SN_and_Channel(void)
  @param   : 上报次数
  @return  : 无
  */
-void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2)
+void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char times)
 {
 // 字节索引    	0        	1-2    	3      	4-5         	6     	7-8  	9-10 	11  	12  	13-20	21-28	29-44	45-60	61-62	63      	64-65	66  	67-72        
 // 数据域     	frameHead	frameId	dataLen	DeviceTypeId	status	swVer	hwVer	SNR 	RSSI	DI   	DO   	AI   	AO   	VOL  	LoraMode	符号位  	CRC8	frameEnd     
@@ -575,7 +575,7 @@ void Receipt::Output_init_Receipt(unsigned char status, unsigned char send_times
 			2.接收到的A003数组
  @return  : 无
  */
-void Receipt::Irrigation_control_Receipt(unsigned char send_times, unsigned char* gReceiveCmd/*unsigned char randomId_1, unsigned char randomId_2*/)
+void Receipt::Irrigation_control_Receipt(unsigned char send_times, unsigned char* gReceiveCmd)
 {
 	  /*| 字节索引	| 0			| 1 - 2		| 3			| 4 - 5			| 6				| 7			| 8-9		| 10 - 41	| 42 - 71	| 72-73		| 74-75	| 76-107	| 108	| 109 - 114     |
 		| 数据域	| FrameHead | FrameId	| DataLen	| DeviceTypeId	| IsBroadcast	| zoneId	| randomId	| openSec	| interval	| timeout	| DOUsed| retryCnt	| CRC8	| FrameEnd      |
@@ -583,7 +583,6 @@ void Receipt::Irrigation_control_Receipt(unsigned char send_times, unsigned char
 		| 示例数据	| FE		| E003		| 0x68(104)	| C003			| 00			| 01		| 1234		| 0005		| 0003		| 001e		| FF00	| 0005		| D6	| 0D0A0D0A0D0A	|*/
 	unsigned char ReceiptFrame[115] = { 0 };
 	unsigned char ReceiptLength = 0;
-	unsigned char x = 8;
 	// unsigned char RandomSeed;
 	// unsigned long int RandomSendInterval = 0;
 
@@ -1050,7 +1049,6 @@ void Receipt::Calculate_travel_Receipt(unsigned char send_times,unsigned char Wa
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
-	unsigned char x = 8;
 
 #if CLEAR_BUFFER_FLAG
 	Clear_Server_LoRa_Buffer();
@@ -1108,7 +1106,6 @@ void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E0
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
-	unsigned char x = 8;
 
 #if CLEAR_BUFFER_FLAG
 	Clear_Server_LoRa_Buffer();
@@ -1185,7 +1182,6 @@ void Receipt::Abnormal_Route_Way_Receipt(unsigned char send_times, unsigned char
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
-	unsigned char x = 8;
 
 #if CLEAR_BUFFER_FLAG
 	Clear_Server_LoRa_Buffer();

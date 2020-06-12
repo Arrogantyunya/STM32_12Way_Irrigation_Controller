@@ -20,10 +20,8 @@ typedef unsigned char   film_mem_u8;  //选择储存器储存数据规格类型
 #define FILM_MEM_TYPE   film_mem_u8
 
 
-#define MOTOR_CHANNEL   1U //设置总共控制多少路电机卷膜
+#define MOTOR_CHANNEL   8U //设置总共控制多少路电机卷膜
 
-
-#define CURRENT_SMOOT_TIMES                 11  /* 电流滤波次数 */
 
 #define PRINT_DBG_LEN     500
 extern film_8 FM_PrintDBG_Buf[PRINT_DBG_LEN];

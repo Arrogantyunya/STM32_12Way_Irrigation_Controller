@@ -66,7 +66,7 @@ public:
 	void Report_General_Parameter(void);//E011上报本设备通用设置参数
 	void Request_Set_Group_Number(void);//E012当本地工作组号丢失，向服务器申请本机的工作组号
 	void Request_Device_SN_and_Channel(void);//E013当本地SN码丢失，向服务器申请本机的SN码
-	void Working_Parameter_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2);//E014上报实时详细工作状态
+	void Working_Parameter_Receipt(bool use_random_wait, unsigned char times);//E014上报实时详细工作状态
 	void General_Receipt(unsigned char status, unsigned char send_times);//E015发送通用回执信息给服务器
 	void Control_command_Receipt(bool use_random_wait, unsigned char send_times);//E000发送通用控制器Modbus控制指令回执信息给服务器
 	// void Irrigation_loop_Receipt(bool use_random_wait, unsigned char times, unsigned char randomId_1, unsigned char randomId_2);//E001发送灌溉循环状态回执信息给服务器

@@ -22,7 +22,10 @@
 #include "Set_coil.h"
 #include "Private_Timer.h"
 #include "Private_RTC.h"
-//#include "ModbusSerial.h"
+
+#include "film_config.h"
+#include "film_mem.h"
+#include "film.h"
 
 
 Command_Analysis LoRa_Command_Analysis;
@@ -93,6 +96,14 @@ bool Calculate_travel_Flag = false;//需要进行重置行程的标志
 
 /* 远程升级 */
 unsigned char gRcvOtherFlag = 0;
+
+//xxxxxx
+void Film_Listening_Task(void)
+{
+	LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
+	iwdg_feed();//
+}
+// xxxxx
 
 /*
  @brief   : 从网关接收LoRa数据（网关 ---> 本机），接受的指令有通用指令和本设备私有指令。
@@ -1460,13 +1471,17 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 		bool Illegal_AI_relation_Flag = false;//AI关联非法标志位
 		bool Illegal_threshold_multiple_Flag = false;//阈值倍数非法标志位
 
-		String Str_AI_Relation_Way = String(gReceiveCmd[8],HEX) + String(gReceiveCmd[9],HEX) + String(gReceiveCmd[10],HEX) + String(gReceiveCmd[11],HEX);
+		String Str_AI_Relation_Way =String((gReceiveCmd[8] >> 4),HEX) + String((gReceiveCmd[8] & 0x0F),HEX) + 
+									String((gReceiveCmd[9] >> 4),HEX) + String((gReceiveCmd[9] & 0x0F),HEX) +
+									String((gReceiveCmd[10] >> 4),HEX) + String((gReceiveCmd[10] & 0x0F),HEX) + 
+									String((gReceiveCmd[11] >> 4),HEX) + String((gReceiveCmd[11] & 0x0F),HEX);
+
 		Debug_Serial.println("Str_AI_Relation_Way = " + Str_AI_Relation_Way);
 
 		unsigned char AI_Relation_Way_Array[8] = {0x00};
 		// Debug_Serial.println(String("Str_AI_Relation_Way.length = ") + Str_AI_Relation_Way.length());
 		Debug_Serial.print(">>>");
-		for(int i=0; i < Str_AI_Relation_Way.length(); i++)
+		for(unsigned int i=0; i < Str_AI_Relation_Way.length(); i++)
 		{
 			unsigned char x = Str_AI_Relation_Way.charAt(i);
 			if(x >= '0' && x <= '8')
@@ -1513,7 +1528,7 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 		for (size_t i = 0; i < 8; i++)
 		#endif
 		{
-			if (gReceiveCmd[20] >> i)
+			if ((gReceiveCmd[20] << i)&0b10000000)
 			{
 				IS_Reverse_Array[i] = 0x01;
 			}
@@ -1538,7 +1553,7 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 			Pos_Nega_mode.Save_A009_Seted();//保存AI关联以及阈值倍数被设置
 
 			/* 这里调用卷膜库的写入阈值函数 */
-
+			
 
 			Debug_Serial.println("AI关联以及阈值倍数设置成功... <Set_Forward_Reverse_mode_threshold>");
 
@@ -1591,6 +1606,12 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 			}
 			
 			// memset(A00A_WayUsed_Array,0,6*sizeof(bool));
+			unsigned char ch_buf[8] = {0x01,0x02,0x03,0x04};
+			unsigned char ch_num = 4;
+			unsigned char Film_Status = Film_Motor_Run_Task(&ch_buf[0],ch_num,FILM_RESET);
+			Debug_Serial.println(String("Film_Status = ") + Film_Status);
+			// DebugSerial.println(Film_Motor_Run_Task(&ch_buf[0],ch_num,FILM_RESET));
+			// film_err Film_Motor_Run_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
 			
 			byte bitn = 7;byte BitRead = 0;
 			for (unsigned char i = 0; i < 8; i++)
@@ -1649,6 +1670,19 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 	{
 		Debug_Serial.println("A00B <Forward_Reverse_mode_Opening_Control>");
 		Debug_Serial.flush();
+
+		// void Film_Set_Open_Value(film_u8 *ch_buf, film_u8 ch_num, film_u8 *open_buf);
+		// film_err Film_Motor_Run_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
+
+		// unsigned char Open_Value[8] = {0x01,0x02,0x03,0x04};
+		// unsigned char ch_num = 4;
+		// unsigned char open_buf[8] = {30,30,30,30};
+		// unsigned char 
+
+		// Film_Set_Open_Value(&Open_Value[0],ch_num,&open_buf[0]);
+		// Film_Motor_Run_Task(&Open_Value[0],ch_num,FILM_ROLL);
+
+
 		#if B400
 		for (size_t i = 0; i < 4; i++)
 		#else

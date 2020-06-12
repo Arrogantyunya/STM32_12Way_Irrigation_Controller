@@ -489,6 +489,7 @@ bool Modbus_Coils::Init_DO_9to16(unsigned char num)
  */
 bool Modbus_Coils::Init_DO_17to24(unsigned char num)
 {
+	num = num + 0;
 	Debug_Serial.println("<Init_DO_9to16>");
 	return true;
 }
@@ -500,6 +501,7 @@ bool Modbus_Coils::Init_DO_17to24(unsigned char num)
  */
 bool Modbus_Coils::Init_DO_25to32(unsigned char num)
 {
+	num = num + 0;
 	Debug_Serial.println("<Init_DO_9to16>");
 	return true;
 }
@@ -511,6 +513,7 @@ bool Modbus_Coils::Init_DO_25to32(unsigned char num)
  */
 bool Modbus_Coils::Init_DO_33to40(unsigned char num)
 {
+	num = num + 0;
 	Debug_Serial.println("<Init_DO_9to16>");
 	return true;
 }
@@ -522,6 +525,7 @@ bool Modbus_Coils::Init_DO_33to40(unsigned char num)
  */
 bool Modbus_Coils::Init_DO_41to48(unsigned char num)
 {
+	num = num + 0;
 	Debug_Serial.println("<Init_DO_9to16>");
 	return true;
 }
@@ -533,6 +537,7 @@ bool Modbus_Coils::Init_DO_41to48(unsigned char num)
  */
 bool Modbus_Coils::Init_DO_49to56(unsigned char num)
 {
+	num = num + 0;
 	Debug_Serial.println("<Init_DO_49to56>");
 	return true;
 }
@@ -747,16 +752,16 @@ unsigned short Modbus_Coils::Get_which_AI(unsigned char which_Way)
 	unsigned short data = 0;
 
 	#if PLC_V1
-		switch (which_Way)
+		switch (which_Way-1)
 		{
-			case 0:	data = analogRead(AI1);delay(10);break;
-			case 1:	data = analogRead(AI2);delay(10);break;
-			case 2:	data = analogRead(AI3);delay(10);break;
-			case 3:	data = analogRead(AI4);delay(10);break;
-			case 4:	data = analogRead(AI5);delay(10);break;
-			case 5:	data = analogRead(AI6);delay(10);break;
-			case 6:	data = analogRead(AI7);delay(10);break;
-			case 7:	data = analogRead(AI8);delay(10);break;
+			case 0:	data = analogRead(AI1);delay(1);break;
+			case 1:	data = analogRead(AI2);delay(1);break;
+			case 2:	data = analogRead(AI3);delay(1);break;
+			case 3:	data = analogRead(AI4);delay(1); break;
+			case 4:	data = analogRead(AI5);delay(1);break;
+			case 5:	data = analogRead(AI6);delay(1);break;
+			case 6:	data = analogRead(AI7);delay(1);break;
+			case 7:	data = analogRead(AI8);delay(1);break;
 			default: break;
 		}
 		return data;
@@ -783,6 +788,7 @@ void Film_Ctrl_Motor_CH(film_u8 ch, Film_DIR dir)//根据传入的路数和方�
 //设置电机的正反转与停止
 void Set_Way_Motor(unsigned char ch, unsigned char status)
 {
+	delay(500);
 	if (status == Film_Forward)
 	{
 		if (!Pos_Nega_mode.Read_WayIS_Reverse(ch))
@@ -820,6 +826,7 @@ void Set_Way_Motor(unsigned char ch, unsigned char status)
 		Set_DO_relay((2*ch),OFF);
 		Set_DO_relay(((2*ch)+1),OFF);
 	}
+	// delay(500);
 }
 
 //设置继电器的开启

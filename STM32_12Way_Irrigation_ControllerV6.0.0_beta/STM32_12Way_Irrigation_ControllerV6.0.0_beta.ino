@@ -40,9 +40,9 @@
 // #include "boot_config.h"
 // #include "boot_mem.h"
 // #include "boot_protocol.h"
-#include "film_lib\film_config.h"
-#include "film_lib\film_mem.h"
-#include "film_lib\film.h"
+#include "film_config.h"
+#include "film_mem.h"
+#include "film.h"
 
 /* 测试宏 */
 #define DEBUG_PRINT 	false 	//打印调试信息
@@ -252,9 +252,9 @@ void setup()
 	Debug_Serial.println("Timed status reporting mechanism initialization completed...");//定时上报机制初始化完成
 	Debug_Serial.println("");
 
-	// Self_Check_Parameter_Timer_Init(); //使用定时器3初始化自检参数功能自检周期
-	Stop_Self_Check_Timing();
-	Debug_Serial.println("Timed self check mechanism initialization completed...");//定时自检机制初始化完成
+	Timer3_Init();//初始化定时器
+	Start_Timer3(); //使用定时器3初始化自检参数功能自检周期
+	Debug_Serial.println("Timer_3 initialization completed...");//定时自检机制初始化完成
 	Debug_Serial.println("");
 
 	Irrigation_Timer_Init();//使用定时器4初始化灌溉计时
@@ -270,11 +270,16 @@ void setup()
 	DI_NumLast = Modbus_Coil.Get_DI_1to8();	DI_NumNow = DI_NumLast;
 	DO_NumLast = Modbus_Coil.Get_DO_1to8();	DO_NumNow = DO_NumLast;
 
+	void Film_Param_Init(void);//卷膜初始化
+	Debug_Serial.println("");
+
 	Debug_Serial.println("All configuration items are initialized. Welcome to use!!!  ~(*^__^*)~ ");//所有的设置项初始化完成，欢迎使用
 	Debug_Serial.println("");
 
 	InitState.Save_WorkInterval(0x00,0x05);
 	InitState.Save_StopInterval(0x00,0x0A);
+
+	
 }
 
 /*

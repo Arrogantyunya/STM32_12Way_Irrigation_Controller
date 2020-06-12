@@ -8,6 +8,9 @@
 // #include "boot_config.h"
 // #include "boot_mem.h"
 // #include "boot_protocol.h"
+#include "film_config.h"
+#include "film_mem.h"
+#include "film.h"
 
 #define EP_WP_PIN                               PB5
 
@@ -290,6 +293,10 @@ public:
 	bool Read_A009_Seted(void);//读取AI关联以及阈值倍数被设置
 	bool Clean_A009_Seted(void);//清除AI关联以及阈值倍数被设置
 };
+
+/* 连续顺序写/读一串数据缓存 */
+film_mem_err Film_MEM_Write_Buffer(film_u32 base_addr, film_u8 *buf, film_u32 len);
+film_mem_err Film_MEM_Read_Buffer(film_u32 base_addr, film_u8 *buf, film_u32 len);
 
 
 

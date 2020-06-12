@@ -2,13 +2,13 @@
 #define _SET_COIL_H
 
 #include <Arduino.h>
-#include "film_lib\film_config.h"
-#include "film_lib\film_mem.h"
-#include "film_lib\film.h"
+#include "film_config.h"
+#include "film_mem.h"
+#include "film.h"
 
 #define PLC_V1	true
 #define PLC_V2	false
-#define B400	true
+#define B400	false
 
 
 // Modbus Registers Offsets (0-9999)

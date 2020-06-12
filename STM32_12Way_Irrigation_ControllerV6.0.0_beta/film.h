@@ -7,8 +7,6 @@
 
 #include "film_config.h"
 
-#define USE_RESET_ROLL_CHECK                  1
-
 #define FILM_DETECT_START_TIME                3U //启动限位检测时间
 
 #define FILM_LOWER_CUR_VALUE                  150 //电流值下限，用来判断电机是否在运动，单位mA
@@ -27,39 +25,14 @@
 #define FILM_ALL_OPEN                         100U
 #define FILM_ALL_CLOSE                        0U
 
-/* 该卷膜通用库，最大只能使用32路电机 */
-#define FILM_CH_1        (1 << 0)
-#define FILM_CH_2        (1 << 1)
-#define FILM_CH_3        (1 << 2)
-#define FILM_CH_4        (1 << 3)
-#define FILM_CH_5        (1 << 4)
-#define FILM_CH_6        (1 << 5)
-#define FILM_CH_7        (1 << 6)
-#define FILM_CH_8        (1 << 7)
-#define FILM_CH_9        (1 << 8)
-#define FILM_CH_10       (1 << 9)
-#define FILM_CH_11       (1 << 10)
-#define FILM_CH_12       (1 << 11)
-#define FILM_CH_13       (1 << 12)
-#define FILM_CH_14       (1 << 13)
-#define FILM_CH_15       (1 << 14)
-#define FILM_CH_16       (1 << 15)
-#define FILM_CH_17       (1 << 16)
-#define FILM_CH_18       (1 << 17)
-#define FILM_CH_19       (1 << 18)
-#define FILM_CH_20       (1 << 19)
-#define FILM_CH_21       (1 << 20)
-#define FILM_CH_22       (1 << 21)
-#define FILM_CH_23       (1 << 22)
-#define FILM_CH_24       (1 << 23)
-#define FILM_CH_25       (1 << 24)
-#define FILM_CH_26       (1 << 25)
-#define FILM_CH_27       (1 << 26)
-#define FILM_CH_28       (1 << 27)
-#define FILM_CH_29       (1 << 28)
-#define FILM_CH_30       (1 << 29)
-#define FILM_CH_31       (1 << 30)
-#define FILM_CH_32       (1 << 31)
+
+#define FILM_TRA_MOTOR_ACT(i, j, x)           for (i = 1; i <= 3; i++){ \
+                                                x = Film_Select_Obj_Channel((film_m_act)i);  \
+                                                for (j = 0; j < MOTOR_CHANNEL; j++){ \
+                                                  if (!(x & (1 << j))) continue;
+
+#define FILM_TRA_ACT_BLOCK_END              }\
+                                          }  
 
 #define FILM_TRA_MOTOR(i, x)         for (i = 0; i < MOTOR_CHANNEL; i++){  \
                                     if (!(x & (1 << i))) continue;
@@ -83,22 +56,28 @@ typedef enum{
 
 /* 电机运动模式 */
 typedef enum{
-  FILM_RESET = 0x00U,
-  FILM_ROLL = 0x01U,
-  FILM_F_ROLL = 0x02U
+  FILM_IDIE,
+  FILM_RESET,
+  FILM_ROLL,
+  FILM_F_ROLL
 }film_m_act;
 
 /* 电机状态 */
 typedef enum{
   Film_M_OK,  //电机正常
+  Film_M_Opening, //正在卷膜
+  Film_M_F_Opening, //正在强制卷膜
+  Film_M_Reseting, //正在重置行程
   Film_M_Open_OK, //卷膜完成
+  Film_M_F_Open_OK, //强制卷膜完成
+  FILM_M_First_Reset_OK,  //到达重置行程起始位置
   Film_M_Reset_OK, //重置行程完成
   Film_M_Wait_Chk, //到达限位，等待确认
   Film_M_OverEleCur, //电机过流
-  Film_M_MEM_Exp = 0x02U, //电机储存信息异常
-  Film_M_Up_Limit_Exp = 0x04U,  //上限位异常
-  Film_M_Down_Limit_Exp = 0x05U, //下限为异常
-  Film_M_Run_Exp = 0x07U, //电机异常（检测到电压过低）
+  Film_M_MEM_Exp, //电机储存信息异常
+  Film_M_Up_Limit_Exp,  //上限位异常
+  Film_M_Down_Limit_Exp, //下限为异常
+  Film_M_Run_Exp, //电机异常（检测到电压过低）
 }film_m_sta;
 
 typedef enum{
@@ -109,10 +88,18 @@ typedef enum{
 }film_cur_sta;
 
 struct Film_PCB{
+
   Film_DIR motor_dir[MOTOR_CHANNEL];  //电机运动方向
-  film_u32 m_channel;         //电机挂载记录
-  film_u8 reset_m_dir_flag; //重置行程电机方向标志位(需要初始化)
-  film_u8 second_stage_flag;  //重置行程第二阶段标志位(需要初始化)
+  film_u8 reset_m_dir_flag[MOTOR_CHANNEL]; //重置行程电机方向标志位(需要初始化)
+  film_u8 second_stage_flag[MOTOR_CHANNEL];  //重置行程第二阶段标志位(需要初始化)
+
+  film_u8 new_task_request_flag;   //新任务请求标志位（用来实现运行中更改运动任务）(需要初始化)
+
+  film_u32 m_reset_channel;         //电机重置行程任务挂载记录
+  film_u32 m_open_channel;        //电机开度卷膜任务挂载记录
+  film_u32 m_f_open_channel;      //电机强制卷膜任务挂载记录
+
+  film_m_act m_run_mode[MOTOR_CHANNEL]; //电机当前运行模式(需要初始化)
 
   film_u8 run_open_val[MOTOR_CHANNEL];  //最近的开度值
   film_u8 last_open_val[MOTOR_CHANNEL]; //上一次的开度值
@@ -121,6 +108,7 @@ struct Film_PCB{
 
   film_u16 total_roll_time[MOTOR_CHANNEL];  //重置行程后测量完整卷膜时长
   film_u16 run_roll_time[MOTOR_CHANNEL];  //运行的卷膜时长
+  film_u8 run_time_save_flag[MOTOR_CHANNEL];  //运动时长保存标志位(需要初始化)
 
   film_m_sta run_motor_exp_sta[MOTOR_CHANNEL]; //电机运行异常状态(需要初始化)
   film_u8 run_motor_sta_flag[MOTOR_CHANNEL]; //电机运行时的状态是否确认记录标志位(需要初始化)
@@ -144,10 +132,11 @@ struct Film_PCB{
 void Film_Param_Init(void);
 film_err Film_Set_Ele_Cur_Threshold(film_u8 *ch_buf, film_u8 *cur_lmt ,film_u8 ch_num);
 
-film_err Film_Motor_Reset_Rolling(film_u8 *ch_buf, film_u8 ch_num);
-film_err Film_Motor_Rolling(film_u8 *open_val, film_u8 *ch_buf, film_u8 ch_num);
+void Film_Set_Open_Value(film_u8 *ch_buf, film_u8 ch_num, film_u8 *open_buf);
+film_err Film_Motor_Run_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
 
-void Film_Load_Tim_Var(film_u32 fre_div_times, film_u32 cur_times);   //开发人员需要将该函数放入定时器处理函数中
+
+// void Film_Load_Tim_Var(film_u32 fre_div_times, film_u32 cur_times);   //开发人员需要将该函数放入定时器处理函数中
 void Film_Load_Tim_Var(void);
 
 #endif

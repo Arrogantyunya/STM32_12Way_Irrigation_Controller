@@ -1161,6 +1161,7 @@ bool ModbusController_InitState::Save_AO_InitState(unsigned char *data)
  */
 bool ModbusController_InitState::Read_AO_InitState(unsigned char *data)
 {
+	data[0] = data[0];
 	Debug_Serial.println("暂时未完成<Read_AO_InitState>");
 	return false;
 }
@@ -1516,8 +1517,7 @@ bool Positive_Negative_MODE::Save_AI_Relation_Way(unsigned char* data)
 	{
 		if (AT24CXX_ReadOneByte(AI_Relation_Way_BASE_ADDR+i) == data[i])
 		{
-			Debug_Serial.println("储存AI_Relation_Way成功 <Save_AI_Relation_Way>");
-			return true;
+			
 		}
 		else
 		{
@@ -1525,6 +1525,9 @@ bool Positive_Negative_MODE::Save_AI_Relation_Way(unsigned char* data)
 			return false;
 		}
 	}
+
+	Debug_Serial.println("储存AI_Relation_Way成功 <Save_AI_Relation_Way>");
+	return true;
 }
 
 /*
@@ -1724,6 +1727,31 @@ bool Positive_Negative_MODE::Clean_A009_Seted(void)
 		Debug_Serial.println("清除AI关联以及反向标志位失败!!! <Clean_A009_Seted>");
 		return false;
 	}
+}
+
+/* 连续顺序写/读一串数据缓存 */
+film_mem_err Film_MEM_Write_Buffer(film_u32 base_addr, film_u8 *buf, film_u32 len)
+{
+	EEPROM_Write_Enable();
+	for (unsigned int i = 0; i < len; i++)
+	{
+		AT24C_02.AT24CXX_WriteOneByte(base_addr+i,buf[i]);
+	}
+	EEPROM_Write_Disable();
+	
+	return FILM_MEM_OK;
+}
+
+
+film_mem_err Film_MEM_Read_Buffer(film_u32 base_addr, film_u8 *buf, film_u32 len)
+{
+	
+	for (unsigned int i = 0; i < len; i++)
+	{
+		buf[i] = AT24C_02.AT24CXX_ReadOneByte(base_addr+i);
+	}
+
+	return FILM_MEM_OK;
 }
 
 

@@ -4,7 +4,7 @@
 #include "film_config.h"
 
 /* 卷膜库储存基地址，需要开发者来设置该基地址 */
-#define FILM_MEM_BASE_ADDR                          100U
+#define FILM_MEM_BASE_ADDR                          200U
 
 #define FILM_MEM_CHANNEL                            (MOTOR_CHANNEL - 1U)
 
