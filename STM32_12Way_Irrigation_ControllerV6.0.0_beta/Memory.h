@@ -120,9 +120,9 @@
 #define AI_Relation_Way_BASE_ADDR				130//AI关联路数地址（1*8）
 #define AI_Relation_Way_END_ADDR				137
 
-#define WayIS_Reverse							138//是否反向
+#define WayIS_Reverse							138//是否反向(138+7)
 
-#define A009_Seted								139//AI关联以及阈值倍数被设置
+#define A009_Seted								146//AI关联以及阈值倍数被设置
 
 
 

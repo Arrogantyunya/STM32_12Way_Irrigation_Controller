@@ -61,8 +61,8 @@
 #define DO_OPEN_REPORT		true	//DO某路开启就启动高频率状态上报
 #define EEPROM_RESET		false 	//重置EEPROM的所有值【测试使用】
 /* 替换宏 */
-#define Software_version_high 	0x05 	//软件版本的高位
-#define Software_version_low 	0x11 	//软件版本的低位
+#define Software_version_high 	0x06 	//软件版本的高位
+#define Software_version_low 	0x00 	//软件版本的低位
 #define Hardware_version_high 	0x02 	//硬件版本的高位
 #define Hardware_version_low 	0x00	//硬件版本的低位
 #define Init_Area				0x01	//初始区域ID
@@ -278,8 +278,6 @@ void setup()
 
 	InitState.Save_WorkInterval(0x00,0x05);
 	InitState.Save_StopInterval(0x00,0x0A);
-
-	
 }
 
 /*

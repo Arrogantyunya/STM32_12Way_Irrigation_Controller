@@ -749,21 +749,70 @@ unsigned char * Modbus_Coils::Get_AI_1to8(void)
  */
 unsigned short Modbus_Coils::Get_which_AI(unsigned char which_Way)
 {
-	unsigned short data = 0;
+	unsigned long data = 0;
 
 	#if PLC_V1
 		switch (which_Way-1)
 		{
-			case 0:	data = analogRead(AI1);delay(1);break;
-			case 1:	data = analogRead(AI2);delay(1);break;
-			case 2:	data = analogRead(AI3);delay(1);break;
-			case 3:	data = analogRead(AI4);delay(1); break;
-			case 4:	data = analogRead(AI5);delay(1);break;
-			case 5:	data = analogRead(AI6);delay(1);break;
-			case 6:	data = analogRead(AI7);delay(1);break;
-			case 7:	data = analogRead(AI8);delay(1);break;
+			case 0:
+			{
+				for (unsigned char i = 0; i < 10; i++){
+					data += analogRead(AI1);delay(1);
+				}
+				data = data/10;	break;
+			}
+			case 1:
+			{
+				for (unsigned char i = 0; i < 10; i++){
+					data += analogRead(AI2);delay(1);
+				}
+				data = data/10;	break;
+			}
+			case 2:
+			{
+				for (unsigned char i = 0; i < 10; i++){
+					data += analogRead(AI3);delay(1);
+				}
+				data = data/10;	break;
+			}
+			case 3:
+			{
+				for (unsigned char i = 0; i < 10; i++){
+					data += analogRead(AI4);delay(1);
+				}
+				data = data/10;	break;
+			}
+			case 4:
+			{
+				for (unsigned char i = 0; i < 10; i++){
+					data += analogRead(AI5);delay(1);
+				}
+				data = data/10;	break;
+			}
+			case 5:
+			{
+				for (unsigned char i = 0; i < 10; i++){
+					data += analogRead(AI6);delay(1);
+				}
+				data = data/10;	break;
+			}
+			case 6:
+			{
+				for (unsigned char i = 0; i < 10; i++){
+					data += analogRead(AI7);delay(1);
+				}
+				data = data/10;	break;
+			}
+			case 7:
+			{
+				for (unsigned char i = 0; i < 10; i++){
+					data += analogRead(AI8);delay(1);
+				}
+				data = data/10;	break;
+			}
 			default: break;
 		}
+		// Debug_Serial.println(String("第") + (which_Way) + "的电流为：" + data);
 		return data;
 	#elif PLC_V2
 
@@ -773,7 +822,7 @@ unsigned short Modbus_Coils::Get_which_AI(unsigned char which_Way)
 film_u32 Film_Read_Analog_Ele_Current_CH(film_u8 ch)//读取一路电机的电流值，单位是mA
 {
 	film_u32 data = Modbus_Coil.Get_which_AI(ch);
-	return data;
+	return data*10;
 }
 
 // Film_Forward,
@@ -791,40 +840,44 @@ void Set_Way_Motor(unsigned char ch, unsigned char status)
 	delay(500);
 	if (status == Film_Forward)
 	{
-		if (!Pos_Nega_mode.Read_WayIS_Reverse(ch))
+		if (!Pos_Nega_mode.Read_WayIS_Reverse((ch-1)))
 		{
-			Set_DO_relay((2*ch),ON);
-			Set_DO_relay(((2*ch)+1),OFF);
+			Debug_Serial.println(String("第") + ch + "路为Film_Forward,目标正常");
+			Set_DO_relay((2*(ch-1)),ON);
+			Set_DO_relay(((2*(ch-1))+1),OFF);
 		}
 		else
 		{
-			Set_DO_relay((2*ch),OFF);
-			Set_DO_relay(((2*ch)+1),ON);
+			Debug_Serial.println(String("第") + ch + "路为Film_Forward,目标反向");
+			Set_DO_relay((2*(ch-1)),OFF);
+			Set_DO_relay(((2*(ch-1))+1),ON);
 		}
 	}
 	else if (status == Film_Reversal)
 	{
-		if (!Pos_Nega_mode.Read_WayIS_Reverse(0))
+		if (!Pos_Nega_mode.Read_WayIS_Reverse((ch-1)))
 		{
-			Set_DO_relay((2*ch),OFF);
-			Set_DO_relay(((2*ch)+1),ON);
+			Debug_Serial.println(String("第") + ch + "路为Film_Reversal,目标正常");
+			Set_DO_relay((2*(ch-1)),OFF);
+			Set_DO_relay(((2*(ch-1))+1),ON);
 		}
 		else
 		{
-			Set_DO_relay((2*ch),ON);
-			Set_DO_relay(((2*ch)+1),OFF);
+			Debug_Serial.println(String("第") + ch + "路为Film_Reversal,目标反向");
+			Set_DO_relay((2*(ch-1)),ON);
+			Set_DO_relay(((2*(ch-1))+1),OFF);
 		}
 	}
 	else if (status == Film_Stop)
 	{
-		Set_DO_relay((2*ch),OFF);
-		Set_DO_relay(((2*ch)+1),OFF);
+		Set_DO_relay((2*(ch-1)),OFF);
+		Set_DO_relay(((2*(ch-1))+1),OFF);
 	}
 	else
 	{
 		Debug_Serial.println("异常电机工作状态设置!!! <Set_Way_Motor>");
-		Set_DO_relay((2*ch),OFF);
-		Set_DO_relay(((2*ch)+1),OFF);
+		Set_DO_relay((2*(ch-1)),OFF);
+		Set_DO_relay(((2*(ch-1))+1),OFF);
 	}
 	// delay(500);
 }

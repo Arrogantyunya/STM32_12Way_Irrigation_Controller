@@ -1548,12 +1548,13 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 		}
 		else
 		{
-			Pos_Nega_mode.Save_AI_Relation_Way(AI_Relation_Way_Array);//保存AI的关联
-			Pos_Nega_mode.Save_WayIS_Reverse(IS_Reverse_Array);//保存是否反向的信息
+			Pos_Nega_mode.Save_AI_Relation_Way(&AI_Relation_Way_Array[0]);//保存AI的关联
+			Pos_Nega_mode.Save_WayIS_Reverse(&IS_Reverse_Array[0]);//保存是否反向的信息
 			Pos_Nega_mode.Save_A009_Seted();//保存AI关联以及阈值倍数被设置
 
 			/* 这里调用卷膜库的写入阈值函数 */
-			
+			unsigned char ch_buf[8] = {0x01,0x02,0x03,0x04};
+			Film_Set_Ele_Cur_Threshold(&ch_buf[0], &Threshold_multiple_Array[0], 2);//
 
 			Debug_Serial.println("AI关联以及阈值倍数设置成功... <Set_Forward_Reverse_mode_threshold>");
 
@@ -1607,10 +1608,9 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 			
 			// memset(A00A_WayUsed_Array,0,6*sizeof(bool));
 			unsigned char ch_buf[8] = {0x01,0x02,0x03,0x04};
-			unsigned char ch_num = 4;
+			unsigned char ch_num = 2;
 			unsigned char Film_Status = Film_Motor_Run_Task(&ch_buf[0],ch_num,FILM_RESET);
 			Debug_Serial.println(String("Film_Status = ") + Film_Status);
-			// DebugSerial.println(Film_Motor_Run_Task(&ch_buf[0],ch_num,FILM_RESET));
 			// film_err Film_Motor_Run_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
 			
 			byte bitn = 7;byte BitRead = 0;
@@ -1674,14 +1674,10 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 		// void Film_Set_Open_Value(film_u8 *ch_buf, film_u8 ch_num, film_u8 *open_buf);
 		// film_err Film_Motor_Run_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
 
-		// unsigned char Open_Value[8] = {0x01,0x02,0x03,0x04};
-		// unsigned char ch_num = 4;
-		// unsigned char open_buf[8] = {30,30,30,30};
-		// unsigned char 
-
-		// Film_Set_Open_Value(&Open_Value[0],ch_num,&open_buf[0]);
-		// Film_Motor_Run_Task(&Open_Value[0],ch_num,FILM_ROLL);
-
+		// unsigned char Open_Way[8] = {0x01,0x02,0x03,0x04};
+		unsigned char Open_Way[8] = {0x00};
+		unsigned char ch_num = 0;
+		unsigned char open_buf[8] = {0x00};
 
 		#if B400
 		for (size_t i = 0; i < 4; i++)
@@ -1696,6 +1692,10 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 			else if (gReceiveCmd[8+i] >= 0x00 && gReceiveCmd[8+i] <= 0x64)
 			{
 				Debug_Serial.println(String("第") + i + "路设置目标开度为" + gReceiveCmd[8+i]);
+
+				Open_Way[ch_num] = i+1;
+				open_buf[ch_num] = gReceiveCmd[8+i];	
+				ch_num++;
 			}
 			else if (gReceiveCmd[8+i] == 0xF0)
 			{
@@ -1710,6 +1710,10 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 				Debug_Serial.println(String("第") + i + "路设置的开度不存在，维持当前开度");
 			}
 		}
+		Debug_Serial.println(String("ch_num = ") + ch_num);
+
+		Film_Set_Open_Value(&Open_Way[0],ch_num,&open_buf[0]);
+		Film_Motor_Run_Task(&Open_Way[0],ch_num,FILM_ROLL);
 		
 		unsigned char A00B_Interval = gReceiveCmd[16];
 		Debug_Serial.println(String("每路开启的间隔时间为：") + A00B_Interval + "s");

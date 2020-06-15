@@ -11,7 +11,7 @@
 
 #define FILM_LOWER_CUR_VALUE                  150 //电流值下限，用来判断电机是否在运动，单位mA
 
-#define FILM_DEFAULT_LOW_CUR_VALUE            300 //经验值，应用的电机的空转最小电流值
+#define FILM_DEFAULT_LOW_CUR_VALUE            140 //经验值，应用的电机的空转最小电流值
 #define FILM_DEFAULT_CUR_VALUE                1000 //读取的电流值异常，默认的经验电流值，单位mA
 
 #define FILM_ROLL_OVERTIME                    2000U  //卷膜允许最大时长(S)
@@ -61,6 +61,11 @@ typedef enum{
   FILM_ROLL,
   FILM_F_ROLL
 }film_m_act;
+
+typedef enum{
+  Film_Reset_First,
+  Film_Reset_Second
+}film_reset_stage;
 
 /* 电机状态 */
 typedef enum{
@@ -118,6 +123,7 @@ struct Film_PCB{
   film_u16 run_ele_cur[MOTOR_CHANNEL]; //实时采集的电流值
   film_u16 clt_ele_cur[MOTOR_CHANNEL]; //重置行程里，采集的卷膜电流
   film_u32 clt_ele_cur_num[MOTOR_CHANNEL]; //采集电流的次数（需要初始化）
+  film_u32 clt_ele_tim_num; //采集电流计时次数（S）
   film_u32 lower_ele_cur_tim[MOTOR_CHANNEL];  //电流值过低时计时判断(需要初始化)
   film_u32 over_ele_cur_tim[MOTOR_CHANNEL]; //过流计时判断（需要初始化）
   film_u32 lower_ele_cur_m_channel; //低电流检测名单(需要初始化)
@@ -134,7 +140,6 @@ film_err Film_Set_Ele_Cur_Threshold(film_u8 *ch_buf, film_u8 *cur_lmt ,film_u8 c
 
 void Film_Set_Open_Value(film_u8 *ch_buf, film_u8 ch_num, film_u8 *open_buf);
 film_err Film_Motor_Run_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
-
 
 // void Film_Load_Tim_Var(film_u32 fre_div_times, film_u32 cur_times);   //开发人员需要将该函数放入定时器处理函数中
 void Film_Load_Tim_Var(void);

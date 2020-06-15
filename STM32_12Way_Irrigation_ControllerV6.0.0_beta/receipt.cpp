@@ -1141,7 +1141,7 @@ void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E0
 	for (size_t i = 0; i < 8; i++)
 	{
 		AI_data = Modbus_Coil.Get_which_AI(Pos_Nega_mode.Read_AI_Relation_Way(i));
-		Serial.println(String("AI_data = ") + AI_data);
+		// Serial.println(String("AI_data = ") + AI_data);
 		ReceiptFrame[ReceiptLength++] = (AI_data >> 8) & 0xFF;
 		ReceiptFrame[ReceiptLength++] = AI_data & 0xFF;
 	}
