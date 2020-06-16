@@ -1165,20 +1165,22 @@ void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E0
 }
 
 /*
- @brief   : E00C异常路数回执。（本设备 ---> 服务器）
- @param   :	1.是否启用随机等待
- 			2.回执次数，send_times
+ @brief   : E00C卷膜路数状态回执。（本设备 ---> 服务器）
+ @param   :	1.回执次数，send_times
+ 			2.路数
+			3.状态
  @return  : 无
  */
-void Receipt::Abnormal_Route_Way_Receipt(unsigned char send_times, unsigned char E00Cstatus)
+void Receipt::Rolling_ch_Status_Receipt(unsigned char send_times,unsigned char ch, unsigned char E00Cstatus)
 {
-// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	E00C_Status	CRC8	frameEnd     
-// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8          	9   	10-15        
-// 长度（byte）	1        	2      	1      	2           	1          	1     	1          	1   	6            
-// 示例数据    	FE       	E00C   	0x05(5)	C003        	00         	01    	01         	D6  	0D0A0D 0A0D0A
+//   字节索引    	0        	1-2    	3      	4-5         	6          	7     	8   	9     	10  	11-16       
+//   数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	ch  	status	CRC8	frameEnd    
+//   长度（byte）	1        	2      	1      	2           	1          	1     	1   	1     	1   	6           
+//   示例数据    	FE       	E00C   	0x06   	C003        	00         	01    	01  	      	00  	0D0A0D0A0D0A
+
 
 	iwdg_feed();
-	Debug_Serial.println("异常路数回执 <Abnormal_Route_Way_Receipt>");
+	Debug_Serial.println("卷膜路数状态回执 <Rolling_ch_Status_Receipt>");
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
@@ -1190,7 +1192,7 @@ void Receipt::Abnormal_Route_Way_Receipt(unsigned char send_times, unsigned char
 	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
 	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
 	ReceiptFrame[ReceiptLength++] = 0x0C; //
-	ReceiptFrame[ReceiptLength++] = 0x05; //数据长度
+	ReceiptFrame[ReceiptLength++] = 0x06; //数据长度
 
 	/*设备类型*/
 	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
@@ -1201,6 +1203,9 @@ void Receipt::Abnormal_Route_Way_Receipt(unsigned char send_times, unsigned char
 
 	/*区域号*/
 	ReceiptFrame[ReceiptLength++] = SN.Read_Area_Number();
+
+	/* Channel */
+	ReceiptFrame[ReceiptLength++] = ch;
 
 	/* E00Cstatus */
 	ReceiptFrame[ReceiptLength++] = E00Cstatus;
@@ -1221,6 +1226,7 @@ void Receipt::Abnormal_Route_Way_Receipt(unsigned char send_times, unsigned char
 		LoRa_Serial.write(&ReceiptFrame[0], ReceiptLength);
 		delayMicroseconds(SEND_DATA_DELAY * 1000);
 	}
+	Debug_Serial.println("");
 }
 
 /*
@@ -1380,4 +1386,30 @@ void Receipt::Print_Debug(unsigned char *base_addr, unsigned char len)
 	Debug_Serial.println();
 }
 
+/* 卷膜流程中的状态信息投递任务，开发者根据传入的状态来提供具体事项，如将状态上报给服务器 */
+void Film_Status_Msg_Delivery_Task(film_u8 ch, film_m_sta sta)
+{
+	Debug_Serial.println("卷膜流程中的状态信息投递任务>>>");
+	Debug_Serial.print(String("第") + ch + "路的状态为 ");
+	switch (sta)
+	{
+		case Film_M_OK: Debug_Serial.println("Film_M_OK,电机正常"); break;
+		case Film_M_Opening: Debug_Serial.println("Film_M_Opening,正在卷膜");break;
+		case Film_M_F_Opening: Debug_Serial.println("Film_M_F_Opening,正在强制卷膜");break;
+		case Film_M_Reseting: Debug_Serial.println("Film_M_Reseting,正在重置行程");break;
+		case Film_M_Open_OK: Debug_Serial.println("Film_M_Open_OK,卷膜完成");break;
+		case Film_M_F_Open_OK: Debug_Serial.println("Film_M_F_Open_OK,强制卷膜完成");break;
+		case FILM_M_First_Reset_OK: Debug_Serial.println("FILM_M_First_Reset_OK,到达重置行程起始位置");break;
+		case Film_M_Reset_OK: Debug_Serial.println("Film_M_Reset_OK,重置行程完成");break;
+		case Film_M_Wait_Chk: Debug_Serial.println("Film_M_Wait_Chk,到达限位，等待确认");break;
+		case Film_M_OverEleCur: Debug_Serial.println("Film_M_OverEleCur,电机过流");break;
+		case Film_M_MEM_Exp: Debug_Serial.println("Film_M_MEM_Exp,电机储存信息异常");break;
+		case Film_M_Up_Limit_Exp: Debug_Serial.println("Film_M_Up_Limit_Exp,上限位异常");break;
+		case Film_M_Down_Limit_Exp: Debug_Serial.println("Film_M_Down_Limit_Exp,下限位异常");break;
+		case Film_M_Run_Exp: Debug_Serial.println("Film_M_Run_Exp,电机异常（检测到电压过低）");break;
+		default: Debug_Serial.println("Unknow_Status,未知状态!!!"); break;
+	}
+
+	Message_Receipt.Rolling_ch_Status_Receipt(3, ch, sta);
+}
 

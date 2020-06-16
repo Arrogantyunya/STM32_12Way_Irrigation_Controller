@@ -81,7 +81,7 @@ typedef enum{
   Film_M_OverEleCur, //电机过流
   Film_M_MEM_Exp, //电机储存信息异常
   Film_M_Up_Limit_Exp,  //上限位异常
-  Film_M_Down_Limit_Exp, //下限为异常
+  Film_M_Down_Limit_Exp, //下限位异常
   Film_M_Run_Exp, //电机异常（检测到电压过低）
 }film_m_sta;
 

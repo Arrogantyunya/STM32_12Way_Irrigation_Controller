@@ -79,6 +79,7 @@ unsigned int Forward_Reverse_mode_Worktime[12];//6个开启时间
 unsigned char Forward_Reverse_mode_Interval;//正反转模式的间隔时间
 bool Forward_Reverse_mode_NeedWait =false;//需要进行延时标志位
 unsigned int Forward_Reverse_mode_EndWait;//结束等待的时间
+unsigned char A00B_Interval;//A00B的间隔时间
 
 extern bool DOStatus_Change;//DO的状态改变标志位
 extern bool One_Cycle_Complete;//一轮循环完成的标志位
@@ -1553,8 +1554,8 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 			Pos_Nega_mode.Save_A009_Seted();//保存AI关联以及阈值倍数被设置
 
 			/* 这里调用卷膜库的写入阈值函数 */
-			unsigned char ch_buf[8] = {0x01,0x02,0x03,0x04};
-			Film_Set_Ele_Cur_Threshold(&ch_buf[0], &Threshold_multiple_Array[0], 2);//
+			unsigned char ch_buf[8] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
+			Film_Set_Ele_Cur_Threshold(&ch_buf[0], &Threshold_multiple_Array[0], 2);//第一个是需要写入的数组
 
 			Debug_Serial.println("AI关联以及阈值倍数设置成功... <Set_Forward_Reverse_mode_threshold>");
 
@@ -1607,11 +1608,8 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 			}
 			
 			// memset(A00A_WayUsed_Array,0,6*sizeof(bool));
-			unsigned char ch_buf[8] = {0x01,0x02,0x03,0x04};
-			unsigned char ch_num = 2;
-			unsigned char Film_Status = Film_Motor_Run_Task(&ch_buf[0],ch_num,FILM_RESET);
-			Debug_Serial.println(String("Film_Status = ") + Film_Status);
-			// film_err Film_Motor_Run_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
+			unsigned char ch_buf[8] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
+			unsigned char ch_num = 0;
 			
 			byte bitn = 7;byte BitRead = 0;
 			for (unsigned char i = 0; i < 8; i++)
@@ -1622,16 +1620,15 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 					//表示第几路需要重置
 					A00A_WayUsed_Array[i] = true;
 					Debug_Serial.println(String("第") + i + "路需要进行重置");
+					ch_buf[ch_num] = i+1;
+					ch_num++;
 				}
 				bitn--;
 			}
 
-			// Forced_Stop(false);//强制停止
-			
-			// Calculate_travel_Flag = true;//计算行程标志位
-
 			/* 这里加入卷膜库的重置行程参数 */
-
+			unsigned char Film_Status = Film_Motor_Run_Task(&ch_buf[0],ch_num,FILM_RESET);//需要根据返回参数来判定是否开始重置
+			Debug_Serial.println(String("Film_Status = ") + Film_Status);
 
 			Debug_Serial.println("正在开始计算行程... <Forward_Reverse_mode_Calculate_travel>");
 			Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, Begin_Calculate_travel);
@@ -1671,13 +1668,12 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 		Debug_Serial.println("A00B <Forward_Reverse_mode_Opening_Control>");
 		Debug_Serial.flush();
 
-		// void Film_Set_Open_Value(film_u8 *ch_buf, film_u8 ch_num, film_u8 *open_buf);
-		// film_err Film_Motor_Run_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
-
-		// unsigned char Open_Way[8] = {0x01,0x02,0x03,0x04};
-		unsigned char Open_Way[8] = {0x00};
-		unsigned char ch_num = 0;
-		unsigned char open_buf[8] = {0x00};
+		unsigned char Open_Way[8] = {0x00};//
+		unsigned char Open_F_Way[8] = {0x00};//
+		unsigned char ch_num = 0;//
+		unsigned char ch_F_num = 0;//
+		unsigned char open_buf[8] = {0x00};//
+		unsigned char open_F_buf[8] = {0x00};//
 
 		#if B400
 		for (size_t i = 0; i < 4; i++)
@@ -1700,23 +1696,33 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 			else if (gReceiveCmd[8+i] == 0xF0)
 			{
 				Debug_Serial.println(String("第") + i + "路强制全关");
+
+				Open_F_Way[ch_F_num] = i+1;
+				open_F_buf[ch_F_num] = 0x00;
+				ch_F_num++; 
 			}
 			else if (gReceiveCmd[8+i] == 0xF1)
 			{
 				Debug_Serial.println(String("第") + i + "路强制全开");
+				Open_F_Way[ch_F_num] = i+1;
+				open_F_buf[ch_F_num] = 0x64;
+				ch_F_num++; 
 			}
 			else
 			{
 				Debug_Serial.println(String("第") + i + "路设置的开度不存在，维持当前开度");
 			}
 		}
-		Debug_Serial.println(String("ch_num = ") + ch_num);
+		
+		A00B_Interval = gReceiveCmd[16];
+		Debug_Serial.println(String("每路开启的间隔时间为：") + A00B_Interval + "s");
 
+		/* 这里是普通开度的线路 */
 		Film_Set_Open_Value(&Open_Way[0],ch_num,&open_buf[0]);
 		Film_Motor_Run_Task(&Open_Way[0],ch_num,FILM_ROLL);
-		
-		unsigned char A00B_Interval = gReceiveCmd[16];
-		Debug_Serial.println(String("每路开启的间隔时间为：") + A00B_Interval + "s");
+		/* 这里是设置强开的线路 */
+		Film_Set_Open_Value(&Open_F_Way[0],ch_F_num,&open_F_buf[0]);
+		Film_Motor_Run_Task(&Open_F_Way[0],ch_F_num,FILM_F_ROLL);
 
 		Message_Receipt.Opening_Control_Receipt(3,Opening_SetOK);
 		// Message_Receipt.Opening_Control_Receipt(3,Opening_SetErr);

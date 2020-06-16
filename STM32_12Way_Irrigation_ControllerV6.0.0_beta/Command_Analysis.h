@@ -8,9 +8,10 @@
 
 #define ON						0x00	//
 #define OFF						0x01	//
-#define Solenoid_mode			0x00	//定时DO模式（电磁阀专属）
-#define Delay_mode				0x01	//延时DO模式（风机、拉幕专属）
-#define Forward_Reverse_mode	0x02	//正反转模式（卷膜、拉幕专属）
+#define Null_Mode				0x00	//空模式
+#define Solenoid_mode			0x01	//定时DO模式（电磁阀专属）
+#define Delay_mode				0x02	//延时DO模式（风机、拉幕专属）
+#define Forward_Reverse_mode	0x03	//正反转模式（卷膜、拉幕专属）
 
 enum Frame_ID {
 	Modbus_Control, R_Modbus_Control,Output_default,Work_Para, Set_Group_Num, SN_Area_Channel, Work_Status,
@@ -109,6 +110,7 @@ extern unsigned int Forward_Reverse_mode_Worktime[12];//4个开启时间
 extern unsigned char Forward_Reverse_mode_Interval;//正反转模式的间隔时间
 extern bool Forward_Reverse_mode_NeedWait;//需要进行延时标志位
 extern unsigned int Forward_Reverse_mode_EndWait;//结束等待的时间
+extern unsigned char A00B_Interval;//A00B的间隔时间
 
 /* 重置行程相关 */
 extern unsigned char A00A_WayUsed;//

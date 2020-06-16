@@ -309,7 +309,7 @@ void loop()
 	}
 	else
 	{
-		 
+		//空模式Null_Mode
 	}
 	
 	Check_Store_Param_And_LoRa(); //检查存储参数以及LORA参数
@@ -320,7 +320,7 @@ void loop()
 
 	Key_cycle_irrigationV3();//按键启动循环灌溉
 
-	Serial_Port_Configuration();//串口设置循环间隔
+	Serial_Port_Configuration();//串口设置
 
 	Project_Debug();
 

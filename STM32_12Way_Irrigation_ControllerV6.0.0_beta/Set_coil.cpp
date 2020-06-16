@@ -837,7 +837,6 @@ void Film_Ctrl_Motor_CH(film_u8 ch, Film_DIR dir)//根据传入的路数和方�
 //设置电机的正反转与停止
 void Set_Way_Motor(unsigned char ch, unsigned char status)
 {
-	delay(500);
 	if (status == Film_Forward)
 	{
 		if (!Pos_Nega_mode.Read_WayIS_Reverse((ch-1)))
@@ -879,7 +878,12 @@ void Set_Way_Motor(unsigned char ch, unsigned char status)
 		Set_DO_relay((2*(ch-1)),OFF);
 		Set_DO_relay(((2*(ch-1))+1),OFF);
 	}
-	// delay(500);
+
+	unsigned long Now = millis();
+	while (millis() - Now < A00B_Interval*1000)
+	{
+		LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
+	}
 }
 
 //设置继电器的开启

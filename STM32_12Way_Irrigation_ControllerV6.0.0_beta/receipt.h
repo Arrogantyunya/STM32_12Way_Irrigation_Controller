@@ -2,6 +2,9 @@
 #define _RECEIPT_H
 
 #include <Arduino.h>
+#include "film_config.h"
+#include "film_mem.h"
+#include "film.h"
 
 #define DEVICE_TYPE_ID  0xC003
 
@@ -79,7 +82,7 @@ public:
 	void Set_threshold_Receipt(unsigned char send_times,unsigned char* gReceiveCmd,unsigned char E009status);//E009设置正反转模式阈值回执
 	void Calculate_travel_Receipt(unsigned char send_times, unsigned char WayUsed, unsigned char E00Astatus);//E00A计算行程与正反转AI回执
 	void Opening_Control_Receipt(unsigned char send_times, unsigned char E00Bstatus);//EOOB开度控制回执
-	void Abnormal_Route_Way_Receipt(unsigned char send_times, unsigned char E00Cstatus);//E00C异常路数回执
+	void Rolling_ch_Status_Receipt(unsigned char send_times,unsigned char ch, unsigned char E00Cstatus);//E00C卷膜路数状态回执
 	
 	void Output_init_Receipt(unsigned char status, unsigned char send_times);//E002发送设置初始状态回执信息给服务器
 private:
@@ -87,6 +90,9 @@ private:
 	void Clear_Server_LoRa_Buffer(void);//
 	void Print_Debug(unsigned char *base_addr, unsigned char len);//
 };
+
+/* 卷膜流程中的状态信息投递任务，开发者根据传入的状态来提供具体事项，如将状态上报给服务器 */
+void Film_Status_Msg_Delivery_Task(film_u8 ch, film_m_sta sta);
 
 extern Receipt Message_Receipt;
 extern unsigned char gStatus_E014;
