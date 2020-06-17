@@ -1093,6 +1093,12 @@ void Receipt::Calculate_travel_Receipt(unsigned char send_times,unsigned char Wa
 	}
 }
 
+/*
+ @brief   : E00B卷膜开度设置回执。（本设备 ---> 服务器）
+ @param   :	1.回执次数，send_times
+			2.状态
+ @return  : 无
+ */
 void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E00Bstatus)//EOOB开度控制回执
 {
 //   字节索引    	0        	1-2    	3       	4-5         	6          	7     	8     	9-16           	17-32	33  	34~39       
@@ -1100,9 +1106,8 @@ void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E0
 //   长度（byte）	1        	2      	1       	2           	1          	1     	1     	8              	16   	1   	6           
 //   示例数据    	FE       	E00B   	0x1D（29）	C003        	00         	01    	01    	646464646464   	     	00  	0D0A0D0A0D0A
 
-
 	iwdg_feed();
-	Debug_Serial.println("正反转模式开度回执 <Opening_Control_Receipt>");
+	Debug_Serial.println("卷膜开度设置回执 <Opening_Control_Receipt>");
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
@@ -1401,6 +1406,7 @@ void Film_Status_Msg_Delivery_Task(film_u8 ch, film_m_sta sta)
 		case Film_M_F_Open_OK: Debug_Serial.println("Film_M_F_Open_OK,强制卷膜完成");break;
 		case FILM_M_First_Reset_OK: Debug_Serial.println("FILM_M_First_Reset_OK,到达重置行程起始位置");break;
 		case Film_M_Reset_OK: Debug_Serial.println("Film_M_Reset_OK,重置行程完成");break;
+		case Film_M_F_Stop_OK: Debug_Serial.println("Film_M_F_Stop_OK,强制停止成功");break;
 		case Film_M_Wait_Chk: Debug_Serial.println("Film_M_Wait_Chk,到达限位，等待确认");break;
 		case Film_M_OverEleCur: Debug_Serial.println("Film_M_OverEleCur,电机过流");break;
 		case Film_M_MEM_Exp: Debug_Serial.println("Film_M_MEM_Exp,电机储存信息异常");break;
@@ -1412,4 +1418,23 @@ void Film_Status_Msg_Delivery_Task(film_u8 ch, film_m_sta sta)
 
 	Message_Receipt.Rolling_ch_Status_Receipt(3, ch, sta);
 }
+
+// /* 电机状态 */
+// typedef enum{
+//   Film_M_OK,  //电机正常
+//   Film_M_Opening, //正在卷膜
+//   Film_M_F_Opening, //正在强制卷膜
+//   Film_M_Reseting, //正在重置行程
+//   Film_M_Open_OK, //卷膜完成
+//   Film_M_F_Open_OK, //强制卷膜完成
+//   FILM_M_First_Reset_OK,  //到达重置行程起始位置
+//   Film_M_Reset_OK, //重置行程完成
+//   Film_M_F_Stop_OK, //强制停止成功
+//   Film_M_Wait_Chk, //到达限位，等待确认
+//   Film_M_OverEleCur, //电机过流
+//   Film_M_MEM_Exp, //电机储存信息异常
+//   Film_M_Up_Limit_Exp,  //上限位异常
+//   Film_M_Down_Limit_Exp, //下限位异常
+//   Film_M_Run_Exp, //电机异常（检测到电压过低）
+// }film_m_sta;
 

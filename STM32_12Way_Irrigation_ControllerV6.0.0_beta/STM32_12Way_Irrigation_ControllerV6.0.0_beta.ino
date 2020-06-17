@@ -324,6 +324,8 @@ void loop()
 
 	Project_Debug();
 
+	Film_Switch_Task();
+
 	// BT_Cycle_Query_SW_Version();//
 }
 

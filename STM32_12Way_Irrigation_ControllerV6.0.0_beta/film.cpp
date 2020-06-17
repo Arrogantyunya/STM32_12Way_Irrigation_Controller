@@ -28,9 +28,16 @@ _film_(weak) void Film_Status_Msg_Delivery_Task(film_u8 ch, film_m_sta sta)
 }
 
 /* 函数声明 */
-film_err Film_Motor_Start_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
+void Film_Motor_Start_Task(void);
 void Film_Motor_Monitor_Task(void);
 void Film_Motor_End_Task(void);
+film_u8 Film_Motor_Channel_Sig(void);
+void Film_Finish_Rolling(film_u8 ch);
+void Film_Channel_Reset(void);
+void Film_Load_Motor_CH(film_u8 ch, film_m_act act);
+
+film_u32 Film_Select_Obj_Channel(film_m_act act);
+void Film_Set_Obj_Channel(film_u32 src_channel, film_m_act act);
 
 void Film_Store_Exp_Handler_CH(film_u8 ch, film_m_act act);
 
@@ -44,15 +51,19 @@ void Film_Param_Init(void)
   for (i = 0; i < MOTOR_CHANNEL; i++)
   {
     film_pcb.run_motor_exp_sta[i] = Film_M_OK;
-    film_pcb.run_motor_sta_flag[i] = 0;
     film_pcb.clt_ele_cur_num[i] = 0;
     film_pcb.lower_ele_cur_tim[i] = 0;
     film_pcb.ctrl_timing_num[i] = 0;
     film_pcb.second_stage_flag[i] = 0;
     film_pcb.reset_m_dir_flag[i] = 0;
+    film_pcb.m_force_stop_flag[i] = 0;
   }
+  film_pcb.m_reset_channel = 0;
+  film_pcb.m_open_channel = 0;
+  film_pcb.m_f_open_channel = 0;
   film_pcb.ctrl_com_timing_num = 0;
   film_pcb.detect_m_overtime_flag = 0;
+  film_pcb.new_task_request_flag = 0;
 }
 
 void Film_Set_Open_Value(film_u8 *ch_buf, film_u8 ch_num, film_u8 *open_buf)
@@ -64,15 +75,40 @@ void Film_Set_Open_Value(film_u8 *ch_buf, film_u8 ch_num, film_u8 *open_buf)
 
 film_err Film_Motor_Run_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act)
 {
-  film_err sta;
+  film_u8 i;
 
-  sta = Film_Motor_Start_Task(&ch_buf[0], ch_num, act);
-  if (sta) return sta;
+  if (ch_num > MOTOR_CHANNEL || !ch_num) return Film_CH_Err; /* 请求挂载的电机数目超过设置上限 */
 
+  /* 复位空闲电机通道 */
+  Film_Channel_Reset();
+  /* 根据挂载的运动类型，挂载到相应的通道上 */
+  for (i = 0; i < ch_num; i++)
+  {
+    Film_Load_Motor_CH(ch_buf[i], act);
+    FM_PRINT((FM_PrintDBG_Buf, "%dth motor has been loaded...[Film_Motor_Run_Task]\n", ch_buf[i]));
+    if (act != FILM_RESET) continue;
+    /* 清除重置完成标志位 */
+    if (Film_MEM_Set_Flag_CH(FILM_MEM_RE_OK_FLAG_BASE_ADDR, ch_buf[i], FILM_MEM_FLAG_RESET_MODE))
+      Film_Store_Exp_Handler_CH(ch_buf[i], FILM_RESET);    
+  }
+
+  Film_Motor_Start_Task();
   Film_Motor_Monitor_Task();
   Film_Motor_End_Task();
 
   return Film_OK;
+}
+
+void Film_Switch_Task(void)
+{
+  if (!film_pcb.new_task_request_flag) return;
+  film_pcb.new_task_request_flag = FILM_RESET_FLAG;
+
+  FM_PRINT((FM_PrintDBG_Buf, "the motor prepare to start new task...[Film_Switch_Task]\n"));
+
+  Film_Motor_Start_Task();
+  Film_Motor_Monitor_Task();
+  Film_Motor_End_Task(); 
 }
 
 /******************************卷膜定时相关函数****************************************/
@@ -141,6 +177,46 @@ film_err Film_Set_RT_status_Report_Frq(film_u8 *ch_buf, film_u8 *sta_frq ,film_u
   return Film_OK;
 }
 
+film_err Film_Set_Force_Stop(film_u8 *ch_buf, film_u8 ch_num)
+{
+  film_u8 i;
+
+  if (ch_num > MOTOR_CHANNEL || !ch_num) return Film_CH_Err;
+  if (Film_Motor_Channel_Sig()) return Film_OK;
+
+  for (i = 0; i < ch_num; i++)
+    film_pcb.m_force_stop_flag[ch_buf[i] - 1] = FILM_SET_FLAG;
+}
+
+film_err Film_New_Task_Handler(film_u8 *ch_buf, film_u8 ch_num, film_m_act act)
+{
+  film_u32 obj_channel;
+  film_u8 i, j;
+
+  if (Film_Motor_Channel_Sig()) return Film_OK;
+
+  obj_channel = Film_Select_Obj_Channel(act);
+
+  for (i = 0; i < ch_num; i++)
+  {
+    film_pcb.m_run_mode[ch_buf[i] - 1] = FILM_IDIE;
+    Film_Load_Motor_CH(ch_buf[i], act);
+    
+    if (act != FILM_ROLL) continue;
+    film_pcb.last_open_val[ch_buf[i] - 1] = film_pcb.rt_open_val[ch_buf[i] - 1];
+    if (Film_MEM_Save_Param_CH(FILM_MEM_LAST_OPEN_BASE_ADDR, &film_pcb.last_open_val[ch_buf[i] - 1], ch_buf[i]))
+      Film_Store_Exp_Handler_CH(ch_buf[i], FILM_ROLL);
+  }
+
+  FILM_TRA_MOTOR_ACT(i, j, obj_channel)
+    Film_Finish_Rolling(j + 1);
+  FILM_TRA_BLOCK_END
+
+  Film_Set_Obj_Channel(obj_channel, act);
+  film_pcb.new_task_request_flag = FILM_SET_FLAG;
+  return Film_New_Task;
+}
+
 /***************************************************************************************************************************/
 
 /****************************************与电机运动有关函数***************************************/
@@ -148,17 +224,16 @@ film_err Film_Set_RT_status_Report_Frq(film_u8 *ch_buf, film_u8 *sta_frq ,film_u
 void Film_Set_Motor_Status_CH(film_u8 ch, film_m_sta sta)
 {
   film_pcb.run_motor_exp_sta[ch - 1] = sta;
-  film_pcb.run_motor_sta_flag[ch - 1] = FILM_SET_FLAG;
 }
 
-  /* 复位空闲的电机（将空闲的电机从任务通道上移除） */
+  /* 复位所有电机通道 */
 void Film_Channel_Reset(void)
 {
   film_u8 i;
 
   for (i = 0; i < MOTOR_CHANNEL; i++)
   {
-    if (film_pcb.m_run_mode[i] != FILM_IDIE) continue;
+    film_pcb.m_run_mode[i] = FILM_IDIE;
     film_pcb.m_reset_channel &= ~(1 << i);
     film_pcb.m_open_channel &= ~(1 << i);
     film_pcb.m_f_open_channel &= ~(1 << i);
@@ -192,6 +267,8 @@ void Film_Load_Motor_CH(film_u8 ch, film_m_act act)
     break;
   }
   film_pcb.m_run_mode[ch - 1] = act;
+  /* 清除要运动的该路电机的强制停止标志位 */
+  film_pcb.m_force_stop_flag[ch - 1] = FILM_RESET_FLAG;
 }
 /* 挂起电机和复位运动模式 */
 void Film_Pending_Motor_CH(film_u8 ch, film_m_act act)
@@ -224,6 +301,13 @@ film_u32 Film_Select_Obj_Channel(film_m_act act)
   if (act == FILM_RESET) return film_pcb.m_reset_channel;
   else if (act == FILM_ROLL) return film_pcb.m_open_channel;
   else if (act == FILM_F_ROLL)return film_pcb.m_f_open_channel;
+}
+
+void Film_Set_Obj_Channel(film_u32 src_channel, film_m_act act)
+{
+  if (act == FILM_RESET)  film_pcb.m_reset_channel = src_channel;
+  else if (act == FILM_ROLL)  film_pcb.m_open_channel = src_channel;
+  else if (act == FILM_F_ROLL) film_pcb.m_f_open_channel = src_channel;  
 }
 
 /* 设置电机方向 */
@@ -271,8 +355,6 @@ void Film_Motor_Start_Run(film_u32 obj_ch)
   film_u8 i;
 
   FILM_TRA_MOTOR(i, obj_ch)
-    //if (film_pcb.run_motor_exp_sta[i] > Film_M_Wait_Chk) continue;
-    film_pcb.run_motor_sta_flag[i] = FILM_RESET_FLAG;
     Film_Ctrl_Motor_CH(i + 1, film_pcb.motor_dir[i]);
     if (film_pcb.motor_dir[i] == Film_Forward)
     FM_PRINT((FM_PrintDBG_Buf, "%dth motor start runing and direction is Forward\n", i + 1));
@@ -282,6 +364,18 @@ void Film_Motor_Start_Run(film_u32 obj_ch)
     Film_Start_Timming_CH(i + 1);
   FILM_TRA_BLOCK_END
 }
+
+void Film_Motor_Start_Run_CH(film_u8 ch)
+{
+  Film_Ctrl_Motor_CH(ch, film_pcb.motor_dir[ch - 1]);
+  if (film_pcb.motor_dir[ch - 1] == Film_Forward)
+  FM_PRINT((FM_PrintDBG_Buf, "%dth motor start runing and direction is Forward\n", ch));
+  else
+  FM_PRINT((FM_PrintDBG_Buf, "%dth motor start runing and direction is Reversal\n", ch));
+
+  Film_Start_Timming_CH(ch);
+}
+
 
 void Film_Finish_Rolling(film_u8 ch)
 {
@@ -361,27 +455,23 @@ void Film_Save_ResetRoll_Time(void)
 }
 
 /* 根据绝对开度值，计算出挂载的电机需要的卷膜时长 */
-void Film_Calculate_Roll_Time(void)
+void Film_Calculate_Roll_Time_CH(film_u8 ch)
 {
   film_u8 t_roll_time_tmp[2];  
   film_u8 abs_open_val;  //要运行的绝对开度值
-  film_u8 i;
   
-  /* 遍历挂载的电机 */
-  FILM_TRA_MOTOR(i, film_pcb.m_open_channel)
-    /* 读取卷膜总时长 */
-    if (Film_MEM_Read_Param_CH(FILM_MEM_ROLL_TIME_BASE_ADDR, &t_roll_time_tmp[0], i + 1))
-    {
-      Film_Store_Exp_Handler_CH(i + 1, FILM_ROLL);
-      continue;
-    }
-    Film_u8Tou16(&t_roll_time_tmp[0], &film_pcb.total_roll_time[i], sizeof(t_roll_time_tmp));
-    /* 得到绝对开度，然后用来计算卷膜时长 */
-    abs_open_val = (film_pcb.motor_dir[i] == Film_Forward) ? (film_pcb.run_open_val[i] - film_pcb.last_open_val[i]) \
-    : (film_pcb.last_open_val[i] - film_pcb.run_open_val[i]);
-    film_pcb.run_roll_time[i] = abs_open_val * 0.01 * film_pcb.total_roll_time[i] + 0.5;
-    FM_PRINT((FM_PrintDBG_Buf, "%dth motor run roll time is %dS\n", i + 1, film_pcb.run_roll_time[i]));
-  FILM_TRA_BLOCK_END
+  /* 读取卷膜总时长 */
+  if (Film_MEM_Read_Param_CH(FILM_MEM_ROLL_TIME_BASE_ADDR, &t_roll_time_tmp[0], ch))
+  {
+    Film_Store_Exp_Handler_CH(ch, FILM_ROLL);
+    return;
+  }
+  Film_u8Tou16(&t_roll_time_tmp[0], &film_pcb.total_roll_time[ch - 1], sizeof(t_roll_time_tmp));
+  /* 得到绝对开度，然后用来计算卷膜时长 */
+  abs_open_val = (film_pcb.motor_dir[ch - 1] == Film_Forward) ? (film_pcb.run_open_val[ch - 1] - film_pcb.last_open_val[ch - 1]) \
+  : (film_pcb.last_open_val[ch - 1] - film_pcb.run_open_val[ch - 1]);
+  film_pcb.run_roll_time[ch - 1] = abs_open_val * 0.01 * film_pcb.total_roll_time[ch - 1] + 0.5;
+  FM_PRINT((FM_PrintDBG_Buf, "%dth motor run roll time is %dS\n", ch, film_pcb.run_roll_time[ch - 1]));
 }
 
 /* 除了检查，还兼具将没有重置行程的转移到其他任务通道 */
@@ -428,11 +518,17 @@ film_u8 Film_Reset_Stage_Status_Check(film_reset_stage stage)
 
 film_u8 Film_Motor_Channel_Sig(void)
 {
-  if (film_pcb.m_reset_channel) return 0;
-  if (film_pcb.m_open_channel) return 0;
-  if (film_pcb.m_f_open_channel) return 0;
-
+  if (film_pcb.m_reset_channel || film_pcb.m_open_channel || film_pcb.m_f_open_channel) return 0;
   return 1;
+}
+
+void Film_Detect_Adjust_Open_Roll_CH(film_u8 ch)
+{
+  film_pcb.last_open_val[ch - 1] = (film_pcb.motor_dir[ch - 1] == Film_Forward) ? FILM_ALL_CLOSE : FILM_ALL_OPEN;
+  FM_PRINT((FM_PrintDBG_Buf, "The %dth motor opening error, need to adjust the opening [Film_Detect_Adjust_Open_Roll_CH]\n", ch));
+  Film_Set_Motor_Status_CH(ch, Film_M_Opening);
+  Film_Calculate_Roll_Time_CH(ch);
+  Film_Motor_Start_Run_CH(ch);
 }
 /********************************************************************************************************************/
 
@@ -496,17 +592,20 @@ void Film_Detect_OverCur(void)
       film_pcb.over_ele_cur_tim[j] = film_pcb.ctrl_timing_num[j];
     
     if (film_pcb.ctrl_timing_num[j] < film_pcb.over_ele_cur_tim[j] + 3) continue;
-
+    /* 过流后的处理流程 */
     Film_Finish_Rolling(j + 1);
     FM_PRINT((FM_PrintDBG_Buf, "The %dth motor over current and it is : %dmA [Film_Detect_OverCur]\n", j + 1, film_pcb.run_ele_cur[j]));
     Film_Set_Motor_Status_CH(j + 1, Film_M_OverEleCur);
     Film_Pending_Motor_CH(j + 1, (film_m_act)i);
     Film_Status_Msg_Delivery_Task(j + 1, film_pcb.run_motor_exp_sta[j]);
+    /* 强制卷膜处理 */
+    if (i == FILM_F_ROLL)
+      Film_Clear_Reset_OK_Flag_CH(j + 1);
     /* 开度卷膜需要保存当前开度 */
     if (i != FILM_ROLL) continue;
     film_pcb.run_open_val[j] = film_pcb.rt_open_val[j];
     film_pcb.last_open_val[j] = film_pcb.rt_open_val[j];
-    if (Film_Save_Open_Val_CH(j + 1) != Film_OK)
+    if (Film_Save_Open_Val_CH(j + 1))
       Film_Store_Exp_Handler_CH(j + 1, (film_m_act)i);
   FILM_TRA_ACT_BLOCK_END
 }
@@ -527,6 +626,7 @@ void Film_Detect_LowerCur(film_m_act act)
       film_pcb.lower_ele_cur_tim[i] = film_pcb.ctrl_timing_num[i];
     
     if (film_pcb.ctrl_timing_num[i] < film_pcb.lower_ele_cur_tim[i] + 1) continue;
+
     Film_Finish_Rolling(i + 1);
     FM_PRINT((FM_PrintDBG_Buf, "%dth motor exception! [Film_Detect_LowerCur]\n", i + 1));
     if (Film_MEM_Set_Flag_CH(FILM_MEM_RE_OK_FLAG_BASE_ADDR, i + 1, FILM_MEM_FLAG_RESET_MODE))
@@ -584,18 +684,51 @@ void Film_Store_Exp_Handler_CH(film_u8 ch, film_m_act act)
   Film_Status_Msg_Delivery_Task(ch, film_pcb.run_motor_exp_sta[ch - 1]);
 }
 
+/* 检测是否某个或多个通道的电机被请求强制停止 */
+void Film_Detect_Force_Stop(void)
+{
+  film_u32 obj_channel;
+  film_u8 i, j;
+
+  FILM_TRA_MOTOR_ACT(i, j, obj_channel)
+    if (!film_pcb.m_force_stop_flag[j]) continue;
+
+    Film_Finish_Rolling(j + 1);
+    Film_Pending_Motor_CH(j + 1, (film_m_act)i);
+    Film_Set_Motor_Status_CH(j + 1, Film_M_F_Stop_OK);
+    Film_Status_Msg_Delivery_Task(j + 1, film_pcb.run_motor_exp_sta[j]);
+    FM_PRINT((FM_PrintDBG_Buf, "The %dth motor has forced stop... [Film_Detect_Force_Stop]\n", j + 1));
+
+    if (i != FILM_ROLL) continue;
+    /* 保存开度、置位开度卷膜完成标志位 */
+    film_pcb.last_open_val[j] = film_pcb.rt_open_val[j];
+    film_pcb.run_open_val[j] = film_pcb.rt_open_val[j];
+    if (Film_Save_Open_Val_CH(j + 1))
+      Film_Store_Exp_Handler_CH(j + 1, FILM_ROLL);
+
+  FILM_TRA_ACT_BLOCK_END
+}
+
 /* 开度卷膜中，检测除了全关和全开之外的其他开度是否已经到达 */
 void Film_Detect_Opening(void)
 {
   film_u8 i;
 
   FILM_TRA_MOTOR(i, film_pcb.m_open_channel)
+
+    /* 实时开度计算 */
+    if (film_pcb.motor_dir[i] == Film_Forward)
+      film_pcb.rt_open_val[i] = ((double)film_pcb.ctrl_timing_num[i] / (double)film_pcb.total_roll_time[i] * 100) + film_pcb.last_open_val[i];
+    else
+      film_pcb.rt_open_val[i] = film_pcb.last_open_val[i] - ((double)film_pcb.ctrl_timing_num[i] / (double)film_pcb.last_open_val[i] * 100);
+    /* 开度到达验证 */
     if (film_pcb.run_open_val[i] == FILM_ALL_CLOSE || film_pcb.run_open_val[i] == FILM_ALL_OPEN) continue;
     if (film_pcb.ctrl_timing_num[i] < film_pcb.run_roll_time[i]) continue;
     Film_Finish_Rolling(i + 1);
     film_pcb.last_open_val[i] = film_pcb.run_open_val[i];
     film_pcb.rt_open_val[i] = film_pcb.run_open_val[i];
-    if (Film_Save_Open_Val_CH(i + 1) == Film_MEM_Exp)
+    /* 完成开度卷膜后，保存三个开度、置位开度卷膜完成标志位 */
+    if (Film_Save_Open_Val_CH(i + 1))
     {
       Film_Store_Exp_Handler_CH(i + 1, FILM_ROLL);
       continue;
@@ -642,19 +775,10 @@ void Film_Detect_Limit(void)
     }  
     else
     {
-      /* 全开和全关不需要校正 */
-      if (film_pcb.run_open_val[j] == FILM_ALL_CLOSE || film_pcb.run_open_val[j] == FILM_ALL_OPEN) 
-      {
-        if (film_pcb.run_open_val[j] == FILM_ALL_CLOSE)
-          FM_PRINT((FM_PrintDBG_Buf, "The %dth motor reach down limit... [Film_Detect_Limit]\n", j + 1));
-        else
-          FM_PRINT((FM_PrintDBG_Buf, "The %dth motor reach up limit... [Film_Detect_Limit]\n", j + 1));
-      }
+      if (film_pcb.motor_dir[j] == Film_Reversal)
+        FM_PRINT((FM_PrintDBG_Buf, "The %dth motor reach down limit... [Film_Detect_Limit]\n", j + 1));
       else
-      {
-        film_pcb.adjust_open_flag[j] = FILM_SET_FLAG;
-        FM_PRINT((FM_PrintDBG_Buf, "The %dth motor opening error, need to correct the opening [Film_Detect_Limit]\n", j + 1));        
-      }
+        FM_PRINT((FM_PrintDBG_Buf, "The %dth motor reach up limit... [Film_Detect_Limit]\n", j + 1));        
     }
     Film_Set_Motor_Status_CH(j + 1, Film_M_Wait_Chk);
   FILM_TRA_ACT_BLOCK_END
@@ -718,46 +842,54 @@ void Film_Verify_Motor_Limit(film_m_act act)
   {
     Film_Detect_LowerCur(act);
     if (film_pcb.ctrl_com_timing_num < chk_tim_num + 3) continue;
+
     FILM_TRA_MOTOR(i, film_pcb.lower_ele_cur_m_channel)
       Film_Finish_Rolling(i + 1);
       FM_PRINT((FM_PrintDBG_Buf, "the %dth of motor check limit success... [Film_Verify_Motor_Limit]\n", i + 1));
 
-      if (film_pcb.run_motor_exp_sta[i] == Film_M_Run_Exp) continue; 
-      if (act == FILM_RESET) 
-      {
-        if (!film_pcb.second_stage_flag[i]) Film_Set_Motor_Status_CH(i + 1, FILM_M_First_Reset_OK);
-        else Film_Set_Motor_Status_CH(i + 1, Film_M_Reset_OK);
+      if (act == FILM_RESET)  film_pcb.run_open_val[i] = FILM_ALL_OPEN;
+      film_pcb.rt_open_val[i] = film_pcb.run_open_val[i];
+      film_pcb.last_open_val[i] = film_pcb.run_open_val[i];
 
-        if (!film_pcb.second_stage_flag[i]) continue;
-        film_pcb.run_open_val[i] = FILM_ALL_OPEN;
-        film_pcb.last_open_val[i] = FILM_ALL_OPEN;
-        film_pcb.rt_open_val[i] = FILM_ALL_OPEN;
-        if (Film_Save_Open_Val_CH(i + 1) ||
-        Film_MEM_Set_Flag_CH(FILM_MEM_RE_OK_FLAG_BASE_ADDR, i + 1, FILM_MEM_FLAG_SET_MODE))
-        {
-          Film_Store_Exp_Handler_CH(i + 1, FILM_RESET);
-          FM_PRINT((FM_PrintDBG_Buf, "the %dth of motor save open or set flag exception!(RESET)  [Film_Verify_Motor_Limit]\n", i + 1));
-          continue;
-        }
-        Film_Cal_Save_Ele_Cur_CH(i + 1);
-        Film_Pending_Motor_CH(i + 1, FILM_RESET);
-      }
-      else
+      switch (act)
       {
-        film_pcb.rt_open_val[i] = film_pcb.run_open_val[i];
-        film_pcb.last_open_val[i] = film_pcb.run_open_val[i];
-        if (act == FILM_ROLL)
-        {
+        case FILM_ROLL :
+          if (film_pcb.run_open_val[i] != FILM_ALL_CLOSE && film_pcb.run_open_val[i] != FILM_ALL_OPEN)
+          {
+            Film_Detect_Adjust_Open_Roll_CH(i + 1);
+            continue;
+          }
           Film_Set_Motor_Status_CH(i + 1, Film_M_Open_OK);
-          Film_Pending_Motor_CH(i + 1, FILM_ROLL);
-        }
-        else if (act == FILM_F_ROLL)
-        {
+        break;
+
+        case FILM_RESET : 
+          if (!film_pcb.second_stage_flag[i]) Film_Set_Motor_Status_CH(i + 1, FILM_M_First_Reset_OK);
+          else Film_Set_Motor_Status_CH(i + 1, Film_M_Reset_OK);
+
+          if (!film_pcb.second_stage_flag[i]) continue;
+
+          if (Film_MEM_Set_Flag_CH(FILM_MEM_RE_OK_FLAG_BASE_ADDR, i + 1, FILM_MEM_FLAG_SET_MODE))
+          {
+            Film_Store_Exp_Handler_CH(i + 1, FILM_RESET);
+            FM_PRINT((FM_PrintDBG_Buf, "the %dth of motor save open or set flag exception!(RESET)  [Film_Verify_Motor_Limit]\n", i + 1));
+            continue;
+          }
+          Film_Cal_Save_Ele_Cur_CH(i + 1);
+        break;
+
+        case FILM_F_ROLL :
           Film_Set_Motor_Status_CH(i + 1, Film_M_F_Open_OK);
-          Film_Pending_Motor_CH(i + 1, FILM_F_ROLL);
-        }
+
+          if (film_pcb.re_ok_before_f_roll_flag[i])
+          {
+            if (Film_MEM_Set_Flag_CH(FILM_MEM_RE_OK_FLAG_BASE_ADDR, i + 1, FILM_MEM_FLAG_SET_MODE))
+              Film_Store_Exp_Handler_CH(i + 1, FILM_F_ROLL);
+          }
+        break;                            
       }
+      if (Film_Save_Open_Val_CH(i + 1)) Film_Store_Exp_Handler_CH(i + 1, act);
       Film_Status_Msg_Delivery_Task(i + 1, film_pcb.run_motor_exp_sta[i]);
+      Film_Pending_Motor_CH(i + 1, act);
     FILM_TRA_BLOCK_END
     break;
   }
@@ -785,35 +917,21 @@ void Film_Seek_Reset_Origin(void)
 /*
  *重置行程参数配置。在重置行程前，挂载需要重置行程的电机
  */
-film_err Film_Motor_Start_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act)
+void Film_Motor_Start_Task(void)
 {
+  film_u8 flag;
   film_u8 i;
-
-  if (ch_num > MOTOR_CHANNEL || !ch_num) return Film_CH_Err; /* 请求挂载的电机数目超过设置上限 */
-
-  /* 复位空闲电机通道 */
-  Film_Channel_Reset();
-
-  /* 根据挂载的运动类型，挂载到相应的通道上 */
-  for (i = 0; i < ch_num; i++)
-  {
-    Film_Load_Motor_CH(ch_buf[i], act);
-    FM_PRINT((FM_PrintDBG_Buf, "%dth motor has been loaded...[Film_Motor_Start_Task]\n", ch_buf[i]));
-    if (act != FILM_RESET) continue;
-    /* 清除重置完成标志位 */
-    if (Film_MEM_Set_Flag_CH(FILM_MEM_RE_OK_FLAG_BASE_ADDR, ch_buf[i], FILM_MEM_FLAG_RESET_MODE))
-      Film_Store_Exp_Handler_CH(ch_buf[i], FILM_RESET);    
-  }
 
   /* 开度卷膜需要设置的参数 */
   Film_Check_Reset_Roll_Flag(); /* 没有重置过行程，判断是转移挂载到重置行程，还是强制卷膜 */ 
   /* 储存挂载电机的运行开度，并读取上一次开度值*/
   FILM_TRA_MOTOR(i, film_pcb.m_open_channel)
+    /* 保存服务器设置的目标开度、读取上一次卷膜开度、清除开度卷膜完成标志位 */
     if (Film_MEM_Save_Param_CH(FILM_MEM_RUN_OPEN_BASE_ADDR, &film_pcb.run_open_val[i], i + 1) ||
-    Film_MEM_Read_Param_CH(FILM_MEM_LAST_OPEN_BASE_ADDR, &film_pcb.last_open_val[i], i + 1))
+        Film_MEM_Read_Param_CH(FILM_MEM_LAST_OPEN_BASE_ADDR, &film_pcb.last_open_val[i], i + 1))
     {
       Film_Store_Exp_Handler_CH(i + 1, FILM_ROLL);
-      FM_PRINT((FM_PrintDBG_Buf, "The %dth motor open value exception!\n", i + 1));
+      FM_PRINT((FM_PrintDBG_Buf, "The %dth motor open roll parameters exception!\n", i + 1));
       continue;
     }
     FM_PRINT((FM_PrintDBG_Buf, "The run open value of the %dth motor is %d%%\n", i+1 , film_pcb.run_open_val[i]));
@@ -822,7 +940,11 @@ film_err Film_Motor_Start_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act)
 
   /* 强制卷膜开度方向设置 */
   FILM_TRA_MOTOR(i, film_pcb.m_f_open_channel)
-    if (Film_MEM_Save_Param_CH(FILM_MEM_RUN_OPEN_BASE_ADDR, &film_pcb.run_open_val[i], i + 1))
+    /* 判断强制卷膜前，是否早已重置行程完成。如果没有重置行程完成，那么等到强制卷膜完成后，是不应该置位重置行程完成标志位的 */
+    Film_MEM_Get_Flag_CH(FILM_MEM_RE_OK_FLAG_BASE_ADDR, &flag, i + 1);
+    (flag) ? film_pcb.re_ok_before_f_roll_flag[i] = FILM_SET_FLAG : film_pcb.re_ok_before_f_roll_flag[i] = FILM_RESET_FLAG;
+    if (Film_MEM_Save_Param_CH(FILM_MEM_RUN_OPEN_BASE_ADDR, &film_pcb.run_open_val[i], i + 1) ||
+        Film_MEM_Set_Flag_CH(FILM_MEM_RE_OK_FLAG_BASE_ADDR, i + 1, FILM_MEM_FLAG_RESET_MODE))
     {
       Film_Store_Exp_Handler_CH(i + 1, FILM_F_ROLL);
       FM_PRINT((FM_PrintDBG_Buf, "The %dth motor force open value exception!\n", i + 1));
@@ -844,22 +966,22 @@ film_err Film_Motor_Start_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act)
   Film_Set_Motor_Dir(FILM_F_ROLL);
     /* 初始化电流机制 */
   Film_Motor_EleCurrent_Init();
-  /* 计算出挂载的电机需要的卷膜时长 */
-  Film_Calculate_Roll_Time();
+  /* 计算出挂载的电机需要的卷膜时长（开度卷膜） */
+  FILM_TRA_MOTOR(i, film_pcb.m_open_channel)
+    Film_Calculate_Roll_Time_CH(i + 1);
+  FILM_TRA_BLOCK_END
   /* 挂载电机开始运动 */
   Film_Motor_Start_Run(film_pcb.m_reset_channel);
   Film_Motor_Start_Run(film_pcb.m_open_channel);
   Film_Motor_Start_Run(film_pcb.m_f_open_channel);
   film_pcb.ctrl_com_timing_num = 0;
   film_pcb.clt_ele_tim_num = 0; 
-
-  return Film_OK;
 }
 
 void Film_Motor_Monitor_Task(void)
 {
   while (1)
-  { 
+  {
     /* 开度检测 */
     Film_Detect_Opening();
     /* 限位检测 */
@@ -878,6 +1000,11 @@ void Film_Motor_Monitor_Task(void)
 
     /* 信息监听 */
     Film_Listening_Task();
+
+    /* 强制停止检测 */
+    Film_Detect_Force_Stop();
+
+    if (film_pcb.new_task_request_flag) return;
 
     if (Film_Reset_Stage_Status_Check(Film_Reset_Second)) 
       Film_Verify_Motor_Limit(FILM_RESET);

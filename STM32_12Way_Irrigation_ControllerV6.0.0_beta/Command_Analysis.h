@@ -17,7 +17,7 @@ enum Frame_ID {
 	Modbus_Control, R_Modbus_Control,Output_default,Work_Para, Set_Group_Num, SN_Area_Channel, Work_Status,
 	/*ResetRoll, Opening, Work_Limit,*/ Stop_Work,Irrigation_Control,Delay_Start_DO_Control,
 	Positive_negative_Control,Query_SignalQuality_Version,Set_Reporting_Interval,Set_Lora_parameter,Non_existent,
-	Set_threshold,Calculate_travel,Opening_Control
+	Set_threshold,Calculate_travel,Opening_Control,Roll_F_Stop
 };
 
 class Command_Analysis {
@@ -56,6 +56,7 @@ private:
 	void Set_Forward_Reverse_mode_threshold();//服务器设置正反转模式阈值（A009）
 	void Forward_Reverse_mode_Calculate_travel();//服务器发送正反转模式计算行程（A00A）
 	void Forward_Reverse_mode_Opening_Control();//服务器发送正反转模式开度控制指令（A00B）
+	void Forward_Reverse_mode_Force_Stop();//服务器发送正反转模式的强制停止某些路（A00C）
 
 	void Forced_Stop(bool Need_Receipt);//强制停止
 };

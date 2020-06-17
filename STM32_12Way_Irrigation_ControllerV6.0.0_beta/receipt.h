@@ -86,9 +86,9 @@ public:
 	
 	void Output_init_Receipt(unsigned char status, unsigned char send_times);//E002发送设置初始状态回执信息给服务器
 private:
-	void Receipt_Random_Wait_Value(unsigned long int *random_value);//
-	void Clear_Server_LoRa_Buffer(void);//
-	void Print_Debug(unsigned char *base_addr, unsigned char len);//
+	void Receipt_Random_Wait_Value(unsigned long int *random_value);//随机生成回执消息的回执发送微秒延时
+	void Clear_Server_LoRa_Buffer(void);//清除服务器上一次接收的LoRa数据缓存
+	void Print_Debug(unsigned char *base_addr, unsigned char len);//串口打印16进制回执信息
 };
 
 /* 卷膜流程中的状态信息投递任务，开发者根据传入的状态来提供具体事项，如将状态上报给服务器 */

@@ -50,6 +50,7 @@ typedef enum {
 typedef enum{
   Film_OK,
   Film_No_Reset,
+  Film_New_Task,
   Film_CH_Err,
   Film_MEM_Exp,
 }film_err;
@@ -77,6 +78,7 @@ typedef enum{
   Film_M_F_Open_OK, //强制卷膜完成
   FILM_M_First_Reset_OK,  //到达重置行程起始位置
   Film_M_Reset_OK, //重置行程完成
+  Film_M_F_Stop_OK, //强制停止成功
   Film_M_Wait_Chk, //到达限位，等待确认
   Film_M_OverEleCur, //电机过流
   Film_M_MEM_Exp, //电机储存信息异常
@@ -102,9 +104,12 @@ struct Film_PCB{
 
   film_u32 m_reset_channel;         //电机重置行程任务挂载记录
   film_u32 m_open_channel;        //电机开度卷膜任务挂载记录
-  film_u32 m_f_open_channel;      //电机强制卷膜任务挂载记录
+  film_u32 m_f_open_channel;      //电机强制卷膜任务挂载记录 
 
   film_m_act m_run_mode[MOTOR_CHANNEL]; //电机当前运行模式(需要初始化)
+
+  film_u8 m_force_stop_flag[MOTOR_CHANNEL]; //强制停止标志位(需要初始化)
+  film_u8 re_ok_before_f_roll_flag[MOTOR_CHANNEL]; //强制卷膜前是否重置行程完成的标志位(需要初始化)
 
   film_u8 run_open_val[MOTOR_CHANNEL];  //最近的开度值
   film_u8 last_open_val[MOTOR_CHANNEL]; //上一次的开度值
@@ -116,7 +121,6 @@ struct Film_PCB{
   film_u8 run_time_save_flag[MOTOR_CHANNEL];  //运动时长保存标志位(需要初始化)
 
   film_m_sta run_motor_exp_sta[MOTOR_CHANNEL]; //电机运行异常状态(需要初始化)
-  film_u8 run_motor_sta_flag[MOTOR_CHANNEL]; //电机运行时的状态是否确认记录标志位(需要初始化)
 
   film_cur_sta ele_cur_sta[MOTOR_CHANNEL]; //电流状态
   film_double over_ele_cur[MOTOR_CHANNEL]; //过流电流值，卷膜电流不能超过该值
@@ -136,12 +140,17 @@ struct Film_PCB{
 };
 
 void Film_Param_Init(void);
-film_err Film_Set_Ele_Cur_Threshold(film_u8 *ch_buf, film_u8 *cur_lmt ,film_u8 ch_num);
 
 void Film_Set_Open_Value(film_u8 *ch_buf, film_u8 ch_num, film_u8 *open_buf);
+film_err Film_Set_Ele_Cur_Threshold(film_u8 *ch_buf, film_u8 *cur_lmt ,film_u8 ch_num);
+film_err Film_Set_Force_Stop(film_u8 *ch_buf, film_u8 ch_num);
+film_err Film_New_Task_Handler(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
+
+
 film_err Film_Motor_Run_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
 
-// void Film_Load_Tim_Var(film_u32 fre_div_times, film_u32 cur_times);   //开发人员需要将该函数放入定时器处理函数中
+void Film_Switch_Task(void);
+
 void Film_Load_Tim_Var(void);
 
 #endif

@@ -200,6 +200,7 @@ Frame_ID Command_Analysis::FrameID_Analysis(void)
 	case 0xA009: return Set_threshold;				break;//服务器设置正反转模式阈值（A009）
 	case 0xA00A: return Calculate_travel;			break;//服务器发送正反转模式计算行程（A00A）
 	case 0xA00B: return Opening_Control;			break;//服务器发送正反转模式开度控制指令（A00B）
+	case 0xA00C: return Roll_F_Stop;				break;//服务器发送正反转模式的强制停止某些路（A00C）
 	case 0xA011: return Work_Para;					break;//基地服务器查询LoRa设备当前工作参数(A011)
 	case 0xA012: return Set_Group_Num;				break;//基地服务器设置LoRa设备工作组编号(A012)
 	case 0xA013: return SN_Area_Channel;			break;//基地服务器设置设备（主/子）SN及子设备总路数(A013)
@@ -382,6 +383,7 @@ void Command_Analysis::Receive_Data_Analysis(void)
 	case Set_threshold: Set_Forward_Reverse_mode_threshold(); break;//服务器设置正反转模式阈值（A009）
 	case Calculate_travel: Forward_Reverse_mode_Calculate_travel();break;//服务器发送正反转模式计算行程（A00A）
 	case Opening_Control: Forward_Reverse_mode_Opening_Control();break;//服务器发送正反转模式开度控制指令（A00B）
+	case Roll_F_Stop: Forward_Reverse_mode_Force_Stop();break;//服务器发送正反转模式的强制停止某些路（A00C）
 	}
 }
 
@@ -1717,19 +1719,83 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 		A00B_Interval = gReceiveCmd[16];
 		Debug_Serial.println(String("每路开启的间隔时间为：") + A00B_Interval + "s");
 
-		/* 这里是普通开度的线路 */
-		Film_Set_Open_Value(&Open_Way[0],ch_num,&open_buf[0]);
-		Film_Motor_Run_Task(&Open_Way[0],ch_num,FILM_ROLL);
-		/* 这里是设置强开的线路 */
-		Film_Set_Open_Value(&Open_F_Way[0],ch_F_num,&open_F_buf[0]);
-		Film_Motor_Run_Task(&Open_F_Way[0],ch_F_num,FILM_F_ROLL);
+		Message_Receipt.Opening_Control_Receipt(3,Opening_SetOK);//向服务器发送开度设置回执
 
-		Message_Receipt.Opening_Control_Receipt(3,Opening_SetOK);
-		// Message_Receipt.Opening_Control_Receipt(3,Opening_SetErr);
+
+		/* 这里是普通开度的线路 */
+		if (ch_num)
+		{
+			Film_Set_Open_Value(&Open_Way[0],ch_num,&open_buf[0]);
+			if (Film_New_Task_Handler(&Open_Way[0],ch_num,FILM_ROLL) == Film_OK)
+				Film_Motor_Run_Task(&Open_Way[0],ch_num,FILM_ROLL);
+		}
+		else if (ch_F_num)
+		{
+			/* 这里是设置强开的线路 */
+			Film_Set_Open_Value(&Open_F_Way[0],ch_F_num,&open_F_buf[0]);
+			if (Film_New_Task_Handler(&Open_F_Way[0],ch_F_num,FILM_F_ROLL) == Film_OK)
+				Film_Motor_Run_Task(&Open_F_Way[0],ch_F_num,FILM_F_ROLL);
+		}
+		
+		
+		
+		
+		
+
+		A00B_Interval = 0;//用完这个变量和对其清零，此时已经完成了需要的间隔
 	}
 	else
 	{
 		Debug_Serial.println("不用理会的A00B指令!!!!");
+	}
+	
+	memset(gReceiveCmd, 0x00, gReceiveLength);
+}
+
+//服务器发送正反转模式的强制停止某些路（A00C）
+void Command_Analysis::Forward_Reverse_mode_Force_Stop()
+{
+//   字节索引     	0        	1-2    	3      	4-5         	6          	7     	8      	9   	10-15       
+//   数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	Channel	CRC8	frameEnd    
+//   长度（byte）	1        	2      	1      	2           	1          	1     	1      	1   	6           
+//   示例数据    	FE       	A00C   	0x05   	C003        	00         	01    	FF     	00  	0D0A0D0A0D0A
+
+
+	if (gAccessNetworkFlag == false)  return;  //如果本设备还没有注册到服务器，不理会该命令
+	//FE A00C 05 C003 00 55 C0 D6 0D0A0D0A0D0A  
+
+	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
+	{
+		Debug_Serial.println("A00C <Forward_Reverse_mode_Force_Stop>");
+		Debug_Serial.flush();
+
+		unsigned char ch_buf[8] = {0x00};
+		unsigned char ch_num = 0;
+
+		#if B400
+		for (size_t i = 0; i < 4; i++)
+		#else
+		for (size_t i = 0; i < 8; i++)
+		#endif
+		{
+			if ((gReceiveCmd[8] << i) & 0b10000000)
+			{
+				ch_buf[ch_num] = i+1;
+				ch_num++;
+			}
+		}
+
+		//这里考虑需不需要回执
+
+		// film_err Film_Set_Force_Stop(film_u8 *ch_buf, film_u8 ch_num);
+		if (Film_Set_Force_Stop(&ch_buf[0],ch_num) == Film_OK)
+		{
+			Debug_Serial.println(">///////////");
+		}
+	}
+	else
+	{
+		Debug_Serial.println("不用理会的A00C指令!!!!");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
