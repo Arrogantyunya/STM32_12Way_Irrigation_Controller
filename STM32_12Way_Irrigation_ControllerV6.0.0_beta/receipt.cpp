@@ -1099,7 +1099,7 @@ void Receipt::Calculate_travel_Receipt(unsigned char send_times,unsigned char Wa
 			2.状态
  @return  : 无
  */
-void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E00Bstatus)//EOOB开度控制回执
+void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E00Bstatus, unsigned char *TargetOpenRate)//EOOB开度控制回执
 {
 //   字节索引    	0        	1-2    	3       	4-5         	6          	7     	8     	9-16           	17-32	33  	34~39       
 //   数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	Status	current_opening	AI   	CRC8	frameEnd    
@@ -1107,7 +1107,16 @@ void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E0
 //   示例数据    	FE       	E00B   	0x1D（29）	C003        	00         	01    	01    	646464646464   	     	00  	0D0A0D0A0D0A
 
 	iwdg_feed();
-	Debug_Serial.println("卷膜开度设置回执 <Opening_Control_Receipt>");
+	if (E00Bstatus == Auto_Report)
+	{
+		Debug_Serial.println("卷膜开度自动上报 <Opening_Control_Receipt>");
+		
+	}
+	else
+	{
+		Debug_Serial.println("卷膜开度设置回执 <Opening_Control_Receipt>");
+	}
+	
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
@@ -1135,15 +1144,26 @@ void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E0
 	ReceiptFrame[ReceiptLength++] = E00Bstatus;
 
 	/* current_opening */
-	for (size_t i = 0; i < 8; i++)
+	if (E00Bstatus == Auto_Report)
 	{
 		/* 这里放入查询开度的代码 */
-		ReceiptFrame[ReceiptLength++] = 0x64;
+		for (unsigned char i = 0; i < 8; i++)
+		{
+			ReceiptFrame[ReceiptLength++] = 0xFF;//
+		}
+	}
+	else
+	{
+		/* 这里是上报目标开度 */
+		for (unsigned char i = 0; i < 8; i++)
+		{
+			ReceiptFrame[ReceiptLength++] = TargetOpenRate[i];
+		}
 	}
 	
 	/* AI */
 	unsigned short AI_data = 0;
-	for (size_t i = 0; i < 8; i++)
+	for (unsigned char i = 0; i < 8; i++)
 	{
 		AI_data = Modbus_Coil.Get_which_AI(Pos_Nega_mode.Read_AI_Relation_Way(i));
 		// Serial.println(String("AI_data = ") + AI_data);

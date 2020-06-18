@@ -210,7 +210,7 @@ film_err Film_New_Task_Handler(film_u8 *ch_buf, film_u8 ch_num, film_m_act act)
 
   FILM_TRA_MOTOR_ACT(i, j, obj_channel)
     Film_Finish_Rolling(j + 1);
-  FILM_TRA_BLOCK_END
+  FILM_TRA_ACT_BLOCK_END
 
   Film_Set_Obj_Channel(obj_channel, act);
   film_pcb.new_task_request_flag = FILM_SET_FLAG;

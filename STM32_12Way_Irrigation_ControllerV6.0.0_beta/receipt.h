@@ -81,7 +81,7 @@ public:
 	void SignalQuality_Version_Receipt(bool use_random_wait,unsigned char send_times);//E007信号质量与版本号回执
 	void Set_threshold_Receipt(unsigned char send_times,unsigned char* gReceiveCmd,unsigned char E009status);//E009设置正反转模式阈值回执
 	void Calculate_travel_Receipt(unsigned char send_times, unsigned char WayUsed, unsigned char E00Astatus);//E00A计算行程与正反转AI回执
-	void Opening_Control_Receipt(unsigned char send_times, unsigned char E00Bstatus);//EOOB开度控制回执
+	void Opening_Control_Receipt(unsigned char send_times, unsigned char E00Bstatus, unsigned char *TargetOpenRate = NULL);//EOOB开度控制回执
 	void Rolling_ch_Status_Receipt(unsigned char send_times,unsigned char ch, unsigned char E00Cstatus);//E00C卷膜路数状态回执
 	
 	void Output_init_Receipt(unsigned char status, unsigned char send_times);//E002发送设置初始状态回执信息给服务器

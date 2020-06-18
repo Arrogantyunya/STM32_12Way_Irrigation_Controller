@@ -1628,18 +1628,14 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 				bitn--;
 			}
 
+			Debug_Serial.println("正在开始计算行程... <Forward_Reverse_mode_Calculate_travel>");
+			Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, Begin_Calculate_travel);
+
 			/* 这里加入卷膜库的重置行程参数 */
 			unsigned char Film_Status = Film_Motor_Run_Task(&ch_buf[0],ch_num,FILM_RESET);//需要根据返回参数来判定是否开始重置
 			Debug_Serial.println(String("Film_Status = ") + Film_Status);
 
-			Debug_Serial.println("正在开始计算行程... <Forward_Reverse_mode_Calculate_travel>");
-			Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, Begin_Calculate_travel);
-
-			/* 测试 */
-			delay(2000);
-			Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, complete_Calculate_travel);
-
-			// Start_Timer4();//
+			// Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, complete_Calculate_travel);
 		}
 	}
 	else
@@ -1719,7 +1715,7 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 		A00B_Interval = gReceiveCmd[16];
 		Debug_Serial.println(String("每路开启的间隔时间为：") + A00B_Interval + "s");
 
-		Message_Receipt.Opening_Control_Receipt(3,Opening_SetOK);//向服务器发送开度设置回执
+		Message_Receipt.Opening_Control_Receipt(3,Opening_SetOK,&gReceiveCmd[8]);//向服务器发送开度设置回执
 
 
 		/* 这里是普通开度的线路 */
@@ -1736,11 +1732,6 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 			if (Film_New_Task_Handler(&Open_F_Way[0],ch_F_num,FILM_F_ROLL) == Film_OK)
 				Film_Motor_Run_Task(&Open_F_Way[0],ch_F_num,FILM_F_ROLL);
 		}
-		
-		
-		
-		
-		
 
 		A00B_Interval = 0;//用完这个变量和对其清零，此时已经完成了需要的间隔
 	}
@@ -1831,7 +1822,7 @@ void Command_Analysis::Forced_Stop(bool Need_Receipt)
 	Complete_Num = 0;//完成开启的个数
 
 	KeyDI7_num = 0;//将按键按下次数清零，就可以让E014一直上报
-	Waiting_Collection = true;//下次回复状态需要等待采集
+	// Waiting_Collection = true;//下次回复状态需要等待采集
 
 	/* 延时模式相关 */
 	Delay_mode_OpenSec = 0;//

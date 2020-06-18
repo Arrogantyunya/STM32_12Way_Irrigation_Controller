@@ -287,28 +287,21 @@ void setup()
  */
 void loop()
 {
-	unsigned char *_empty = NULL;
+	// unsigned char *_empty = NULL;
 
 	iwdg_feed();
 
 	LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
 
-	Modbus_Coil.Modbus_Realization(_empty, 0);//设置输出线圈状态，modbus实现
+	Modbus_Coil.Modbus_Realization();//设置输出线圈状态，modbus实现
 
 	if (Device_Mode == Solenoid_mode)//电磁阀模式
-	{
 		Solenoid_mode_DO_ON();//灌溉分时打开
-	}
 	else if(Device_Mode == Delay_mode)//延时开启模式（）
-	{
 		Delay_mode_DO_ON();//延时DO开启
-	}
 	else if (Device_Mode == Forward_Reverse_mode)//正反转模式
-	{
 		Forward_Reverse_DO_ON();//正反转DO开启
-	}
-	else
-	{
+	else{
 		//空模式Null_Mode
 	}
 	
@@ -322,7 +315,7 @@ void loop()
 
 	Serial_Port_Configuration();//串口设置
 
-	Project_Debug();
+	Project_Debug();//调试模式
 
 	Film_Switch_Task();
 
@@ -441,44 +434,9 @@ void Regular_status_report(void)
 		gStateReportFlag = false;
 		Stop_Status_Report_Timing();
 
-		unsigned long Now = millis();
-		if (Waiting_Collection)
-		{
-			while (millis() - Now < 2000)
-			{
-				LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
-				// if (Device_Mode == Solenoid_mode)//电磁阀模式
-				// {
-				// 	Solenoid_mode_DO_ON();//灌溉分时打开
-				// }
-				// else if(Device_Mode == Delay_mode)//延时开启模式（）
-				// {
-				// 	Delay_mode_DO_ON();//延时DO开启
-				// }
-				// else if (Device_Mode == Forward_Reverse_mode)//正反转模式
-				// {
-				// 	Forward_Reverse_DO_ON();//正反转DO开启
-				// }
-				// else
-				// {
-					
-				// }
-				// Serial.println("Waiting_Collection......");
-				// delay(500);
-			}
-			Waiting_Collection = false;
-		}
-
-		/*得到随机值*/
-		// unsigned char random_1 = random(0, 255);
-		// unsigned char random_2 = random(0, 255);
-		// Serial.println(String("random_1 = ") + String(random_1, HEX));
-		// Serial.println(String("random_2 = ") + String(random_2, HEX));
-
 		/*这里上报实时状态*/
-		// Message_Receipt.Working_Parameter_Receipt(true, 1, random_1, random_2);
-		Message_Receipt.New_Working_Parameter_Receipt(true,1);
-
+		// Message_Receipt.New_Working_Parameter_Receipt(true,1);//该条状态在假如卷膜库后已经被废弃
+		Message_Receipt.Opening_Control_Receipt(1,Auto_Report);
 		Start_Status_Report_Timing();//开始上报状态周期计时
 	}
 }

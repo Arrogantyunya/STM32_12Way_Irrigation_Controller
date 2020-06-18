@@ -148,8 +148,8 @@ bool Modbus_Coils::Set_Coil_DefaultValue(void)
 
 	if (count == 12)
 	{
-		unsigned char *_empty = NULL;
-		Modbus_Coil.Modbus_Realization(_empty, 0);//设置输出线圈状态，modbus实现
+		// unsigned char *_empty = NULL;
+		Modbus_Coil.Modbus_Realization();//设置输出线圈状态，modbus实现
 		Debug_Serial.println("Set Coil DefaultValue Success. <Set_Coil_DefaultValue>");
 		return true;
 	}
@@ -180,8 +180,8 @@ bool Modbus_Coils::Set_Coil_InitValue(void)
 
 	if (Init_DO_1to8(DO_Init[0]) && Init_DO_9to16(DO_Init[1]))
 	{
-		unsigned char *_empty = NULL;
-		Modbus_Coil.Modbus_Realization(_empty, 0);//设置输出线圈状态，modbus实现
+		// unsigned char *_empty = NULL;
+		Modbus_Coil.Modbus_Realization();//设置输出线圈状态，modbus实现
 		Debug_Serial.println("PLC_V1 DO外设引脚初始化成功<Set_Coil_InitValue>");
 		return true;
 	}

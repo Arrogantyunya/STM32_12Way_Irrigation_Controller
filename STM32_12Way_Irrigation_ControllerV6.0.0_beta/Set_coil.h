@@ -108,7 +108,7 @@ public:
     void Modbus_Config(void);           //进行modbus库的配置
     bool Set_Coil_DefaultValue(void);	//设置输出线圈默认值
 	bool Set_Coil_InitValue(void);		//设置输出线圈初始值
-    void Modbus_Realization(unsigned char* modbusPacket, int Length);      //Modbus的实现函数
+    void Modbus_Realization(unsigned char* modbusPacket = NULL, int Length = 0);      //Modbus的实现函数
 	bool Init_DO_1to8(unsigned char num);		//DO1-DO8的线圈初始化
 	bool Init_DO_9to16(unsigned char num);		//DO9-DO16的线圈初始化
 	bool Init_DO_17to24(unsigned char num);		//DO17-DO24的线圈初始化
