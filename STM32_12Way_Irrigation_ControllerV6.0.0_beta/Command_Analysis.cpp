@@ -1123,7 +1123,7 @@ void Command_Analysis::Irrigation_Controllor_control_command(void)
 	}
 	else
 	{
-		Debug_Serial.println("不用理会的A003指令!!!!");
+		Debug_Serial.println("[Debug]无效的A003指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1192,7 +1192,7 @@ void Command_Analysis::Delay_Start_DO_Control_command()
 	}
 	else
 	{
-		Debug_Serial.println("不用理会的A004指令!!!!");
+		Debug_Serial.println("[Debug]无效的A004指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1256,7 +1256,7 @@ void Command_Analysis::Positive_negative_Control_command()
 	}
 	else
 	{
-		Debug_Serial.println("不用理会的A005指令!!!!");
+		Debug_Serial.println("[Debug]无效的A005指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1287,7 +1287,7 @@ void Command_Analysis::Query_SignalQuality_Version_command()
 	}
 	else
 	{
-		Debug_Serial.println("不用理会的A006指令!!!!");
+		Debug_Serial.println("[Debug]无效的A006指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1357,7 +1357,7 @@ void Command_Analysis::Set_Reporting_Interval_command()
 	}
 	else
 	{
-		Debug_Serial.println("不用理会的A007指令!!!!");
+		Debug_Serial.println("[Debug]无效的A007指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1446,7 +1446,7 @@ void Command_Analysis::Set_Lora_parameter_command()
 	}
 	else
 	{
-		Debug_Serial.println("不用理会的A008指令!!!!");
+		Debug_Serial.println("[Debug]无效的A008指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1551,22 +1551,32 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 		}
 		else
 		{
-			Pos_Nega_mode.Save_AI_Relation_Way(&AI_Relation_Way_Array[0]);//保存AI的关联
-			Pos_Nega_mode.Save_WayIS_Reverse(&IS_Reverse_Array[0]);//保存是否反向的信息
-			Pos_Nega_mode.Save_A009_Seted();//保存AI关联以及阈值倍数被设置
-
-			/* 这里调用卷膜库的写入阈值函数 */
-			unsigned char ch_buf[8] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
-			Film_Set_Ele_Cur_Threshold(&ch_buf[0], &Threshold_multiple_Array[0], 2);//第一个是需要写入的数组
-
-			Debug_Serial.println("AI关联以及阈值倍数设置成功... <Set_Forward_Reverse_mode_threshold>");
-
-			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd, E009_Success);//
+			if (Pos_Nega_mode.Save_AI_Relation_Way(&AI_Relation_Way_Array[0]) && /* 保存AI的关联 */
+				Pos_Nega_mode.Save_WayIS_Reverse(&IS_Reverse_Array[0]) && /* 保存是否反向的信息 */
+				Pos_Nega_mode.Save_A009_Seted()/* 保存AI关联以及阈值倍数被设置 */)
+			{
+				/* 这里调用卷膜库的写入阈值函数 */
+				unsigned char ch_buf[8] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
+				if(Film_Set_Ele_Cur_Threshold(&ch_buf[0], &Threshold_multiple_Array[0], 2) == Film_MEM_Exp)//第一个是需要写入的数组
+				{
+					Debug_Serial.println(String("[Error]设置卷膜库阈值失败"));
+					Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd, Param_config_fail);//设置卷膜库阈值失败
+				}
+				else
+				{
+					Debug_Serial.println(String("[Info]") + __FILE__ + "设置卷膜库阈值成功");
+					Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd, E009_Success);//设置成功
+				}
+			}
+			else
+			{
+				Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd, E009_Storage_fail);//存储失败
+			}
 		}
 	}
 	else
 	{
-		Debug_Serial.println("不用理会的A009指令!!!!");
+		Debug_Serial.println("[Debug]无效的A009指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1614,18 +1624,26 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 			unsigned char ch_num = 0;
 			
 			byte bitn = 7;byte BitRead = 0;
-			for (unsigned char i = 0; i < 8; i++)
+			if (A00A_WayUsed == 0xFF)
 			{
-				BitRead = ((A00A_WayUsed >> bitn) & 0x01);
-				if(BitRead)
+				ch_num = MOTOR_CHANNEL;
+				Debug_Serial.println(String("所有路数开始重置行程"));
+			}
+			else
+			{
+				for (unsigned char i = 0; i < 8; i++)
 				{
-					//表示第几路需要重置
-					A00A_WayUsed_Array[i] = true;
-					Debug_Serial.println(String("第") + i + "路需要进行重置");
-					ch_buf[ch_num] = i+1;
-					ch_num++;
+					BitRead = ((A00A_WayUsed >> bitn) & 0x01);
+					if(BitRead)
+					{
+						//表示第几路需要重置
+						A00A_WayUsed_Array[i] = true;
+						Debug_Serial.println(String("第") + i + "路需要进行重置");
+						ch_buf[ch_num] = i+1;
+						ch_num++;
+					}
+					bitn--;
 				}
-				bitn--;
 			}
 
 			Debug_Serial.println("正在开始计算行程... <Forward_Reverse_mode_Calculate_travel>");
@@ -1635,12 +1653,12 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 			unsigned char Film_Status = Film_Motor_Run_Task(&ch_buf[0],ch_num,FILM_RESET);//需要根据返回参数来判定是否开始重置
 			Debug_Serial.println(String("Film_Status = ") + Film_Status);
 
-			// Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, complete_Calculate_travel);
+			Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, complete_Calculate_travel);
 		}
 	}
 	else
 	{
-		Debug_Serial.println("不用理会的A00A指令!!!!");
+		Debug_Serial.println("[Debug]无效的A00A指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1717,7 +1735,6 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 
 		Message_Receipt.Opening_Control_Receipt(3,Opening_SetOK,&gReceiveCmd[8]);//向服务器发送开度设置回执
 
-
 		/* 这里是普通开度的线路 */
 		if (ch_num)
 		{
@@ -1737,7 +1754,7 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 	}
 	else
 	{
-		Debug_Serial.println("不用理会的A00B指令!!!!");
+		Debug_Serial.println("[Debug]无效的A00B指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1760,33 +1777,44 @@ void Command_Analysis::Forward_Reverse_mode_Force_Stop()
 		Debug_Serial.println("A00C <Forward_Reverse_mode_Force_Stop>");
 		Debug_Serial.flush();
 
-		unsigned char ch_buf[8] = {0x00};
+		unsigned char ch_buf[8] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
 		unsigned char ch_num = 0;
 
-		#if B400
-		for (size_t i = 0; i < 4; i++)
-		#else
-		for (size_t i = 0; i < 8; i++)
-		#endif
+		if (gReceiveCmd[8] == 0xFF)
 		{
-			if ((gReceiveCmd[8] << i) & 0b10000000)
+			ch_num = MOTOR_CHANNEL;
+			Debug_Serial.println(String("所有路数强制停止"));
+			// for (unsigned char i = 0; i < MOTOR_CHANNEL; i++)
+			// {
+			// 	ch_buf[i] = i+1;
+			// }
+		}
+		else
+		{
+			#if B400
+			for (size_t i = 0; i < 4; i++)
+			#else
+			for (size_t i = 0; i < 8; i++)
+			#endif
 			{
-				ch_buf[ch_num] = i+1;
-				ch_num++;
+				if ((gReceiveCmd[8] << i) & 0b10000000)
+				{
+					Debug_Serial.println(String("第") + i + "路强制停止");
+					ch_buf[ch_num] = i+1;
+					ch_num++;
+				}
 			}
 		}
-
-		//这里考虑需不需要回执
 
 		// film_err Film_Set_Force_Stop(film_u8 *ch_buf, film_u8 ch_num);
 		if (Film_Set_Force_Stop(&ch_buf[0],ch_num) == Film_OK)
 		{
-			Debug_Serial.println(">///////////");
+			Debug_Serial.println("[Debug]正反转模式强制停止设置成功");
 		}
 	}
 	else
 	{
-		Debug_Serial.println("不用理会的A00C指令!!!!");
+		Debug_Serial.println("[Debug]无效的A00C指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);

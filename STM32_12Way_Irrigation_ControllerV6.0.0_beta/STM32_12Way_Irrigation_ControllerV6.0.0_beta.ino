@@ -60,6 +60,7 @@
 #define DO_CHANGE_REPORT	true	//DO状态改变上报
 #define DO_OPEN_REPORT		true	//DO某路开启就启动高频率状态上报
 #define EEPROM_RESET		false 	//重置EEPROM的所有值【测试使用】
+#define Print_test			true	//打印测试
 /* 替换宏 */
 #define Software_version_high 	0x06 	//软件版本的高位
 #define Software_version_low 	0x00 	//软件版本的低位
@@ -126,6 +127,17 @@ void setup()
 	LoRa_MHL9LF.BaudRate(9600);//#define LoRa_Serial     Serial1
 	// LoRa_Serial.setTimeout(55);
 	RS485_Serial.begin(9600);//485的串口
+
+#if Print_test
+	/* File :D:\刘家辉\代码\STM32_12Way_Irrigation_Controller\STM32_12Way_Irrigation_ControllerV6.0.0_beta\STM32_12Way_Irrigation_ControllerV6.0.0_beta.ino */
+	Debug_Serial.println(String("File :") + __FILE__);
+	/* Data :Jun 19 2020 *//* 显示的是编译的日期 */
+	Debug_Serial.println(String("Data :") + __DATE__);
+	/* Time :10:15:31 *//* 显示的是编译的日期 */
+	Debug_Serial.println(String("Time :") + __TIME__);
+	/* Line :135 */
+	Debug_Serial.println(String("Line :") + __LINE__);
+#endif
 
 	bkp_init();	//备份寄存器初始化使能
 	EEPROM_Operation.EEPROM_GPIO_Config();		//设置EEPROM读写引脚
@@ -248,7 +260,6 @@ void setup()
 
 	Realtime_Status_Reporting_Timer_Init(); //使用定时器2初始化自动上报状态周期(改为了定时器3)
 	Start_Status_Report_Timing();
-	// Stop_Status_Report_Timing();
 	Debug_Serial.println("Timed status reporting mechanism initialization completed...");//定时上报机制初始化完成
 	Debug_Serial.println("");
 
@@ -307,7 +318,7 @@ void loop()
 	
 	Check_Store_Param_And_LoRa(); //检查存储参数以及LORA参数
 
-	// Regular_status_report();//定时状态上报
+	Regular_status_report();//定时状态上报
 
 	Change_status_report();//状态改变上报
 
@@ -436,6 +447,7 @@ void Regular_status_report(void)
 
 		/*这里上报实时状态*/
 		// Message_Receipt.New_Working_Parameter_Receipt(true,1);//该条状态在假如卷膜库后已经被废弃
+		// Debug_Serial.println("[Debug]定时状态上报");
 		Message_Receipt.Opening_Control_Receipt(1,Auto_Report);
 		Start_Status_Report_Timing();//开始上报状态周期计时
 	}

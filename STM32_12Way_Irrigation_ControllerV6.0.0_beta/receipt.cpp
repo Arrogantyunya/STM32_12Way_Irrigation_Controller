@@ -1149,7 +1149,11 @@ void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E0
 		/* 这里放入查询开度的代码 */
 		for (unsigned char i = 0; i < 8; i++)
 		{
-			ReceiptFrame[ReceiptLength++] = 0xFF;//
+			// //ReceiptFrame[ReceiptLength++] = random(0,100);
+			if (i < MOTOR_CHANNEL)
+				ReceiptFrame[ReceiptLength++] = 0xFF;
+			else
+				ReceiptFrame[ReceiptLength++] = 0xFE;//表示不存在的路数
 		}
 	}
 	else

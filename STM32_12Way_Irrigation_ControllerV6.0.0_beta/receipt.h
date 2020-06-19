@@ -25,7 +25,8 @@ enum ReceiptStatus {
 };
 
 enum E009_Status{
-	Illegal_AI_relation = 0,Illegal_threshold_multiple,E009_Success
+	E009_Success = 0,Illegal_AI_relation,Illegal_threshold_multiple,E009_Storage_fail,
+	Param_config_fail
 };
 
 enum E00A_Status{
