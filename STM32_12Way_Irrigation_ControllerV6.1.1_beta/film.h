@@ -148,20 +148,22 @@ void Film_Check_Exp_Open_Task(void);
 void Film_Motor_Clear_EleCurrent(void);
 
 /* 放在main循环里 */
-void Film_Switch_Task(void);
+void Film_Switch_Task(void);//更新切换电机运行任务
 
 /* 放在接受服务器指令流程里 */
-film_err Film_Set_Open_Value(film_u8 *ch_buf, film_u8 ch_num, film_u8 *open_buf);
-film_err Film_New_Task_Handler(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
-film_err Film_Motor_Run_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);
+film_err Film_Set_Open_Value(film_u8 *ch_buf, film_u8 ch_num, film_u8 *open_buf);//
+film_err Film_New_Task_Handler(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);//
+film_err Film_Motor_Run_Task(film_u8 *ch_buf, film_u8 ch_num, film_m_act act);//
 
 /* 提供给开发者的些电机参数查询函数 */
-film_u8 Film_Read_RT_Opening_CH(film_u8 ch);
-film_m_sta Film_Read_Motor_Status_CH(film_u8 ch);
+film_u8 Film_Read_RT_Opening_CH(film_u8 ch);//查询实时开度
+film_u8 Film_Read_Last_Opening_CH(film_u8 ch);//查询上次开度
+film_u8 Film_Read_Run_Opening_CH(film_u8 ch);//查询目标开度
+film_m_sta Film_Read_Motor_Status_CH(film_u8 ch);//查询电机状态
 
 /* 放在接收服务器指令流程里 */
-film_err Film_Set_Ele_Cur_Threshold(film_u8 *ch_buf, film_u8 *cur_lmt ,film_u8 ch_num);
-film_err Film_Set_Force_Stop(film_u8 *ch_buf, film_u8 ch_num);
+film_err Film_Set_Ele_Cur_Threshold(film_u8 *ch_buf, film_u8 *cur_lmt ,film_u8 ch_num);//设置电流阈值
+film_err Film_Set_Force_Stop(film_u8 *ch_buf, film_u8 ch_num);//设置强制停止
 
 /* 放在开发者实现的定时器处理函数里（必须1S来调用一次该函数） */
 void Film_Load_Tim_Var(void);

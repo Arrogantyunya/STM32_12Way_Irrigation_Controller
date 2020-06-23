@@ -19,6 +19,9 @@ ModbusSerial mb;
 bool gTime_arrive_Flag = false;//定时器时间到达的标志位
 unsigned int Irrigation_time = 0x00;//灌溉时间（也就是定时器需要定时的时间，可以是单个间隔时间，单个开启时间，循环间隔时间）
 
+bool Unkonwn_Open_Flag[8] = {false};
+unsigned char Unkonwn_Open_RunOpen[8] = {0};
+
 /*
  @brief   : 进行modbus库的配置
  @para    : None
@@ -905,5 +908,71 @@ void Set_DO_relay(unsigned char way, bool value)
 		case 10:digitalWrite(KCZJ11, value);value>0?mb.Coil(KCZJ11_COIL,0x0000):mb.Coil(KCZJ11_COIL,0xff00); break;
 		case 11:digitalWrite(KCZJ12, value);value>0?mb.Coil(KCZJ12_COIL,0x0000):mb.Coil(KCZJ12_COIL,0xff00); break;
 		default:/*强制停止*/	Serial.println("异常!!强制停止");		break;
+	}
+}
+
+/* 异常处理卷膜开度未知 */
+void ExceptionHandle_Film_M_Unkonwn_Open(void)
+{
+	unsigned char Open_Way[8] = {0x00};//
+	unsigned char Open_F_Way[8] = {0x00};//
+	unsigned char ch_num = 0;//
+	unsigned char ch_F_num = 0;//
+	unsigned char open_buf[8] = {0x00};//
+	unsigned char open_F_buf[8] = {0x00};//
+
+	for (unsigned char  i = 0; i < MOTOR_CHANNEL; i++)
+	{
+		if (Film_Read_Motor_Status_CH(i+1) == Film_M_Unkonwn_Open)
+		{
+			Unkonwn_Open_Flag[i] = true;//
+			Unkonwn_Open_RunOpen[i] = Film_Read_Run_Opening_CH(i+1);//备份上一次开度为
+			Debug_Serial.println(String("第") + (i+1) + "路开度未知，目标开度为：" + Unkonwn_Open_RunOpen[i]);
+
+			Open_F_Way[ch_F_num] = i+1;
+			open_F_buf[ch_F_num] = 0x00;
+			ch_F_num++; 
+		}
+		else if (Film_Read_Motor_Status_CH(i+1) == Film_M_F_Open_OK && Unkonwn_Open_Flag[i])
+		{
+			Unkonwn_Open_Flag[i] = false;//
+			Debug_Serial.println(String("第") + (i+1) + "路开度复位，目标开度为：" + Unkonwn_Open_RunOpen[i]);
+			Open_Way[ch_num] = i+1;
+			open_buf[ch_num] = Unkonwn_Open_RunOpen[i];	
+			ch_num++;
+		}	
+	}
+
+	if (ch_F_num)
+	{
+		/* 这里是设置强开的线路 */
+		Film_Set_Open_Value(&Open_F_Way[0],ch_F_num,&open_F_buf[0]);
+		if (Film_New_Task_Handler(&Open_F_Way[0],ch_F_num,FILM_F_ROLL) == Film_OK)
+			Film_Motor_Run_Task(&Open_F_Way[0],ch_F_num,FILM_F_ROLL);
+	}
+	else if (ch_num)
+	{
+		Film_Set_Open_Value(&Open_Way[0],ch_num,&open_buf[0]);
+		if (Film_New_Task_Handler(&Open_Way[0],ch_num,FILM_ROLL) == Film_OK)
+			Film_Motor_Run_Task(&Open_Way[0],ch_num,FILM_ROLL);
+	}
+	
+	
+
+	else if (gReceiveCmd[8+i] >= 0x00 && gReceiveCmd[8+i] <= 0x64)
+	{
+		Debug_Serial.println(String("第") + i + "路设置目标开度为" + gReceiveCmd[8+i]);
+
+		Open_Way[ch_num] = i+1;
+		open_buf[ch_num] = gReceiveCmd[8+i];	
+		ch_num++;
+	}
+	else if (gReceiveCmd[8+i] == 0xF0)
+	{
+		Debug_Serial.println(String("第") + i + "路强制全关");
+
+		Open_F_Way[ch_F_num] = i+1;
+		open_F_buf[ch_F_num] = 0x00;
+		ch_F_num++; 
 	}
 }

@@ -1905,14 +1905,14 @@ film_mem_err Film_MEM_Write_Buffer(film_u32 base_addr, film_u8 *buf, film_u32 le
 	}
 	EEPROM_Write_Disable();
 
-	for (size_t i = 0; i < len; i++)
-	{
-		if (buf[i] != AT24C_02.AT24CXX_ReadOneByte(base_addr+i))
-		{
-			Debug_Serial.println("ERROR!!!!!!!!!!!!!!!!! <Film_MEM_Write_Buffer>");
-			return FILM_MEM_W_ERR;
-		}
-	}
+	// for (size_t i = 0; i < len; i++)
+	// {
+	// 	if (buf[i] != AT24C_02.AT24CXX_ReadOneByte(base_addr+i))
+	// 	{
+	// 		Debug_Serial.println("ERROR!!!!!!!!!!!!!!!!! <Film_MEM_Write_Buffer>");
+	// 		return FILM_MEM_W_ERR;
+	// 	}
+	// }
 	
 	return FILM_MEM_OK;
 }

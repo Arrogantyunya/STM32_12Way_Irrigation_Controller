@@ -196,7 +196,7 @@ void setup()
 	LORA_SYNC = LoRa_Para_Config.Read_LoRa_SYNC();
 	Debug_Serial.println(String("LORA_SYNC = ") + String(LORA_SYNC));
 	
-	LoRa_MHL9LF.Parameter_Init(false);//LORA参数设置
+	// LoRa_MHL9LF.Parameter_Init(false);//LORA参数设置
 	LoRa_Para_Config.Save_LoRa_Config_Flag();//保存LORA参数配置完成标志位
 #endif
 
@@ -240,7 +240,7 @@ void setup()
 
 	Project_Debug(); //工程模式
 
-	SN.Clear_SN_Access_Network_Flag(); //清除注册到服务器标志位
+	// SN.Clear_SN_Access_Network_Flag(); //清除注册到服务器标志位
 
 	/*Request access network(request gateway to save the device's SN code and channel)*/
 	Request_Access_Network(); //检查是否注册到服务器
@@ -291,14 +291,14 @@ void setup()
 	DO_NumLast = Modbus_Coil.Get_DO_1to8();	DO_NumNow = DO_NumLast;
 
 	Film_Param_Init();//卷膜初始化
-	Film_Check_Exp_Open_Task();
+	Film_Check_Exp_Open_Task();//开机后检测是否有电机在开度卷膜未完成时断过电，恢复这些未完成的电机运动
 	Debug_Serial.println("");
 
 	Debug_Serial.println("All configuration items are initialized. Welcome to use!!!  ~(*^__^*)~ ");//所有的设置项初始化完成，欢迎使用
 	Debug_Serial.println("");
 
-	InitState.Save_WorkInterval(0x00,0x05);
-	InitState.Save_StopInterval(0x00,0x0A);
+	InitState.Save_WorkInterval(0x00,0x0A);//10秒
+	InitState.Save_StopInterval(0x00,0x14);//20秒
 
 	if (!Pos_Nega_mode.Read_A00D_Seted())
 	{
@@ -314,11 +314,11 @@ void setup()
  */
 void loop()
 {
-	// unsigned char *_empty = NULL;
-
 	iwdg_feed();
 
-	LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
+	ExceptionHandle_Film_M_Unkonwn_Open();
+
+	// LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
 
 	Modbus_Coil.Modbus_Realization();//设置输出线圈状态，modbus实现
 
@@ -334,9 +334,9 @@ void loop()
 	
 	Check_Store_Param_And_LoRa(); //检查存储参数以及LORA参数
 
-	Regular_status_report();//定时状态上报
+	// Regular_status_report();//定时状态上报
 
-	Change_status_report();//状态改变上报
+	// Change_status_report();//状态改变上报
 
 	Key_cycle_irrigationV3();//按键启动循环灌溉
 

@@ -130,13 +130,7 @@ film_u32 Film_Read_Analog_Ele_Current_CH(film_u8 ch);//读取一路电机的电�
 void Film_Ctrl_Motor_CH(film_u8 ch, Film_DIR dir);//根据传入的路数和方向，控制该路电机转动
 
 void Set_Way_Motor(unsigned char ch, unsigned char status);
-// void Set_Way1_Motor(unsigned char status);
-// void Set_Way2_Motor(unsigned char status);
-// void Set_Way3_Motor(unsigned char status);
-// void Set_Way4_Motor(unsigned char status);
-// void Set_Way5_Motor(unsigned char status);
-// void Set_Way6_Motor(unsigned char status);
-// void Set_Way7_Motor(unsigned char status);
+void ExceptionHandle_Film_M_Unkonwn_Open(void);//异常处理卷膜开度未知
 
 extern Modbus_Coils Modbus_Coil;
 extern bool gTime_arrive_Flag;

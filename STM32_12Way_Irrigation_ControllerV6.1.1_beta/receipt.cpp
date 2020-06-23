@@ -2,7 +2,7 @@
 #include "User_CRC8.h"
 #include <libmaple/iwdg.h>
 #include "LoRa.h"
-// #include "Motor.h"
+#include "Set_coil.h"
 #include "Memory.h"
 #include "Command_Analysis.h"
 #include "fun_periph.h"
@@ -1580,7 +1580,7 @@ void Film_Status_Msg_Delivery_Task(film_u8 ch, film_m_sta sta)
 		case Film_M_Up_Limit_Exp: Debug_Serial.println("Film_M_Up_Limit_Exp,上限位异常");break;
 		case Film_M_Down_Limit_Exp: Debug_Serial.println("Film_M_Down_Limit_Exp,下限位异常");break;
 		case Film_M_Run_Exp: Debug_Serial.println("Film_M_Run_Exp,电机异常（检测到电压过低）");break;
-		case Film_M_Unkonwn_Open: Debug_Serial.println("未知开度,电机开度未知");break;
+		case Film_M_Unkonwn_Open: Debug_Serial.println("Film_M_Unkonwn_Open,电机开度未知");break;
 		default: Debug_Serial.println("Unknow_Status,未知状态!!!"); break;
 	}
 

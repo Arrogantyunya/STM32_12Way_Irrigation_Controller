@@ -145,7 +145,7 @@ void Film_Check_Exp_Open_Task(void)
     if (!(film_pcb.rt_open_val[i] - film_pcb.run_open_val[i])) continue;
     /* 如果有差值而不是相等 */
     FM_PRINT((FM_PrintDBG_Buf, "The last opening task of the %dth motor is not completed! [Film_Check_Exp_Open_Task]\n", i + 1));
-    if (film_pcb.rt_open_val[i] != FILM_ALL_CLOSE && film_pcb.rt_open_val[i] != FILM_ALL_OPEN) continue;
+    // if (film_pcb.rt_open_val[i] != FILM_ALL_CLOSE && film_pcb.rt_open_val[i] != FILM_ALL_OPEN) continue;//更改需求，原来是怕开度0和100误报，现在直接增加断电恢复开度功能
 
     film_pcb.rt_open_val[i] = FILM_UNKONWN_OPEN;
     Film_Set_Motor_Status_CH(i + 1, Film_M_Unkonwn_Open);
@@ -196,6 +196,8 @@ void Film_Stop_Timming_CH(film_u8 ch)
 
 /**********************************************与服务器下发参数设置有关函数****************************************************/
 film_u8 Film_Read_RT_Opening_CH(film_u8 ch) { return (film_pcb.rt_open_val[ch - 1]); }
+film_u8 Film_Read_Last_Opening_CH(film_u8 ch) { return (film_pcb.last_open_val[ch - 1]); }
+film_u8 Film_Read_Run_Opening_CH(film_u8 ch) { return (film_pcb.run_open_val[ch - 1]); }
 
 film_m_sta Film_Read_Motor_Status_CH(film_u8 ch){ return (film_pcb.run_motor_exp_sta[ch - 1]); }
 
