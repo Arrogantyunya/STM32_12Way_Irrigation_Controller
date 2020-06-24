@@ -80,6 +80,8 @@ film_err Film_Set_Open_Value(film_u8 *ch_buf, film_u8 ch_num, film_u8 *open_buf)
   {
     /* 如果当前路数正在强制卷膜，不去覆盖强制卷膜的开度！ */
     if (film_pcb.m_f_open_channel & (1 << (ch_buf[i] - 1))) continue;
+
+    if (open_buf[i] > FILM_ALL_OPEN) continue;
     film_pcb.run_open_val[ch_buf[i] - 1] = open_buf[i];
     if (Film_MEM_Save_Param_CH(FILM_MEM_RUN_OPEN_BASE_ADDR, &film_pcb.run_open_val[ch_buf[i] - 1], ch_buf[i]))
       return Film_MEM_Exp;
@@ -919,9 +921,16 @@ void Film_Detect_Opening(void)
 
     /* 实时开度计算 */
     if (film_pcb.motor_dir[i] == Film_Forward)
+    {
       film_pcb.rt_open_val[i] = ((double)film_pcb.ctrl_timing_num[i] / (double)film_pcb.total_roll_time[i] * 100) + film_pcb.last_open_val[i];
+      if (film_pcb.rt_open_val[i] > film_pcb.run_open_val[i]) film_pcb.rt_open_val[i] = film_pcb.run_open_val[i];
+    }
     else
+    {
       film_pcb.rt_open_val[i] = film_pcb.last_open_val[i] - ((double)film_pcb.ctrl_timing_num[i] / (double)film_pcb.last_open_val[i] * 100);
+      if (film_pcb.rt_open_val[i] < film_pcb.run_open_val[i]) film_pcb.rt_open_val[i] = film_pcb.run_open_val[i];
+    }
+
     /* 开度到达验证 */
     if (film_pcb.run_open_val[i] == FILM_ALL_CLOSE || film_pcb.run_open_val[i] == FILM_ALL_OPEN) continue;
     if (film_pcb.ctrl_timing_num[i] < film_pcb.run_roll_time[i]) continue;
