@@ -203,6 +203,7 @@ void Film_Auto_Open_Task(void)
         Film_MEM_Save_Param_CH(FILM_MEM_RUN_OPEN_BASE_ADDR, &film_pcb.run_open_val[i], i + 1))
       continue;
 
+    FM_PRINT((FM_PrintDBG_Buf, "the %dth motor prepare auto-open task...[Film_Auto_Open_Task]\n", i + 1));
     /* 挂载电机 */
     auto_open_ch_buf[ch_num] = i + 1;
     ch_num++;
@@ -315,10 +316,12 @@ film_err Film_New_Task_Handler(film_u8 *ch_buf, film_u8 ch_num, film_m_act act)
     /* 如果该路电机正在强制卷膜，其他状态不能替换强制卷膜，拒绝切换 */
     if (film_pcb.m_f_open_channel & (1 << (ch_buf[i] - 1))) continue;
 
+    film_pcb.auto_open_roll_flag[ch_buf[i] - 1] = FILM_RESET_FLAG;
+
     if (act == FILM_F_ROLL)
     {
       film_pcb.m_reset_channel &= ~(1 << (ch_buf[i] - 1));
-      film_pcb.m_open_channel &= ~(1 << (ch_buf[i] - 1));      
+      film_pcb.m_open_channel &= ~(1 << (ch_buf[i] - 1));
     }
     /* 如果该路电机正在重置行程，当前切换任务是开度卷膜时，拒绝切换 */
     if (act == FILM_ROLL)
@@ -346,6 +349,25 @@ film_err Film_New_Task_Handler(film_u8 *ch_buf, film_u8 ch_num, film_m_act act)
       film_pcb.last_open_val[j] = film_pcb.rt_open_val[j];
       if (Film_MEM_Save_Param_CH(FILM_MEM_LAST_OPEN_BASE_ADDR, &film_pcb.last_open_val[j], j + 1))
         Film_Store_Exp_Handler_CH(j + 1, FILM_ROLL);      
+    }
+
+    /* 写这段代码的原因是：
+     * 举个例子
+     * 1.已经重置完成过
+     * 2.命令去强制卷膜，start_task里会判断等强制卷膜完成后需要恢复重置完成标志位，然后清除重置完成标志位
+     * 3.如果本次强制卷膜顺利完成，就会恢复重置完成标志位
+     * 4.但是，如果卷膜中途再次更新切换新任务，就会再次进入2步骤，但此时因为重置卷膜标志位已经清除了，所以该次卷膜会认为卷膜完成后不用恢复重置完成标志位
+     * 会造成就算强制卷膜完成，下一次需要开度卷膜时却要重置行程。
+     * 5.解决办法就是在切换新任务，也就是本函数，判断是否需要恢复重置行程标志位，如果需要，先在这里恢复，然后在2步骤就能再次正确判断等强制卷膜完成后需要恢复
+     * 重置行程标志位了。
+     */
+    if (i == FILM_F_ROLL)
+    {
+      if (film_pcb.re_ok_before_f_roll_flag[j])
+      {
+        if (Film_MEM_Set_Flag_CH(FILM_MEM_RE_OK_FLAG_BASE_ADDR, j + 1, FILM_MEM_FLAG_SET_MODE))
+          Film_Store_Exp_Handler_CH(j + 1, FILM_F_ROLL);
+      }
     }
     Film_Finish_Rolling(j + 1);
   FILM_TRA_ACT_BLOCK_END
@@ -869,6 +891,7 @@ void Film_Cal_Save_Ele_Cur_CH(film_u8 ch)
 /*储存异常处理，包含了挂起储存异常的电机，设置异常状态，投递状态 */
 void Film_Store_Exp_Handler_CH(film_u8 ch, film_m_act act)
 {
+  Film_Finish_Rolling(ch);
   Film_Pending_Motor_CH(ch, act);
   Film_Set_Motor_Status_CH(ch, Film_M_MEM_Exp);
   Film_Status_Msg_Delivery_Task(ch, film_pcb.run_motor_exp_sta[ch - 1]);

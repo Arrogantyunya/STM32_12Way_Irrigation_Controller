@@ -11,6 +11,8 @@
 #define FILM_MEM_BASE_ADDR_ALLOC(x)                 (x + 1U)
 #define FILM_MEM_END_ADDR_ALLOC(x, m_size)          (x + (FILM_MEM_CHANNEL * m_size) + (m_size - 1))
 
+#define FILM_MEM_SINGLE_ADDR_ALLOC(x)               (x + 1U)
+
 #define FILM_MEM_ADDR_SIG(x)                        (x)
 
 /* 运行开度储存地址 */
