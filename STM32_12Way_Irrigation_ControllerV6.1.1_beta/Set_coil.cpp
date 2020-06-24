@@ -956,23 +956,4 @@ void ExceptionHandle_Film_M_Unkonwn_Open(void)
 		if (Film_New_Task_Handler(&Open_Way[0],ch_num,FILM_ROLL) == Film_OK)
 			Film_Motor_Run_Task(&Open_Way[0],ch_num,FILM_ROLL);
 	}
-	
-	
-
-	else if (gReceiveCmd[8+i] >= 0x00 && gReceiveCmd[8+i] <= 0x64)
-	{
-		Debug_Serial.println(String("第") + i + "路设置目标开度为" + gReceiveCmd[8+i]);
-
-		Open_Way[ch_num] = i+1;
-		open_buf[ch_num] = gReceiveCmd[8+i];	
-		ch_num++;
-	}
-	else if (gReceiveCmd[8+i] == 0xF0)
-	{
-		Debug_Serial.println(String("第") + i + "路强制全关");
-
-		Open_F_Way[ch_F_num] = i+1;
-		open_F_buf[ch_F_num] = 0x00;
-		ch_F_num++; 
-	}
 }

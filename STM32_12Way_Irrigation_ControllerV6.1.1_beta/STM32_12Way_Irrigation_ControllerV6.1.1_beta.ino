@@ -318,7 +318,7 @@ void loop()
 
 	ExceptionHandle_Film_M_Unkonwn_Open();
 
-	// LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
+	LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
 
 	Modbus_Coil.Modbus_Realization();//设置输出线圈状态，modbus实现
 
