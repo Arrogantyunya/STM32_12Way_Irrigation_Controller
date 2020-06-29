@@ -165,6 +165,7 @@ inline void EEPROM_Write_Disable(void)
 inline void EEPROM_Write_Enable(void)
 {
 	digitalWrite(EP_WP_PIN, LOW);
+	delay(50);
 }
 
 class EEPROM_Operations : protected AT24Cxx {

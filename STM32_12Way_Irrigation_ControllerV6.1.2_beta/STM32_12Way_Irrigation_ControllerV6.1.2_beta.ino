@@ -60,7 +60,7 @@
 #define DO_CHANGE_REPORT		true	//DO状态改变上报
 #define DO_OPEN_REPORT			true	//DO某路开启就启动高频率状态上报
 #define EEPROM_RESET			false 	//重置EEPROM的所有值【测试使用】
-#define EEPROM_AT24C128_TEST 	false	//测试AT24C128芯片
+#define EEPROM_AT24C128_TEST 	true	//测试AT24C128芯片
 #define Print_test				true	//打印测试
 /* 替换宏 */
 #define Software_version_high 	0x06 	//软件版本的高位
@@ -138,6 +138,8 @@ void setup()
 	Debug_Serial.println(String("Time :") + __TIME__);
 	/* Line :135 */
 	Debug_Serial.println(String("Line :") + __LINE__);
+	/* Func :setup */
+	Debug_Serial.println(String("Func :") + __func__);
 #endif
 
 	bkp_init();	//备份寄存器初始化使能
@@ -147,15 +149,68 @@ void setup()
 #endif
 
 #if	EEPROM_AT24C128_TEST
-	if(EEPROM_Operation.EEPROM_AT24C128_Test())
-		Debug_Serial.println("[Debug]EEPROM_AT24C128_Test Success");
-	else
-		Debug_Serial.println("[Debug]EEPROM_AT24C128_Test Fail");
+	// film_mem_err Film_MEM_Save_Param(film_u32 w_base_addr, film_u8 *w_buf);
+	// film_mem_err Film_MEM_Read_Param(film_u32 r_base_addr, film_u8 *r_buf);
+	// film_mem_err Film_MEM_Save_Param_CH(film_u32 w_base_addr, film_u8 *w_buf, film_u8 ch);
+	// film_mem_err Film_MEM_Read_Param_CH(film_u32 r_base_addr, film_u8 *r_buf, film_u8 ch);
 
-	if(EEPROM_Operation.EEPROM_AT24C128_Reset())
-		Debug_Serial.println("[Debug]EEPROM_AT24C128_Reset Success");
-	else
-		Debug_Serial.println("[Debug]EEPROM_AT24C128_Reset Fail");
+	// unsigned char run_open_val = 0;	unsigned char now_open_val;
+	// for (unsigned int a = 0; a < 20; a++)
+	// {
+	// 	Set_DO_relay(0,ON);
+	// 	Set_DO_relay(1,OFF);
+	// 	delay(300);
+
+	// 	for (unsigned char i = 0; i < 4; i++)
+	// 	{
+	// 		run_open_val += i; 
+	// 		Debug_Serial.println(run_open_val);
+	// 		if (Film_MEM_Save_Param_CH(FILM_MEM_RUN_OPEN_BASE_ADDR, &run_open_val, i+1))
+	// 			Debug_Serial.println("pppppppppppp<>");
+
+	// 		//delay(100);
+	// 	}
+	// 	Set_DO_relay(0,OFF);
+	// 	Set_DO_relay(1,ON);
+	// 	delay(300);
+	// 	for (unsigned char i = 0; i < 4; i++)
+	// 	{
+	// 		if (Film_MEM_Read_Param_CH(FILM_MEM_RUN_OPEN_BASE_ADDR, &now_open_val, i+1))
+	// 			Debug_Serial.println("qqqqqqqqqqqqqqqq<>");			
+	// 	}
+	// }
+	// Debug_Serial.println("test ojbk<>");
+	// while (1)
+	// {
+	// 	iwdg_feed();
+	// }
+
+
+	// unsigned char BUFF[10000] = {0x00};
+
+	// for (size_t i = 0; i < 10; i++)
+	// {
+	// 	for (size_t a = 0; a < 10000; a++)
+	// 	{
+	// 		BUFF[a] = BUFF[a]+10;
+	// 	}
+	// 	if(Film_MEM_Write_Buffer(150,&BUFF[0],10000) == FILM_MEM_OK)
+	// 		Debug_Serial.println("[Debug]EEPROM_AT24C128_Test Success");
+	// 	else
+	// 		Debug_Serial.println("[Debug]EEPROM_AT24C128_Test Fail");
+
+	// 	delay(1000);
+	// }
+
+	// if(EEPROM_Operation.EEPROM_AT24C128_Test())
+	// 	Debug_Serial.println("[Debug]EEPROM_AT24C128_Test Success");
+	// else
+	// 	Debug_Serial.println("[Debug]EEPROM_AT24C128_Test Fail");
+
+	// if(EEPROM_Operation.EEPROM_AT24C128_Reset())
+	// 	Debug_Serial.println("[Debug]EEPROM_AT24C128_Reset Success");
+	// else
+	// 	Debug_Serial.println("[Debug]EEPROM_AT24C128_Reset Fail");
 #endif
 
 	Some_Peripheral.Peripheral_GPIO_Config();	//设置继电器，数字输入，模拟输入等外设引脚的模式，以及初始化状态
@@ -187,15 +242,14 @@ void setup()
 		LoRa_Para_Config.Save_LoRa_TRMode(0x01);//保存为默认状态，也就是模式1
 	}
 	Lora_TRMode = LoRa_Para_Config.Read_LoRa_TRMode();
-	Debug_Serial.println(String("Lora_TRMode = ") + String(Lora_TRMode,HEX));
+	Info_Println("Lora_TRMode = " +  String(Lora_TRMode,HEX));
 
 	if (!LoRa_Para_Config.Verify_LoRa_SYNC_Flag())
 	{
 		LoRa_Para_Config.Save_LoRa_SYNC(0x34);//同步字默认设置为0x34
 	}
 	LORA_SYNC = LoRa_Para_Config.Read_LoRa_SYNC();
-	Debug_Serial.println(String("LORA_SYNC = ") + String(LORA_SYNC));
-	
+	Info_Println("LORA_SYNC = " + LORA_SYNC);
 	// LoRa_MHL9LF.Parameter_Init(false);//LORA参数设置
 	LoRa_Para_Config.Save_LoRa_Config_Flag();//保存LORA参数配置完成标志位
 #endif
@@ -210,23 +264,23 @@ void setup()
 	if (Software_version_high == Vertion.Read_Software_version(SOFT_VERSION_BASE_ADDR) &&
 		Software_version_low == Vertion.Read_Software_version(SOFT_VERSION_BASE_ADDR + 1))
 	{
-		Debug_Serial.println(String("Software_version is V") + String(Software_version_high, HEX) + "." + String(Software_version_low, HEX));
+		Info_Println("Software_version is V" + String(Software_version_high, HEX) + "." + String(Software_version_low, HEX));
 	}
 	else
 	{
 		Vertion.Save_Software_version(Software_version_high, Software_version_low);
-		Debug_Serial.println(String("Successfully store the software version, the current software version is V") + String(Software_version_high, HEX) + "." + String(Software_version_low, HEX));
+		Info_Println("Successfully store the software version, the current software version is V" + String(Software_version_high, HEX) + "." + String(Software_version_low, HEX));
 	}
 	//硬件版本存储程序
 	if (Hardware_version_high == Vertion.Read_hardware_version(HARD_VERSION_BASE_ADDR) &&
 		Hardware_version_low == Vertion.Read_hardware_version(HARD_VERSION_BASE_ADDR + 1))
 	{
-		Debug_Serial.println(String("Hardware_version is V") + Hardware_version_high + "." + Hardware_version_low);
+		Info_Println("Hardware_version is V" + String(Hardware_version_high, HEX) + "." + String(Hardware_version_low, HEX));
 	}
 	else
 	{
 		Vertion.Save_hardware_version(Hardware_version_high, Hardware_version_low);
-		Debug_Serial.println(String("Successfully store the hardware version, the current hardware version is V") + Hardware_version_high + "." + Hardware_version_low);
+		Info_Println("Successfully store the hardware version, the current hardware version is V" + String(Hardware_version_high, HEX) + "." + String(Hardware_version_low, HEX));
 	}
 #endif
 
@@ -249,15 +303,15 @@ void setup()
 	{
 		// LED_SELF_CHECK_ERROR;
 		Debug_Serial.println("");
-		Debug_Serial.println("Verify SN code failed, try to Retrieving SN code...");
+		Error_Println("Verify SN code failed, try to Retrieving SN code...");
 		//Serial.println("验证SN代码失败，尝试找回SN代码…");
 		Message_Receipt.Request_Device_SN_and_Channel(); //当本地SN码丢失，向服务器申请本机的SN码
 		LoRa_Command_Analysis.Receive_LoRa_Cmd();		 //接收LORA参数
 		MyDelayMs(3000);
 		iwdg_feed();
 	}
-	Debug_Serial.println("SN self_check success...");//SN自检成功
-	Debug_Serial.print("My SN is:");
+	Info_Println("SN self_check success...");
+	Info_Print("My SN is:");
 	for (size_t i = 0; i < 9; i++)
 	{
 		Debug_Serial.print(gSN_Code[i],HEX);
@@ -269,21 +323,21 @@ void setup()
 
 	Realtime_Status_Reporting_Timer_Init(); //使用定时器2初始化自动上报状态周期(改为了定时器3)
 	Start_Status_Report_Timing();
-	Debug_Serial.println("Timed status reporting mechanism initialization completed...");//定时上报机制初始化完成
+	Info_Println("Timed status reporting mechanism initialization completed...");//定时上报机制初始化完成
 	Debug_Serial.println("");
 
 	Timer3_Init();//初始化定时器
 	Start_Timer3(); //使用定时器3初始化自检参数功能自检周期
-	Debug_Serial.println("Timer_3 initialization completed...");//定时自检机制初始化完成
+	Info_Println("Timer_3 initialization completed...");//定时自检机制初始化完成
 	Debug_Serial.println("");
 
 	Irrigation_Timer_Init();//使用定时器4初始化灌溉计时
 	Stop_Timer4();//不用的时候关闭
-	Debug_Serial.println("Irrigation timing mechanism initialization completed...");//灌溉计时机制初始化完成
+	Info_Println("Irrigation timing mechanism initialization completed...");//灌溉计时机制初始化完成
 	Debug_Serial.println("");
 
 	Message_Receipt.OnLine_Receipt(true, 2);//设备上线状态报告
-	Debug_Serial.println("Online status report");
+	Info_Println("Online status report");
 	Debug_Serial.println("");
 
 	//得到当前DI、DO的状态
@@ -294,11 +348,11 @@ void setup()
 	Film_Check_Exp_Open_Task();//开机后检测是否有电机在开度卷膜未完成时断过电，恢复这些未完成的电机运动
 	Debug_Serial.println("");
 
-	Debug_Serial.println("All configuration items are initialized. Welcome to use!!!  ~(*^__^*)~ ");//所有的设置项初始化完成，欢迎使用
+	Info_Println("All configuration items are initialized. Welcome to use!!!  ~(*^__^*)~ ");//所有的设置项初始化完成，欢迎使用
 	Debug_Serial.println("");
 
 	InitState.Save_WorkInterval(0x00,0x0A);//10秒
-	InitState.Save_StopInterval(0x00,0x14);//20秒
+	InitState.Save_StopInterval(0x00,0x0A);//20秒
 
 	if (!Pos_Nega_mode.Read_A00D_Seted())
 	{
@@ -366,21 +420,21 @@ void Request_Access_Network(void)
 		gAccessNetworkFlag = false;
 
 		if (SN.Save_SN_Code(gSN_Code) && SN.Save_BKP_SN_Code(gSN_Code))
-			Debug_Serial.println("Write Inital SN success... <Request_Access_Network>");
+			Info_Println("Write Inital SN success...");
 
 		if (SN.Clear_Area_Number() && SN.Clear_Group_Number())
 		{
-			Debug_Serial.println("Already Clear area number and group number... <Request_Access_Network>");
+			Info_Println("Already Clear area number and group number...");
 		}
 
 		unsigned char Default_WorkGroup[5] = { 0x01, 0x00, 0x00, 0x00, 0x00 };
 		if (SN.Save_Group_Number(Default_WorkGroup))
-			Debug_Serial.println("Save Inital group number success... <Request_Access_Network>");
+			Info_Println("Save Inital group number success...");
 		if (SN.Save_Area_Number(Init_Area))
-			Debug_Serial.println("Save Inital area number success... <Request_Access_Network>");
+			Info_Println("Save Inital area number success...");
 
 		Debug_Serial.println("");
-		Debug_Serial.println("Not registered to server, please send \"S\"	<Request_Access_Network>");
+		Info_Println("Not registered to server, please send \"S\"");
 		// LED_NO_REGISTER;
 	}
 	while (SN.Verify_SN_Access_Network_Flag() == false)
@@ -395,11 +449,11 @@ void Request_Access_Network(void)
 		if (comdata.length() > 0)
 		{
 			comdata.toUpperCase();
-			Debug_Serial.println(comdata);
+			Info_Println(comdata);
 			if (comdata == String("S"))
 			{
 				comdata = "";
-				Debug_Serial.println("Start sending registration data to server <Request_Access_Network>");
+				Info_Println("Start sending registration data to server");
 				Message_Receipt.Report_General_Parameter();
 			}
 
@@ -430,7 +484,7 @@ void Project_Debug(void)
 			{
 				iwdg_feed();
 				RS485_Debug_Length = 0;
-				Debug_Serial.println("数据超出可以接收的范围 <Project_Debug>");
+				Error_Println("数据超出可以接收的范围");
 				// delay(1000);
 				memset(RS485_Debug, 0x00, sizeof(RS485_Debug));
 			}
@@ -465,7 +519,8 @@ void Regular_status_report(void)
 		/*这里上报实时状态*/
 		// Message_Receipt.New_Working_Parameter_Receipt(true,1);//该条状态在假如卷膜库后已经被废弃
 		// Debug_Serial.println("[Debug]定时状态上报");
-		Message_Receipt.Opening_Control_Receipt(1,Auto_Report);
+		// Message_Receipt.Opening_Control_Receipt(1,Auto_Report);
+		Message_Receipt.All_Opening_Status_Receipt(1);
 		Start_Status_Report_Timing();//开始上报状态周期计时
 	}
 }
@@ -485,7 +540,7 @@ void Change_status_report(void)
 	{
 		DI_NumLast = DI_NumNow;
 		DIStatus_Change = true;
-		Debug_Serial.println("DI 状态已改变");
+		Debug_Println("DI 状态已改变");
 	}
 #endif
 
@@ -494,7 +549,7 @@ void Change_status_report(void)
 	{
 		DO_NumLast = DO_NumNow;
 		DOStatus_Change = true;
-		Debug_Serial.println("DO 状态已改变");
+		Debug_Println("DO 状态已改变");
 	}
 #endif
 
@@ -539,7 +594,7 @@ void Change_status_report(void)
 			Waiting_Collection = false;
 		}
 
-		Debug_Serial.println("开始状态改变上报 Start reporting of status change <Change_status_report>");
+		Debug_Println("开始状态改变上报 Start reporting of status change");
 		DIStatus_Change = false;
 		DOStatus_Change = false;
 		One_Cycle_Complete = false;

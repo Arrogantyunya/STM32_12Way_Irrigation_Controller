@@ -163,9 +163,8 @@ void Command_Analysis::Receive_LoRa_Cmd(void)
   if (EndNum == 6)  //帧尾校验正确
   {
     EndNum = 0;
-    //Serial.println("Get frame end... <Receive_LoRa_Cmd>");
 
-    Serial.println("Parsing LoRa command... <Receive_LoRa_Cmd>");
+	Debug_Serial.println("Parsing LoRa command...");
 
     if (FrameHeadDex != 0)  //第一个字节不是0xFE，说明有噪音干扰，重新从0xFE开始组合出一帧
     {
@@ -330,25 +329,22 @@ bool Command_Analysis::Verify_Frame_Validity(unsigned char verify_data_base_addr
 					return true;
 				else
 				{
-					Debug_Serial.println("Not this device group number... <Verify_Frame_Validity>");
-					Debug_Serial.println("不是这个设备组号... <Verify_Frame_Validity>");
+					Debug_Println("不是这个设备组号...");
 				}
 			}
 			else
 			{
-				Debug_Serial.println("Not this device area number... <Verify_Frame_Validity>");
-				Debug_Serial.println("不是这个设备区域号... <Verify_Frame_Validity>");
+				Debug_Println("不是这个设备区域号...");
 			}
 		}
 		else
 		{
-			Debug_Serial.println("Device type ID ERROR! <Verify_Frame_Validity>");
-			Debug_Serial.println("设备类型ID错误! <Verify_Frame_Validity>");
+			Debug_Println("设备类型ID错误!");
 		}
 	}
 	else
 	{
-		Debug_Serial.println("CRC8 ERROR! <Verify_Frame_Validity>");
+		Debug_Println("CRC8 ERROR!");
 	}
 	return false;
 }
@@ -368,7 +364,7 @@ void Command_Analysis::Receive_Data_Analysis(void)
 	case SN_Area_Channel: Set_SN_Area_Channel();	break;//基地服务器设置设备（主/子）SN及子设备总路数(A013)
 	case Work_Status: Detailed_Work_Status();		break;//查询本设备详细工作状态(A014)
 	case Stop_Work: Stop_Work_Command();			break;//强制停止当前设备的工作(A015)
-	case Non_existent: Debug_Serial.println("不存在于本设备帧ID!!!");break;//异常处理
+	case Non_existent: Debug_Println("不存在于本设备帧ID!!!");break;//异常处理
 	///*卷膜机私有指令*/
 	//case ResetRoll: ResetRoll_Command();			break;//重置卷膜测量行程(A020)
 	//case Opening: Opening_Command();				break;//设置卷膜开度(A021)
@@ -408,7 +404,7 @@ void Command_Analysis::Query_Current_Work_Param(void)
 
 	if (Verify_Frame_Validity(4, 23, true, false) == true)
 	{
-		Debug_Serial.println("A011 <Query_Current_Work_Param>");
+		Info_Println("A011");
 		Debug_Serial.flush();
 		// delay(200);
 		if (gReceiveCmd[8] == 0x01) //配置参数标志（LoRa大棚传感器是0x00配置采集时间）
@@ -423,7 +419,7 @@ void Command_Analysis::Query_Current_Work_Param(void)
 			else
 			{
 				Message_Receipt.General_Receipt(SetLoRaModeErr, 2);
-				Debug_Serial.println("Set LoRa Mode Err设置LORA模式错误! <Query_Current_Work_Param>");
+				Error_Println("Set LoRa Mode Err设置LORA模式错误!");
 			}
 		}
 		else  //回执状态标志
@@ -449,16 +445,16 @@ void Command_Analysis::Set_Group_Number(void)
 
 	if (Verify_Frame_Validity(4, 10, true, false) == true)
 	{
-		Debug_Serial.println("A013 <Set_Group_Number>");
+		Info_Println("A013");
 		Debug_Serial.flush();
 		if (SN.Save_Group_Number(&gReceiveCmd[8]) == true)
 		{
-			Debug_Serial.println("Save group number success保存组号成功... <Set_Group_Number>");
+			Info_Println("Save group number success保存组号成功...");
 			Message_Receipt.General_Receipt(AssignGroupIdArrayOk, 2);
 		}
 		else
 		{
-			Debug_Serial.println("Save group number failed保存组号失败 !!! <Set_Group_Number>");
+			Error_Println("Save group number failed保存组号失败 !!!");
 			/*  */
 			Message_Receipt.General_Receipt(AssignGroupIdArrayErr, 1);
 		}
@@ -479,27 +475,27 @@ void Command_Analysis::Set_SN_Area_Channel(void)
 
 	if (Verify_Frame_Validity(4, 15, false, false) == true)
 	{
-		Debug_Serial.println("A013 <Set_SN_Area_Channel>");
+		Info_Println("A013");
 		Debug_Serial.flush();
 		if (SN.Save_SN_Code(&gReceiveCmd[10]) == true && SN.Save_BKP_SN_Code(&gReceiveCmd[10]) == true)
 		{
-			Debug_Serial.println("Set SN code success... <Set_SN_Area_Channel>");
+			Info_Println("Set SN code success...");
 			if (SN.Save_Area_Number(gReceiveCmd[7]) == true)
 			{
-				Debug_Serial.println("Save area number success保存区域ID成功... <Set_SN_Area_Channel>");
+				Info_Println("Save area number success保存区域ID成功...");
 				Message_Receipt.General_Receipt(SetSnAndSlaverCountOk, 1);
 				SN.Set_SN_Access_Network_Flag();
 			}
 			else
 			{
-				Debug_Serial.println("Save area number ERROR保存区域ID失败 !!! <Set_SN_Area_Channel>");
+				Error_Println("Save area number ERROR保存区域ID失败 !!!");
 				/*  */
 				Message_Receipt.General_Receipt(SetSnAndSlaverCountErr, 1);
 			}
 		}
 		else
 		{
-			Debug_Serial.println("Save SN code ERROR保存SN出错 !!! <Set_SN_Area_Channel>");
+			Error_Println("Save SN code ERROR保存SN出错 !!!");
 			/*  */
 			Message_Receipt.General_Receipt(SetSnAndSlaverCountErr, 1);
 		}
@@ -524,10 +520,10 @@ void Command_Analysis::Detailed_Work_Status(void)
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true) 
 	{
-		Debug_Serial.println("A014 <Detailed_Work_Status>");
+		Info_Println("A014");
 		Debug_Serial.flush();
 
-		Debug_Serial.println("查询本设备详细工作状态 <Detailed_Work_Status>");
+		Info_Println("查询本设备详细工作状态");
 
 		// Message_Receipt.Working_Parameter_Receipt(false, 1, gReceiveCmd[12], gReceiveCmd[13]);
 		// Message_Receipt.New_Working_Parameter_Receipt(false,2);
@@ -553,8 +549,8 @@ void Command_Analysis::Detailed_Work_Status(void)
 
  	if (Verify_Frame_Validity(4, 5, true, false) == true)
  	{
-		Debug_Serial.println("A015 <Stop_Work_Command>");
-		Debug_Serial.println("强制停止!!!");
+		Info_Println("A015");
+		Info_Println("强制停止!!!");
 		Debug_Serial.flush();
 
 		Forced_Stop(true);
@@ -580,19 +576,19 @@ void Command_Analysis::General_controller_control_command(void)
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)
 	{
-		Debug_Serial.println("A000 <General_controller_control_command>");
+		Info_Println("A000");
 		Debug_Serial.flush();
 		iwdg_feed();
 
 
-		Debug_Serial.println("服务器发送通用控制器Modbus控制指令 <General_controller_control_command>");
+		Info_Println("服务器发送通用控制器Modbus控制指令");
 
 		unsigned char modbusPacket[20] = { 0x00 };unsigned int modbusPacket_Length = gReceiveCmd[3] - 5;
 		// unsigned char R_modbusPacket[20] = { 0x00 };unsigned int R_modbusPacket_Length = 0;
 		if (modbusPacket_Length > 20)
 		{
 			//此处应该有异常处理！！！
-			Debug_Serial.println("modbusPacket_Length超过数组预设值!!! <General_controller_control_command>");
+			Error_Println("modbusPacket_Length超过数组预设值!!!");
 			gStatus_E014 = Modbuspacket_length_overflow;//modbusPacket_Length超过数组预设值
 		}
 		else
@@ -629,10 +625,10 @@ void Command_Analysis::Set_RTC_command(void)
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A001 <Set_RTC_command>");
+		Info_Println("A001");
 		Debug_Serial.flush();
 
-		Debug_Serial.println("服务器发送设置RTC指令 <Set_RTC_command>");
+		Info_Println("服务器发送设置RTC指令");
 
 		unsigned char RTC[7];//
 		for (size_t i = 0; i < 7; i++)
@@ -713,17 +709,17 @@ void Command_Analysis::Set_General_controller_output_init(void)
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A002 <Set_General_controller_output_init>");
+		Info_Println("A002");
 		Debug_Serial.flush();
 
 		unsigned char Status_E002 = 0x00;//状态
 
 		if (!InitState.Save_Timeout(gReceiveCmd[34], gReceiveCmd[35]))
 		{
-			Debug_Serial.println("保存timeout失败!!!<Set_General_controller_output_init>");
+			Error_Println("保存timeout失败!!!");
 			Status_E002 = 0x01;
 		}
-		Debug_Serial.println("保存timeout成功<Set_General_controller_output_init>");
+		Info_Println("保存timeout成功");
 
 		//Serial.println("开始保存通用控制器输出默认状态<Set_General_controller_output_default>");
 		//Serial.println(String(gReceiveCmd[8])+String(gReceiveCmd[9]));
@@ -746,13 +742,13 @@ void Command_Analysis::Set_General_controller_output_init(void)
 		
 		if (InitState.Save_DO_InitState(DO_Init) && InitState.Save_AO_InitState(AO_Init))//读取初始状态的标志位
 		{
-			Debug_Serial.println("保存初始化值成功<Set_General_controller_output_init>");
+			Info_Println("保存初始化值成功");
 			InitState.Save_InitState_Flag();//存储初始状态的标志位
 			Some_Peripheral.Peripheral_GPIO_Config();	//设置继电器，数字输入，模拟输入等外设引脚的模式，以及初始化状态
 		}
 		else
 		{
-			Debug_Serial.println("保存初始化值失败<Set_General_controller_output_init>");
+			Error_Println("保存初始化值失败");
 			Status_E002 = 0x02;
 			InitState.Clean_InitState_Flag();//清除初始状态的标志位
 			Some_Peripheral.Peripheral_GPIO_Config();	//设置继电器，数字输入，模拟输入等外设引脚的模式，以及初始化状态
@@ -780,7 +776,7 @@ void Command_Analysis::Irrigation_Controllor_control_command(void)
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A003 <Irrigation_Controllor_control_command>");
+		Info_Println("A003");
 		Debug_Serial.flush();
 
 		Enter_Work_State = true;
@@ -791,11 +787,11 @@ void Command_Analysis::Irrigation_Controllor_control_command(void)
 
 		if (InitState.Save_CyclicInterval(gReceiveCmd[70], gReceiveCmd[71]))
 		{
-			Debug_Serial.println("设置并保存参数成功 <Irrigation_Controllor_control_command>");
+			Info_Println("设置并保存参数成功");
 		}
 		else
 		{
-			Debug_Serial.println("设置并保存参数失败!!! <Irrigation_Controllor_control_command>");
+			Error_Println("设置并保存参数失败!!! <Irrigation_Controllor_control_command>");
 		}
 		Cyclic_interval = InitState.Read_CyclicInterval();
 
@@ -808,7 +804,7 @@ void Command_Analysis::Irrigation_Controllor_control_command(void)
 		}*/
 		//Serial.println(String("开启时间openSec = ") + OpenSec);
 		//Serial.println(String("单个间隔时间DO_Interval = ") + DO_Interval);
-		Debug_Serial.println(String("循环间隔时间Cyclic_interval = ") + Cyclic_interval);
+		Info_Println(String("循环间隔时间Cyclic_interval = ") + Cyclic_interval);
 		//Serial.println(String("一次开启的DO数量DO_Num = ") + DO_Num);
 		//Serial.println(String("循环次数retryCnt = ") + retryCnt);
 		iwdg_feed();
@@ -870,7 +866,7 @@ void Command_Analysis::Irrigation_Controllor_control_command(void)
 	}
 	else
 	{
-		Debug_Serial.println("[Debug]无效的A003指令");
+		Debug_Println("无效的A003指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -895,7 +891,7 @@ void Command_Analysis::Delay_Start_DO_Control_command()
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A004 <Delay_Start_DO_Control_command>");
+		Info_Println("A004");
 		Debug_Serial.flush();
 
 		Enter_Work_State = true;
@@ -905,13 +901,13 @@ void Command_Analysis::Delay_Start_DO_Control_command()
 		Device_Mode = Delay_mode;//延时DO模式
 
 		Delay_mode_OpenSec = gReceiveCmd[8]*0x100 + gReceiveCmd[9];
-		Debug_Serial.println(String("Delay_mode_OpenSec = ") + Delay_mode_OpenSec + "s");
+		Info_Println(String("Delay_mode_OpenSec = ") + Delay_mode_OpenSec + "s");
 
 		Delay_mode_Interval = gReceiveCmd[10];
-		Debug_Serial.println(String("Delay_mode_Interval = ") + Delay_mode_Interval + "s");
+		Info_Println(String("Delay_mode_Interval = ") + Delay_mode_Interval + "s");
 
 		Delay_mode_DONum = gReceiveCmd[11];
-		Debug_Serial.println(String("Delay_mode_DONum = ") + Delay_mode_DONum);
+		Info_Println(String("Delay_mode_DONum = ") + Delay_mode_DONum);
 
 		byte bitn = 0; byte Bitread = 0;
 		word Outputs = 12; word UseOutputs = 12; word x;
@@ -923,7 +919,7 @@ void Command_Analysis::Delay_Start_DO_Control_command()
 			{
 				//表示第几个需要开启
 				Delay_mode_Worktime[i] = Delay_mode_OpenSec;
-				Debug_Serial.println(String("Delay_mode_Worktime[") + i + "]= " + Delay_mode_Worktime[i]);
+				Info_Println(String("Delay_mode_Worktime[") + i + "]= " + Delay_mode_Worktime[i]);
 			}
 			bitn++;
 			if (bitn == 8) bitn = 0;
@@ -939,7 +935,7 @@ void Command_Analysis::Delay_Start_DO_Control_command()
 	}
 	else
 	{
-		Debug_Serial.println("[Debug]无效的A004指令");
+		Debug_Println("无效的A004指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -962,7 +958,7 @@ void Command_Analysis::Positive_negative_Control_command()
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A005 <Positive_negative_Control_command>");
+		Info_Println("A005");
 		Debug_Serial.flush();
 
 		Enter_Work_State = true;
@@ -987,14 +983,14 @@ void Command_Analysis::Positive_negative_Control_command()
 			{
 				//表示第几个需要开启
 				Forward_Reverse_mode_Worktime[i] = gReceiveCmd[8+2*(i/2)]*0x100 + gReceiveCmd[9+2*(i/2)];
-				Debug_Serial.println(String("Forward_Reverse_mode_Worktime[") + i + "]= " + Forward_Reverse_mode_Worktime[i]);
+				Info_Println(String("Forward_Reverse_mode_Worktime[") + i + "]= " + Forward_Reverse_mode_Worktime[i]);
 			}
 			bitn++;
 			if (bitn == 8) bitn = 0;
 		}
 		
 		Forward_Reverse_mode_Interval = gReceiveCmd[20];
-		Debug_Serial.println(String("Forward_Reverse_mode_Interval = ") + Forward_Reverse_mode_Interval + "s");
+		Info_Println(String("Forward_Reverse_mode_Interval = ") + Forward_Reverse_mode_Interval + "s");
 
 		/*这里上报E005正反转指令接收回执*/
 		Message_Receipt.Positive_negative_Control_Receipt(3, gReceiveCmd);
@@ -1003,7 +999,7 @@ void Command_Analysis::Positive_negative_Control_command()
 	}
 	else
 	{
-		Debug_Serial.println("[Debug]无效的A005指令");
+		Debug_Println("无效的A005指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1026,7 +1022,7 @@ void Command_Analysis::Query_SignalQuality_Version_command()
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A006 <Query_Signal_Quality>");
+		Info_Println("A006 <Query_Signal_Quality>");
 		Debug_Serial.flush();
 
 		/*这里上报E007信号质量与版本号回执*/
@@ -1034,7 +1030,7 @@ void Command_Analysis::Query_SignalQuality_Version_command()
 	}
 	else
 	{
-		Debug_Serial.println("[Debug]无效的A006指令");
+		Debug_Println("无效的A006指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1057,7 +1053,7 @@ void Command_Analysis::Set_Reporting_Interval_command()
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A007 <Set_Reporting_Interval_command>");
+		Info_Println("A007");
 		Debug_Serial.flush();
 
 		bool Save_Success = true;//用来标志是否存储成功
@@ -1066,14 +1062,14 @@ void Command_Analysis::Set_Reporting_Interval_command()
 		unsigned int WorkInterval = gReceiveCmd[8] * 0x100 + gReceiveCmd[9];
 		if (WorkInterval < 5 && WorkInterval > 1800)
 		{
-			Debug_Serial.println("WorkInterval值值超阈值!!!强制置为5");
+			Error_Println("WorkInterval值值超阈值!!!强制置为5");
 			WorkInterval = 5;
 			gReceiveCmd[10] = 0x00;gReceiveCmd[11] = 0x05;
 		}
-		Debug_Serial.println(String("WorkInterval = ") + WorkInterval);
+		Info_Println(String("WorkInterval = ") + WorkInterval);
 		if (!InitState.Save_WorkInterval(gReceiveCmd[8], gReceiveCmd[9]))
 		{
-			Debug_Serial.println("保存WorkInterval失败!!! <Set_Reporting_Interval_command>");
+			Error_Println("保存WorkInterval失败!!!");
 			Save_Success = false;
 		}
 
@@ -1081,14 +1077,14 @@ void Command_Analysis::Set_Reporting_Interval_command()
 		unsigned int StopInterval = gReceiveCmd[10] * 0x100 + gReceiveCmd[11];
 		if (StopInterval < 15 && StopInterval > 7200)
 		{
-			Debug_Serial.println("StopInterval值超阈值!!!强制置为30");
+			Error_Println("StopInterval值超阈值!!!强制置为30");
 			StopInterval = 30;
 			gReceiveCmd[10] = 0x00;gReceiveCmd[11] = 0x1E;
 		}
-		Debug_Serial.println(String("StopInterval = ") + StopInterval);
+		Info_Println(String("StopInterval = ") + StopInterval);
 		if (!InitState.Save_StopInterval(gReceiveCmd[10], gReceiveCmd[11]))
 		{
-			Debug_Serial.println("保存StopInterval失败!!! <Set_Reporting_Interval_command>");
+			Error_Println("保存StopInterval失败!!! <Set_Reporting_Interval_command>");
 			Save_Success = false;
 		}
 
@@ -1104,7 +1100,7 @@ void Command_Analysis::Set_Reporting_Interval_command()
 	}
 	else
 	{
-		Debug_Serial.println("[Debug]无效的A007指令");
+		Debug_Println("无效的A007指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1127,7 +1123,7 @@ void Command_Analysis::Set_Lora_parameter_command()
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A008 <Set_Lora_parameter_command>");
+		Debug_Println("A008");
 		Debug_Serial.flush();
 
 		/* 设置LoRa的通信模式 */
@@ -1140,7 +1136,7 @@ void Command_Analysis::Set_Lora_parameter_command()
 		else 
 		{
 			// Message_Receipt.General_Receipt(SetLoRaModeErr, 2);
-			Serial.println("Set LoRa Mode Err! <Set_Lora_parameter_command>");
+			Error_Println("Set LoRa Mode Err!");
 		}
 
 		/* 设置SYNC */
@@ -1193,7 +1189,7 @@ void Command_Analysis::Set_Lora_parameter_command()
 	}
 	else
 	{
-		Debug_Serial.println("[Debug]无效的A008指令");
+		Debug_Println("无效的A008指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1215,7 +1211,7 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 	//FE A009 11 C003 00 55 16324578 1212121212121212 00 D6 0D0A0D0A0D0A  
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A009 <Set_Forward_Reverse_mode_threshold>");
+		Info_Println("A009");
 		Debug_Serial.flush();
 
 		bool Illegal_AI_relation_Flag = false;//AI关联非法标志位
@@ -1226,10 +1222,10 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 									String((gReceiveCmd[10] >> 4),HEX) + String((gReceiveCmd[10] & 0x0F),HEX) + 
 									String((gReceiveCmd[11] >> 4),HEX) + String((gReceiveCmd[11] & 0x0F),HEX);
 
-		Debug_Serial.println("Str_AI_Relation_Way = " + Str_AI_Relation_Way);
+		Info_Println("Str_AI_Relation_Way = " + Str_AI_Relation_Way);
 
 		unsigned char AI_Relation_Way_Array[8] = {0x00};
-		// Debug_Serial.println(String("Str_AI_Relation_Way.length = ") + Str_AI_Relation_Way.length());
+		// Info_Println(String("Str_AI_Relation_Way.length = ") + Str_AI_Relation_Way.length());
 		Debug_Serial.print(">>>");
 		for(unsigned int i=0; i < Str_AI_Relation_Way.length(); i++)
 		{
@@ -1288,12 +1284,12 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 
 		if(Illegal_AI_relation_Flag)
 		{
-			Debug_Serial.println("AI关联非法!!! <Set_Forward_Reverse_mode_threshold>");
+			Error_Println("AI关联非法!!! <Set_Forward_Reverse_mode_threshold>");
 			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd, Illegal_AI_relation);
 		}
 		else if(Illegal_threshold_multiple_Flag)
 		{
-			Debug_Serial.println("阈值倍数非法!!! <Set_Forward_Reverse_mode_threshold>");
+			Error_Println("阈值倍数非法!!! <Set_Forward_Reverse_mode_threshold>");
 			Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd, Illegal_threshold_multiple);
 		}
 		else
@@ -1306,12 +1302,12 @@ void Command_Analysis::Set_Forward_Reverse_mode_threshold()
 				unsigned char ch_buf[8] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
 				if(Film_Set_Ele_Cur_Threshold(&ch_buf[0], &Threshold_multiple_Array[0], 2) == Film_MEM_Exp)//第一个是需要写入的数组
 				{
-					Debug_Serial.println(String("[Error]设置卷膜库阈值失败"));
+					Error_Println(String("[Error]设置卷膜库阈值失败"));
 					Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd, Param_config_fail);//设置卷膜库阈值失败
 				}
 				else
 				{
-					Debug_Serial.println(String("[Info]") + __FILE__ + "设置卷膜库阈值成功");
+					Info_Println(String("[Info]") + __FILE__ + "设置卷膜库阈值成功");
 					Message_Receipt.Set_threshold_Receipt(3, gReceiveCmd, E009_Success);//设置成功
 				}
 			}
@@ -1347,7 +1343,7 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A00A <Forward_Reverse_mode_Calculate_travel>");
+		Info_Println("A00A");
 		Debug_Serial.flush();
 
 		Device_Mode = Forward_Reverse_mode;//正反转模式
@@ -1356,7 +1352,7 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 
 		if (!Pos_Nega_mode.Read_A009_Seted())
 		{
-			Debug_Serial.println("ERROR!!!未进行AI关联以及设置阈值倍数 <Forward_Reverse_mode_Calculate_travel>");
+			Error_Println("ERROR!!!未进行AI关联以及设置阈值倍数");
 			Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, A009_Seted_ERR);
 		}
 		else
@@ -1374,7 +1370,7 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 			if (A00A_WayUsed == 0xFF)
 			{
 				ch_num = MOTOR_CHANNEL;
-				Debug_Serial.println(String("所有路数开始重置行程"));
+				Info_Println(String("所有路数开始重置行程"));
 			}
 			else
 			{
@@ -1385,7 +1381,7 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 					{
 						//表示第几路需要重置
 						A00A_WayUsed_Array[i] = true;
-						Debug_Serial.println(String("第") + i + "路需要进行重置");
+						Info_Println(String("第") + i + "路需要进行重置");
 						ch_buf[ch_num] = i+1;
 						ch_num++;
 					}
@@ -1393,14 +1389,14 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 				}
 			}
 
-			Debug_Serial.println("正在开始计算行程... <Forward_Reverse_mode_Calculate_travel>");
-			Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, Begin_Calculate_travel);
+			Info_Println("正在开始计算行程...");
+			Message_Receipt.Calculate_travel_Receipt(2, A00A_WayUsed, Begin_Calculate_travel);
 
 			/* 这里加入卷膜库的重置行程参数 */
 			if (Film_New_Task_Handler(&ch_buf[0],ch_num,FILM_RESET) == Film_OK)
 			{
 				unsigned char Film_Status = Film_Motor_Run_Task(&ch_buf[0],ch_num,FILM_RESET);//需要根据返回参数来判定是否开始重置
-				Debug_Serial.println(String("Film_Status = ") + Film_Status);
+				Info_Println(String("Film_Status = ") + Film_Status);
 			}
 
 			// Message_Receipt.Calculate_travel_Receipt(3, A00A_WayUsed, complete_Calculate_travel);
@@ -1408,7 +1404,7 @@ void Command_Analysis::Forward_Reverse_mode_Calculate_travel()
 	}
 	else
 	{
-		Debug_Serial.println("[Debug]无效的A00A指令");
+		Debug_Println("无效的A00A指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1431,7 +1427,7 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A00B <Forward_Reverse_mode_Opening_Control>");
+		Info_Println("A00B");
 		Debug_Serial.flush();
 
 		unsigned char Open_Way[8] = {0x00};//
@@ -1449,11 +1445,11 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 		{
 			if (gReceiveCmd[8+i] == 0xff)
 			{
-				Debug_Serial.println(String("第") + (i+1) + "路维持当前开度");
+				Info_Println(String("第") + (i+1) + "路维持当前开度");
 			}
 			else if (gReceiveCmd[8+i] >= 0x00 && gReceiveCmd[8+i] <= 0x64)
 			{
-				Debug_Serial.println(String("第") + (i+1) + "路设置目标开度为" + gReceiveCmd[8+i]);
+				Info_Println(String("第") + (i+1) + "路设置目标开度为" + gReceiveCmd[8+i]);
 
 				Open_Way[ch_num] = i+1;
 				open_buf[ch_num] = gReceiveCmd[8+i];	
@@ -1461,7 +1457,7 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 			}
 			else if (gReceiveCmd[8+i] == 0xF0)
 			{
-				Debug_Serial.println(String("第") + (i+1) + "路强制全关");
+				Info_Println(String("第") + (i+1) + "路强制全关");
 
 				Open_F_Way[ch_F_num] = i+1;
 				open_F_buf[ch_F_num] = 0x00;
@@ -1469,21 +1465,21 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 			}
 			else if (gReceiveCmd[8+i] == 0xF1)
 			{
-				Debug_Serial.println(String("第") + (i+1) + "路强制全开");
+				Info_Println(String("第") + (i+1) + "路强制全开");
 				Open_F_Way[ch_F_num] = i+1;
 				open_F_buf[ch_F_num] = 0x64;
 				ch_F_num++; 
 			}
 			else
 			{
-				Debug_Serial.println(String("第") + (i+1) + "路设置的开度不存在，维持当前开度");
+				Info_Println(String("第") + (i+1) + "路设置的开度不存在，维持当前开度");
 			}
 		}
 		
 		A00B_Interval = gReceiveCmd[16];
-		Debug_Serial.println(String("每路开启的间隔时间为：") + A00B_Interval + "s");
+		Info_Println(String("每路开启的间隔时间为：") + A00B_Interval + "s");
 
-		Message_Receipt.Opening_Control_Receipt(3,Opening_SetOK,&gReceiveCmd[8]);//向服务器发送开度设置回执
+		Message_Receipt.Opening_Control_Receipt(2,Opening_SetOK,&gReceiveCmd[8]);//向服务器发送开度设置回执
 
 		/* 这里是普通开度的线路 */
 		if (ch_num)
@@ -1504,7 +1500,7 @@ void Command_Analysis::Forward_Reverse_mode_Opening_Control()
 	}
 	else
 	{
-		Debug_Serial.println("[Debug]无效的A00B指令");
+		Debug_Println("无效的A00B指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1524,7 +1520,7 @@ void Command_Analysis::Forward_Reverse_mode_Force_Stop()
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A00C <Forward_Reverse_mode_Force_Stop>");
+		Info_Println("A00C");
 		Debug_Serial.flush();
 
 		unsigned char ch_buf[8] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
@@ -1533,7 +1529,7 @@ void Command_Analysis::Forward_Reverse_mode_Force_Stop()
 		if (gReceiveCmd[8] == 0xFF)
 		{
 			ch_num = MOTOR_CHANNEL;
-			Debug_Serial.println(String("所有路数强制停止"));
+			Info_Println(String("所有路数强制停止"));
 		}
 		else
 		{
@@ -1545,7 +1541,7 @@ void Command_Analysis::Forward_Reverse_mode_Force_Stop()
 			{
 				if ((gReceiveCmd[8] << i) & 0b10000000)
 				{
-					Debug_Serial.println(String("第") + i + "路强制停止");
+					Info_Println(String("第") + i + "路强制停止");
 					ch_buf[ch_num] = i+1;
 					ch_num++;
 				}
@@ -1557,7 +1553,7 @@ void Command_Analysis::Forward_Reverse_mode_Force_Stop()
 	}
 	else
 	{
-		Debug_Serial.println("[Debug]无效的A00C指令");
+		Debug_Println("无效的A00C指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);
@@ -1575,7 +1571,7 @@ void Command_Analysis::Forward_Reverse_mode_TimesSet_ClearEleCurrent()
 
 	if (Verify_Frame_Validity(4, gReceiveCmd[3], true, false) == true)//第4个参数选择了false，不校验工作组号
 	{
-		Debug_Serial.println("A00D <Forward_Reverse_mode_TimesSet_ClearEleCurrent>");
+		Info_Println("A00D");
 		Debug_Serial.flush();
 
 		unsigned char A00D_status = 0;
@@ -1583,12 +1579,12 @@ void Command_Analysis::Forward_Reverse_mode_TimesSet_ClearEleCurrent()
 		/* 存储倍数 */
 		if(Pos_Nega_mode.Save_EleCurrent_Times(gReceiveCmd[8]))
 		{
-			Debug_Serial.println("倍数存储成功 <Forward_Reverse_mode_TimesSet_ClearEleCurrent>");
+			Info_Println("倍数存储成功");
 		}
 		else
 		{
 			A00D_status = E00C_StoreErr;
-			Debug_Serial.println("倍数存储失败 <Forward_Reverse_mode_TimesSet_ClearEleCurrent>");
+			Error_Println("倍数存储失败");
 			Pos_Nega_mode.Save_EleCurrent_Times(10);
 			Pos_Nega_mode.Save_A00D_Seted(true);
 		}
@@ -1597,14 +1593,14 @@ void Command_Analysis::Forward_Reverse_mode_TimesSet_ClearEleCurrent()
 		if (gReceiveCmd[9] != 0)
 		{
 			Film_Motor_Clear_EleCurrent();//清除电流
-			Debug_Serial.println("清除电流");
+			Info_Println("清除电流");
 		}
 
 		Message_Receipt.TimesSet_ClearEleCurrent_Receipt(3,A00D_status);
 	}
 	else
 	{
-		Debug_Serial.println("[Debug]无效的A00D指令");
+		Debug_Println("无效的A00D指令");
 	}
 	
 	memset(gReceiveCmd, 0x00, gReceiveLength);

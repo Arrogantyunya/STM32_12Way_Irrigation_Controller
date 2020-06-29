@@ -57,7 +57,10 @@ film_mem_err Film_MEM_Read_Param(film_u32 r_base_addr, film_u8 *r_buf)
     crc[i] = Film_GetCrc8(&r_buf[i * t_size], t_size);
     Film_MEM_Read_Buffer((r_base_addr + r_len + i), &crc_tmp, sizeof(film_u8));
     if (crc[i] != crc_tmp)
+    {
+      FM_PRINT((FM_PrintDBG_Buf, "The %dth motor read continuous CRC ERR\n", i + 1));
       return FILM_MEM_CRC_ERR;
+    }
   } 
   return FILM_MEM_OK;
 }
@@ -77,12 +80,12 @@ film_mem_err Film_MEM_Save_Param_CH(film_u32 w_base_addr, film_u8 *w_buf, film_u
   crc_addr = w_base_addr + (MOTOR_CHANNEL * t_size) + (ch - 1);  //计算出该路的校验写入地址
 
   /* 写入的和已经保存的相同，不重复写入 */
-  if (Film_MEM_Check_Idtc_Content(w_addr, &w_buf[0], t_size) == FILM_MEM_DIS_SAVE) return FILM_MEM_OK;
+  //if (Film_MEM_Check_Idtc_Content(w_addr, &w_buf[0], t_size) == FILM_MEM_DIS_SAVE) return FILM_MEM_OK;
 
   crc_val = Film_GetCrc8(&w_buf[0], t_size);
 
   if (Film_MEM_Write_Buffer(w_addr, &w_buf[0], t_size) != FILM_MEM_OK) return FILM_MEM_W_ERR;
-  if (Film_MEM_Write_Buffer(crc_addr, &crc_val, sizeof(film_u8)) != FILM_MEM_OK) return FILM_MEM_W_ERR;
+  if (Film_MEM_Write_Buffer(crc_addr, &crc_val, 1) != FILM_MEM_OK) return FILM_MEM_W_ERR;
 
   return FILM_MEM_OK;
 }
@@ -103,10 +106,23 @@ film_mem_err Film_MEM_Read_Param_CH(film_u32 r_base_addr, film_u8 *r_buf, film_u
 
   if (Film_MEM_Read_Buffer(r_addr, &r_buf[0], t_size) != FILM_MEM_OK) return FILM_MEM_R_ERR;
 
+  if (r_base_addr >= FILM_MEM_RUN_OPEN_BASE_ADDR && r_base_addr <= FILM_MEM_AUTO_OPEN_CRC_END_ADDR)
+  {
+    if (*r_buf > 100)
+    {
+      FM_PRINT((FM_PrintDBG_Buf, "The %dth motor read open value = %d, exception!\n", ch, *r_buf));
+      *r_buf = 0;
+      return FILM_MEM_R_ERR;
+    }
+  }
+
   crc_val = Film_GetCrc8(&r_buf[0], t_size);
-  Film_MEM_Read_Buffer(crc_addr, &crc_tmp, sizeof(film_u8));
+  Film_MEM_Read_Buffer(crc_addr, &crc_tmp, 1);
   if (crc_val != crc_tmp)
+  {
+    FM_PRINT((FM_PrintDBG_Buf, "The %dth motor read single CRC ERR\n", ch));
     return FILM_MEM_CRC_ERR;
+  }
 
   return FILM_MEM_OK;
 }

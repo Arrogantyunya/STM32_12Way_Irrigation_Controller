@@ -71,19 +71,19 @@ unsigned char EEPROM_Operations::EEPROM_AT24C128_Test(void)
 		AT24CXX_WriteOneByte(i, 0x11);
 		if (i%500 == 0)
 		{
-			Debug_Serial.println(String("[Debug] i = ") + i + "<EEPROM_AT24C128_Test>");
+			Debug_Println(String("[Debug] i = ") + i);
 			iwdg_feed();
 		}
 	}
 	EEPROM_Write_Disable();
 
-	Debug_Serial.println("....");
+	Debug_Println("....");
 
 	for (size_t i = EEPROM_MIN_ADDR; i < EEPROM_MAX_ADDR; i++)
 	{
 		if (i%500 == 0)
 		{
-			Debug_Serial.println(String("[Debug] i = ") + i + "<EEPROM_AT24C128_Test>");
+			Debug_Println(String("[Debug] i = ") + i);
 			iwdg_feed();
 		}
 		if (!AT24CXX_ReadOneByte(i) == 0x11)
@@ -107,13 +107,13 @@ unsigned char EEPROM_Operations::EEPROM_AT24C128_Reset(void)
 		AT24CXX_WriteOneByte(i, 0x00);
 		if (i%500 == 0)
 		{
-			Debug_Serial.println(String("[Debug] i = ") + i + "<EEPROM_AT24C128_Reset>");
+			Debug_Println(String("[Debug] i = ") + i);
 			iwdg_feed();
 		}
 	}
 	EEPROM_Write_Disable();
 
-	Debug_Serial.println("+++++++++");
+	Debug_Println("+++++++++");
 
 	for (size_t i = EEPROM_MIN_ADDR; i < EEPROM_MAX_ADDR; i++)
 	{
@@ -121,7 +121,7 @@ unsigned char EEPROM_Operations::EEPROM_AT24C128_Reset(void)
 			return false;
 		if (i%500 == 0)
 		{
-			Debug_Serial.println(String("[Debug] i = ") + i + "<EEPROM_AT24C128_Reset>");
+			Debug_Println(String("[Debug] i = ") + i);
 			iwdg_feed();
 		}
 	}
@@ -361,7 +361,7 @@ bool SN_Operations::Set_SN_Access_Network_Flag(void)
  */
 bool SN_Operations::Clear_SN_Access_Network_Flag(void)
 {
-	Debug_Serial.println("If you need to clear the registration, send \"YES\"	<Clear_SN_Access_Network_Flag>");
+	Info_Println("If you need to clear the registration, send \"YES\"");
 	Debug_Serial.flush();
 	iwdg_feed();
 	delay(5000);
@@ -374,11 +374,11 @@ bool SN_Operations::Clear_SN_Access_Network_Flag(void)
 	if (comdata.length() > 0)
 	{
 		comdata.toUpperCase();
-		Debug_Serial.println(comdata);
+		Info_Println(comdata);
 
 		if (comdata == String("YES"))
 		{
-			Debug_Serial.println("Clear the Registration <Clear_SN_Access_Network_Flag>");
+			Info_Println("Clear the Registration");
 
 			comdata = "";
 
@@ -396,7 +396,7 @@ bool SN_Operations::Clear_SN_Access_Network_Flag(void)
 		}
 		else
 		{
-			Debug_Serial.println("Input error	<Clear_SN_Access_Network_Flag>");
+			Error_Println("Input error");
 
 			comdata = "";
 			return false;
@@ -404,7 +404,7 @@ bool SN_Operations::Clear_SN_Access_Network_Flag(void)
 	}
 	else
 	{
-		Debug_Serial.println("END	<Clear_SN_Access_Network_Flag>");
+		Info_Println("END");
 		comdata = "";
 		return false;
 	}
@@ -433,22 +433,22 @@ bool SN_Operations::Self_check(unsigned char *sn_code)
 	bool BoolValue = false;
 	if (Read_SN_Code(sn_code) && Read_BKP_SN_Code(sn_code)) //如果读取SN码和备份SN码都正确
 	{
-		Debug_Serial.println("Read SN code and read backup SN code success...");
+		Info_Println("Read SN code and read backup SN code success...");
 		BoolValue = true;
 	}
 	else if (Read_SN_Code(sn_code)) //如果仅仅是读取SN码成功，将SN码覆盖修正备份SN码保存区
 	{
-		Debug_Serial.println("Read SN code success but read backup SN code failed...");
+		Error_Println("Read SN code success but read backup SN code failed...");
 		Save_BKP_SN_Code(sn_code) == true ? BoolValue = true : BoolValue = false; //覆盖后判断覆盖是否成功
 	}
 	else if (Read_BKP_SN_Code(sn_code)) //如果仅仅是读取备份SN码成功，将SN码覆盖修正SN码保存区
 	{
-		Debug_Serial.println("Read backup SN code success but read SN code failed...");
+		Error_Println("Read backup SN code success but read SN code failed...");
 		Save_SN_Code(sn_code) == true ? BoolValue = true : BoolValue = false; //覆盖后判断覆盖是否成功
 	}
 	else //如果SN码和备份SN码都损坏，清除已保存SN码标志位，已保存备份SN码标志位，设备将需要重新申请一份SN码
 	{
-		Debug_Serial.println("All SN store ERROR!");
+		Error_Println("All SN store ERROR!");
 		Clear_SN_Save_Flag();
 		Clear_BKP_SN_Save_Flag();
 	}
@@ -835,7 +835,7 @@ bool LoRa_Config::Save_LoRa_Com_Mode(unsigned char mode)
 	}
 	else
 	{
-		Debug_Serial.println("Save LoRa communication mode Err <Save_LoRa_Com_Mode>");
+		Error_Println("Save LoRa communication mode Err");
 		return false;
 	}
 }
@@ -887,7 +887,7 @@ bool LoRa_Config::Save_LoRa_Addr(unsigned char *addr)
 	}
 	else
 	{
-		Debug_Serial.println("Save LoRa Addr OK...");
+		Info_Println("Save LoRa Addr OK...");
 		Save_LoRa_Addr_Flag();
 		return true;
 	}
@@ -912,7 +912,7 @@ bool LoRa_Config::Read_LoRa_Addr(unsigned char *addr)
 	{
 		addr[i] = TempBuf[i];
 	}
-	Debug_Serial.println("Read LoRa Addr OK...");
+	Info_Println("Read LoRa Addr OK...");
 	return true;
 }
 
@@ -1150,11 +1150,11 @@ bool ModbusController_InitState::Save_DO_InitState(unsigned char *data)
 
 	if (DO_crc8 == DO_CRC8)
 	{
-		Debug_Serial.println("保存DO初始化值成功<Save_DO_InitState>");
+		Info_Println("保存DO初始化值成功");
 		return true;
 	}
 
-	Debug_Serial.println("保存DO初始化值失败!!!<Save_DO_InitState>");
+	Error_Println("保存DO初始化值失败!!!");
 	return false;
 }
 
@@ -1166,7 +1166,7 @@ bool ModbusController_InitState::Save_DO_InitState(unsigned char *data)
  */
 unsigned char *ModbusController_InitState::Read_DO_InitState(void)
 {
-	Debug_Serial.println("<Read_DO_InitState>");
+	Info_Println("");
 	static unsigned char DO_INIT[8] = {0x00}; //C 不支持在函数外返回局部变量的地址，除非定义局部变量为 static 变量。
 	for (size_t i = 0; i < 8; i++)
 	{
@@ -1184,7 +1184,7 @@ unsigned char *ModbusController_InitState::Read_DO_InitState(void)
  */
 bool ModbusController_InitState::Clean_DO_InitState()
 {
-	Debug_Serial.println("暂时未完成<Clean_DO_InitState>");
+	Info_Println("暂时未完成");
 	return false;
 }
 
@@ -1219,11 +1219,11 @@ bool ModbusController_InitState::Save_AO_InitState(unsigned char *data)
 
 	if (AO_crc8 == AO_CRC8)
 	{
-		Debug_Serial.println("保存AO初始化值成功<Save_AO_InitState>");
+		Info_Println("保存AO初始化值成功");
 		return true;
 	}
 
-	Debug_Serial.println("保存AO初始化值失败!!!<Save_AO_InitState>");
+	Error_Println("保存AO初始化值失败!!!");
 	return false;
 }
 
@@ -1236,7 +1236,7 @@ bool ModbusController_InitState::Save_AO_InitState(unsigned char *data)
 bool ModbusController_InitState::Read_AO_InitState(unsigned char *data)
 {
 	data[0] = data[0];
-	Debug_Serial.println("暂时未完成<Read_AO_InitState>");
+	Info_Println("暂时未完成");
 	return false;
 }
 
@@ -1248,7 +1248,7 @@ bool ModbusController_InitState::Read_AO_InitState(unsigned char *data)
  */
 bool ModbusController_InitState::Clean_AO_InitState()
 {
-	Debug_Serial.println("暂时未完成<Clean_AO_InitState>");
+	Info_Println("暂时未完成");
 	return false;
 }
 
@@ -1262,7 +1262,7 @@ bool ModbusController_InitState::Save_Timeout(unsigned char High, unsigned char 
 {
 	if ((AT24CXX_ReadOneByte(Timeout_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(Timeout_END_ADDR) == Low))
 	{
-		Debug_Serial.println("储存Timeout成功<Save_Timeout>");
+		Info_Println("储存Timeout成功");
 		return true;
 	}
 	EEPROM_Write_Enable();
@@ -1272,10 +1272,10 @@ bool ModbusController_InitState::Save_Timeout(unsigned char High, unsigned char 
 
 	if ((AT24CXX_ReadOneByte(Timeout_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(Timeout_END_ADDR) == Low))
 	{
-		Debug_Serial.println("储存Timeout成功<Save_Timeout>");
+		Info_Println("储存Timeout成功");
 		return true;
 	}
-	Debug_Serial.println("储存Timeout失败<Save_Timeout>");
+	Error_Println("储存Timeout失败");
 	return false;
 }
 
@@ -1306,10 +1306,10 @@ bool ModbusController_InitState::Clean_Timeout(void)
 
 	if ((AT24CXX_ReadOneByte(Timeout_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(Timeout_END_ADDR) == 0x00))
 	{
-		Debug_Serial.println("清除Timeout成功<Clean_Timeout>");
+		Info_Println("清除Timeout成功");
 		return true;
 	}
-	Debug_Serial.println("清除Timeout失败<Clean_Timeout>");
+	Error_Println("清除Timeout失败");
 	return false;
 }
 
@@ -1323,7 +1323,7 @@ bool ModbusController_InitState::Save_E000Interval(unsigned char High, unsigned 
 {
 	if ((AT24CXX_ReadOneByte(E000Interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(E000Interval_END_ADDR) == Low))
 	{
-		Debug_Serial.println("储存E000Interval成功<Save_Interval>");
+		Info_Println("储存E000Interval成功");
 		return true;
 	}
 
@@ -1334,10 +1334,10 @@ bool ModbusController_InitState::Save_E000Interval(unsigned char High, unsigned 
 
 	if ((AT24CXX_ReadOneByte(E000Interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(E000Interval_END_ADDR) == Low))
 	{
-		Debug_Serial.println("储存E000Interval成功<Save_Interval>");
+		Info_Println("储存E000Interval成功");
 		return true;
 	}
-	Debug_Serial.println("储存E000Interval失败<Save_Interval>");
+	Error_Println("储存E000Interval失败");
 	return false;
 }
 
@@ -1368,10 +1368,10 @@ bool ModbusController_InitState::Clean_E000Interval(void)
 
 	if ((AT24CXX_ReadOneByte(E000Interval_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(E000Interval_END_ADDR) == 0x00))
 	{
-		Debug_Serial.println("清除E000Interval成功<Clean_E000Interval>");
+		Info_Println("清除E000Interval成功");
 		return true;
 	}
-	Debug_Serial.println("清除E000Interval失败<Clean_E000Interval>");
+	Error_Println("清除E000Interval失败");
 	return false;
 }
 
@@ -1385,7 +1385,7 @@ bool ModbusController_InitState::Save_StopInterval(unsigned char High, unsigned 
 {
 	if ((AT24CXX_ReadOneByte(StopInterval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(StopInterval_END_ADDR) == Low))
 	{
-		Debug_Serial.println("储存StopInterval成功<Save_StopInterval>");
+		Info_Println("储存StopInterval成功");
 		return true;
 	}
 
@@ -1396,10 +1396,10 @@ bool ModbusController_InitState::Save_StopInterval(unsigned char High, unsigned 
 
 	if ((AT24CXX_ReadOneByte(StopInterval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(StopInterval_END_ADDR) == Low))
 	{
-		Debug_Serial.println("储存StopInterval成功<Save_StopInterval>");
+		Info_Println("储存StopInterval成功");
 		return true;
 	}
-	Debug_Serial.println("储存StopInterval失败<Save_StopInterval>");
+	Error_Println("储存StopInterval失败");
 	return false;
 }
 
@@ -1430,10 +1430,10 @@ bool ModbusController_InitState::Clean_StopInterval(void)
 
 	if ((AT24CXX_ReadOneByte(StopInterval_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(StopInterval_END_ADDR) == 0x00))
 	{
-		Debug_Serial.println("清除StopInterval成功<Clean_StopInterval>");
+		Info_Println("清除StopInterval成功");
 		return true;
 	}
-	Debug_Serial.println("清除StopInterval失败<Clean_StopInterval>");
+	Error_Println("清除StopInterval失败");
 	return false;
 }
 
@@ -1448,7 +1448,7 @@ bool ModbusController_InitState::Save_WorkInterval(unsigned char High, unsigned 
 {
 	if ((AT24CXX_ReadOneByte(WorkInterval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(WorkInterval_END_ADDR) == Low))
 	{
-		Debug_Serial.println("储存WorkInterval成功<Save_WorkInterval>");
+		Info_Println("储存WorkInterval成功");
 		return true;
 	}
 
@@ -1459,10 +1459,10 @@ bool ModbusController_InitState::Save_WorkInterval(unsigned char High, unsigned 
 
 	if ((AT24CXX_ReadOneByte(WorkInterval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(WorkInterval_END_ADDR) == Low))
 	{
-		Debug_Serial.println("储存WorkInterval成功<Save_WorkInterval>");
+		Info_Println("储存WorkInterval成功");
 		return true;
 	}
-	Debug_Serial.println("储存WorkInterval失败<Save_WorkInterval>");
+	Error_Println("储存WorkInterval失败");
 	return false;
 }
 
@@ -1493,10 +1493,10 @@ bool ModbusController_InitState::Clean_WorkInterval(void)
 
 	if ((AT24CXX_ReadOneByte(WorkInterval_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(WorkInterval_END_ADDR) == 0x00))
 	{
-		Debug_Serial.println("清除WorkInterval成功<Clean_WorkInterval>");
+		Info_Println("清除WorkInterval成功");
 		return true;
 	}
-	Debug_Serial.println("清除WorkInterval失败<Clean_WorkInterval>");
+	Error_Println("清除WorkInterval失败");
 	return false;
 }
 
@@ -1510,7 +1510,7 @@ bool ModbusController_InitState::Save_CyclicInterval(unsigned char High, unsigne
 {
 	if ((AT24CXX_ReadOneByte(Cyclic_interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(Cyclic_interval_END_ADDR) == Low))
 	{
-		Debug_Serial.println("储存CyclicInterval成功<Save_CyclicInterval>");
+		Info_Println("储存CyclicInterval成功");
 		return true;
 	}
 
@@ -1521,10 +1521,10 @@ bool ModbusController_InitState::Save_CyclicInterval(unsigned char High, unsigne
 
 	if ((AT24CXX_ReadOneByte(Cyclic_interval_BASE_ADDR) == High) && (AT24CXX_ReadOneByte(Cyclic_interval_END_ADDR) == Low))
 	{
-		Debug_Serial.println("储存CyclicInterval成功<Save_CyclicInterval>");
+		Info_Println("储存CyclicInterval成功");
 		return true;
 	}
-	Debug_Serial.println("储存CyclicInterval失败<Save_CyclicInterval>");
+	Error_Println("储存CyclicInterval失败");
 	return false;
 }
 
@@ -1555,10 +1555,10 @@ bool ModbusController_InitState::Clean_CyclicInterval(void)
 
 	if ((AT24CXX_ReadOneByte(Cyclic_interval_BASE_ADDR) == 0x00) && (AT24CXX_ReadOneByte(Cyclic_interval_END_ADDR) == 0x00))
 	{
-		Debug_Serial.println("清除CyclicInterval成功<Clean_CyclicInterval>");
+		Info_Println("清除CyclicInterval成功");
 		return true;
 	}
-	Debug_Serial.println("清除CyclicInterval失败<Clean_CyclicInterval>");
+	Error_Println("清除CyclicInterval失败");
 	return false;
 }
 
@@ -1595,12 +1595,12 @@ bool Positive_Negative_MODE::Save_AI_Relation_Way(unsigned char* data)
 		}
 		else
 		{
-			Debug_Serial.println("储存AI_Relation_Way失败!!! <Save_AI_Relation_Way>");
+			Error_Println("储存AI_Relation_Way失败!!!");
 			return false;
 		}
 	}
 
-	Debug_Serial.println("储存AI_Relation_Way成功 <Save_AI_Relation_Way>");
+	Info_Println("储存AI_Relation_Way成功");
 	return true;
 }
 
@@ -1645,12 +1645,12 @@ bool Positive_Negative_MODE::Clean_AI_Relation_Way(void)
 		}
 		else
 		{
-			Debug_Serial.println("清除AI_Relation_Way失败!!! <Clean_AI_Relation_Way>");
+			Error_Println("清除AI_Relation_Way失败!!!");
 			return false;
 		}
 	}
 
-	Debug_Serial.println("清除AI_Relation_Way成功<Clean_AI_Relation_Way>");
+	Info_Println("清除AI_Relation_Way成功");
 	return true;
 }
 
@@ -1681,12 +1681,12 @@ bool Positive_Negative_MODE::Save_WayIS_Reverse(unsigned char* data)
 		}
 		else
 		{
-			Debug_Serial.println("保存是否反向失败!!! <Save_WayIS_Reverse>");
+			Error_Println("保存是否反向失败!!! <Save_WayIS_Reverse>");
 			return false;
 		}
 	}
 
-	Debug_Serial.println("保存是否反向成功 <Save_WayIS_Reverse>");
+	Info_Println("保存是否反向成功 <Save_WayIS_Reverse>");
 	return true;
 }
 
@@ -1732,12 +1732,12 @@ bool Positive_Negative_MODE::Clean_WayIS_Reverse(void)
 		}
 		else
 		{
-			Debug_Serial.println("清除是否反向失败!!! <Save_WayIS_Reverse>");
+			Error_Println("清除是否反向失败!!!");
 			return false;
 		}
 	}
 
-	Debug_Serial.println("清除是否反向成功 <Save_WayIS_Reverse>");
+	Info_Println("清除是否反向成功");
 	return true;
 }
 
@@ -1755,12 +1755,12 @@ bool Positive_Negative_MODE::Save_A009_Seted(void)
 
 	if (AT24CXX_ReadOneByte(A009_Seted) == 0x55)
 	{
-		Debug_Serial.println("保存AI关联以及反向标志位成功 <Save_A009_Seted>");
+		Info_Println("保存AI关联以及反向标志位成功");
 		return true;
 	}
 	else
 	{
-		Debug_Serial.println("保存AI关联以及反向标志位失败!!! <Save_A009_Seted>");
+		Error_Println("保存AI关联以及反向标志位失败!!!");
 		return false;
 	}
 }
@@ -1793,12 +1793,12 @@ bool Positive_Negative_MODE::Clean_A009_Seted(void)
 
 	if (AT24CXX_ReadOneByte(A009_Seted) == 0x00)
 	{
-		Debug_Serial.println("清除AI关联以及反向标志位成功 <Clean_A009_Seted>");
+		Info_Println("清除AI关联以及反向标志位成功");
 		return true;
 	}
 	else
 	{
-		Debug_Serial.println("清除AI关联以及反向标志位失败!!! <Clean_A009_Seted>");
+		Error_Println("清除AI关联以及反向标志位失败!!!");
 		return false;
 	}
 }
@@ -1812,12 +1812,12 @@ bool Positive_Negative_MODE::Save_EleCurrent_Times(unsigned char data)
 
 	if (AT24CXX_ReadOneByte(EleCurrent_Times) == data)
 	{
-		Debug_Serial.println("保存电流倍数成功 <Save_EleCurrent_Times>");
+		Info_Println("保存电流倍数成功");
 		return true;
 	}
 	else
 	{
-		Debug_Serial.println("保存电流倍数失败!!! <Save_EleCurrent_Times>");
+		Error_Println("保存电流倍数失败!!!");
 		return false;
 	}
 }
@@ -1837,12 +1837,12 @@ bool Positive_Negative_MODE::Clean_EleCurrent_Times(void)
 
 	if (AT24CXX_ReadOneByte(EleCurrent_Times) == 0x00)
 	{
-		Debug_Serial.println("清除电流倍数成功 <Clean_EleCurrent_Times>");
+		Info_Println("清除电流倍数成功");
 		return true;
 	}
 	else
 	{
-		Debug_Serial.println("清除电流倍数失败!!! <Clean_EleCurrent_Times>");
+		Error_Println("清除电流倍数失败!!!");
 		return false;
 	}
 }
@@ -1857,12 +1857,12 @@ bool Positive_Negative_MODE::Save_A00D_Seted(bool Flag)
 
 	if (AT24CXX_ReadOneByte(A00D_Seted) == Flag)
 	{
-		Debug_Serial.println("保存A00D标志位成功 <Save_A00D_Seted>");
+		Info_Println("保存A00D标志位成功");
 		return true;
 	}
 	else
 	{
-		Debug_Serial.println("保存A00D标志位失败!!! <Save_A00D_Seted>");
+		Error_Println("保存A00D标志位失败!!!");
 		return false;
 	}
 }
@@ -1882,12 +1882,12 @@ bool Positive_Negative_MODE::Clean_A00D_Seted(void)
 
 	if (AT24CXX_ReadOneByte(A00D_Seted) == false)
 	{
-		Debug_Serial.println("清除A00D标志位成功 <Clean_A00D_Seted>");
+		Info_Println("清除A00D标志位成功");
 		return true;
 	}
 	else
 	{
-		Debug_Serial.println("清除A00D标志位失败!!! <Clean_A00D_Seted>");
+		Error_Println("清除A00D标志位失败!!!");
 		return false;
 	}
 }
@@ -1898,34 +1898,55 @@ bool Positive_Negative_MODE::Clean_A00D_Seted(void)
 /* 连续顺序写/读一串数据缓存 */
 film_mem_err Film_MEM_Write_Buffer(film_u32 base_addr, film_u8 *buf, film_u32 len)
 {
+	iwdg_feed();
 	EEPROM_Write_Enable();
-	for (unsigned int i = 0; i < len; i++)
+	for (size_t i = 0; i < len; i++)
 	{
-		AT24C_02.AT24CXX_WriteOneByte(base_addr+i,buf[i]);
+		AT24C_02.AT24CXX_WriteOneByte(base_addr+i, buf[i]);
+		// if (i%500 == 0 && i != 0)
+		// {
+		// 	Debug_Serial.println(String("[Debug] i = ") + i + " <Film_MEM_Write_Buffer>");
+		// 	iwdg_feed();
+		// }
 	}
 	EEPROM_Write_Disable();
 
-	// for (size_t i = 0; i < len; i++)
-	// {
-	// 	if (buf[i] != AT24C_02.AT24CXX_ReadOneByte(base_addr+i))
-	// 	{
-	// 		Debug_Serial.println("ERROR!!!!!!!!!!!!!!!!! <Film_MEM_Write_Buffer>");
-	// 		return FILM_MEM_W_ERR;
-	// 	}
-	// }
-	
+	for (size_t i = 0; i < len; i++)
+	{
+		// if (i%500 == 0 && i != 0)
+		// {
+		// 	Debug_Serial.println(String("[Debug] i = ") + i + " <Film_MEM_Write_Buffer>");
+		// 	Debug_Serial.println(String("buf[") + i + "] = " + buf[i] + "; ReadOneByte[" + i + "] = " + AT24C_02.AT24CXX_ReadOneByte(base_addr+i));
+		// 	iwdg_feed();
+		// }
+		if (!(AT24C_02.AT24CXX_ReadOneByte(base_addr+i) == buf[i]))
+		{
+			iwdg_feed();
+			// Debug_Serial.println(String("ERROR! ") + "ReadOneByte[" + i + "] = " + AT24C_02.AT24CXX_ReadOneByte(base_addr+i));
+			Error_Println("ReadOneByte[" + i + "] = " + AT24C_02.AT24CXX_ReadOneByte(base_addr+i));
+			return FILM_MEM_W_ERR;
+			// EEPROM_Write_Enable();
+			// AT24C_02.AT24CXX_WriteOneByte(base_addr+i, buf[i]);
+			// EEPROM_Write_Disable();
+			// if (!(AT24C_02.AT24CXX_ReadOneByte(base_addr+i) == buf[i]))
+			// {
+			// 	Debug_Serial.println(String("ERROR!!!!!!!!!! <Film_MEM_Write_Buffer>"));
+			// }
+		}
+	}
+
+	Debug_Println("OKOK~~");
+
 	return FILM_MEM_OK;
 }
 
 
 film_mem_err Film_MEM_Read_Buffer(film_u32 base_addr, film_u8 *buf, film_u32 len)
 {
-	
 	for (unsigned int i = 0; i < len; i++)
 	{
 		buf[i] = AT24C_02.AT24CXX_ReadOneByte(base_addr+i);
 	}
-
 	return FILM_MEM_OK;
 }
 

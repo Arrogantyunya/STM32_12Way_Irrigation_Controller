@@ -42,6 +42,15 @@
 
 #define FILM_TRA_BLOCK_END        }
 
+
+// #define ASSERT_CHANNEL(s, r)       do{   \
+//                                   if (!ch || ch > MOTOR_CHANNEL){
+//                                     FM_PRINT((FM_PrintDBG_Buf, "CH ERR! [s]\n")); \
+//                                     return r;\
+//                                     } \
+//                                   }while(0) 
+
+
 /* 电机方向 */
 typedef enum {
   Film_Forward,
@@ -88,7 +97,8 @@ typedef enum{
   Film_M_Up_Limit_Exp,  //上限位异常
   Film_M_Down_Limit_Exp, //下限位异常
   Film_M_Run_Exp, //电机异常（检测到电压过低）
-  Film_M_Unkonwn_Open //未知开度（开度卷膜途中断电，且实时开度在全关或者全开上，为了防止服务器以为还正常关棚或着开棚，让服务器目前不确定是否在全开或者全关）
+  Film_M_Unkonwn_Open, //未知开度（开度卷膜途中断电，且实时开度在全关或者全开上，为了防止服务器以为还正常关棚或着开棚，让服务器目前不确定是否在全开或者全关）
+  Film_M_CH_Err
 }film_m_sta;
 
 typedef enum{

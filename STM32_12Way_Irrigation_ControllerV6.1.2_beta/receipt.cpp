@@ -126,7 +126,7 @@ void Receipt::Report_General_Parameter(void)
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReportFrame[FrameLength++] = 0x0D : ReportFrame[FrameLength++] = 0x0A;
 
-	Debug_Serial.println("Report general parameter...");
+	Info_Println("Report general parameter...");
 	/*打印要发送的数据帧*/
 	Print_Debug(&ReportFrame[0], FrameLength);
 
@@ -187,7 +187,7 @@ void Receipt::Request_Set_Group_Number(void)
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? RequestFrame[FrameLength++] = 0x0D : RequestFrame[FrameLength++] = 0x0A;
 
-	Debug_Serial.println("Requeset SN code to access network...");
+	Info_Println("Requeset SN code to access network...");
 	/*打印要发送的数据帧*/
 	Print_Debug(&RequestFrame[0], FrameLength);
 
@@ -247,7 +247,7 @@ void Receipt::Request_Device_SN_and_Channel(void)
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? RequestFrame[FrameLength++] = 0x0D : RequestFrame[FrameLength++] = 0x0A;
 
-	Debug_Serial.println("Requeset SN code to access network...");
+	Info_Println("Requeset SN code to access network...");
 	/*打印要发送的数据帧*/
 	Print_Debug(&RequestFrame[0], FrameLength);
 
@@ -270,7 +270,7 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
 // 示例数据    	FE       	E014   	0x3E   	C003        	00    	0200 	0200 	    	    	     	     	     	     	     	        	     	00  	0D0A0D 0A0D0A
 
 	iwdg_feed();
-	Debug_Serial.println("上报实时详细工作状态 <Working_Parameter_Receipt>");
+	Info_Println("上报实时详细工作状态 <Working_Parameter_Receipt>");
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[72] = { 0x00 };
 	unsigned char ReceiptLength = 0;
@@ -300,7 +300,7 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
 	ReceiptFrame[ReceiptLength++] = lowByte(DEVICE_TYPE_ID);
 
 	/*status*/
-	Debug_Serial.println(String("gStatus_E014 = ") + gStatus_E014);
+	Info_Println(String("gStatus_E014 = ") + gStatus_E014);
 	Debug_Serial.flush();
 	ReceiptFrame[ReceiptLength++] = gStatus_E014;
 
@@ -363,7 +363,7 @@ void Receipt::Working_Parameter_Receipt(bool use_random_wait, unsigned char time
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("LoRa parameter receipt...");
+	Info_Println("LoRa parameter receipt...");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < times; i++)
@@ -437,7 +437,7 @@ void Receipt::General_Receipt(unsigned char status, unsigned char send_times)
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("Send General Receipt...");
+	Info_Println("Send General Receipt...");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -510,7 +510,7 @@ void Receipt::Control_command_Receipt(bool use_random_wait, unsigned char send_t
 
 	G_modbusPacket_Length = 0;//每次用完都得清零
 
-	Debug_Serial.println("Send Control command Receipt...<Control_command_Receipt>");
+	Info_Println("Send Control command Receipt...<Control_command_Receipt>");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -558,7 +558,7 @@ void Receipt::Output_init_Receipt(unsigned char status, unsigned char send_times
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("Send Output init Receipt...<Output_init_Receipt>");
+	Info_Println("Send Output init Receipt...<Output_init_Receipt>");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -640,7 +640,7 @@ void Receipt::Irrigation_control_Receipt(unsigned char send_times, unsigned char
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("Send Irrigation control Receipt...<Irrigation_control_Receipt>");
+	Info_Println("Send Irrigation control Receipt...<Irrigation_control_Receipt>");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -709,7 +709,7 @@ void Receipt::Delay_Start_DO_Control_Receipt(unsigned char send_times, unsigned 
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("Send Irrigation control Receipt...<Irrigation_control_Receipt>");
+	Info_Println("Send Irrigation control Receipt...<Irrigation_control_Receipt>");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -773,7 +773,7 @@ void Receipt::Positive_negative_Control_Receipt(unsigned char send_times, unsign
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("Send Irrigation control Receipt...<Irrigation_control_Receipt>");
+	Info_Println("Send Irrigation control Receipt...<Irrigation_control_Receipt>");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -797,7 +797,7 @@ void  Receipt::New_Working_Parameter_Receipt(bool use_random_wait,unsigned char 
 // 示例数据  		FE       	E006   	0x1A（26）	C003        	FF000000	FF000000	XXXXXX	00  	0D0A0D0A0D0A
 
 	iwdg_feed();
-	Debug_Serial.println("上报新实时详细工作状态 <New_Working_Parameter_Receipt>");
+	Info_Println("上报新实时详细工作状态 <New_Working_Parameter_Receipt>");
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
@@ -854,7 +854,7 @@ void  Receipt::New_Working_Parameter_Receipt(bool use_random_wait,unsigned char 
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("LoRa parameter receipt...");
+	Info_Println("LoRa parameter receipt...");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -884,7 +884,7 @@ void Receipt::SignalQuality_Version_Receipt(bool use_random_wait,unsigned char s
 
 
 	iwdg_feed();
-	Debug_Serial.println("上报信号强度以及版本号 <SignalQuality_Version_Receipt>");
+	Info_Println("上报信号强度以及版本号 <SignalQuality_Version_Receipt>");
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
@@ -944,7 +944,7 @@ void Receipt::SignalQuality_Version_Receipt(bool use_random_wait,unsigned char s
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("LoRa parameter receipt...");
+	Info_Println("LoRa parameter receipt...");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -971,7 +971,7 @@ void Receipt::Set_threshold_Receipt(unsigned char send_times,unsigned char* gRec
 
 
 	iwdg_feed();
-	Debug_Serial.println("正反转模式阈值回执 <Set_threshold_Receipt>");
+	Info_Println("正反转模式阈值回执 <Set_threshold_Receipt>");
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
@@ -1020,7 +1020,7 @@ void Receipt::Set_threshold_Receipt(unsigned char send_times,unsigned char* gRec
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("LoRa parameter receipt...");
+	Info_Println("LoRa parameter receipt...");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -1045,7 +1045,7 @@ void Receipt::Calculate_travel_Receipt(unsigned char send_times,unsigned char Wa
 //   示例数据    	FE       	E00A   	0x06(6)	C003        	00         	01    	FC     	02         	00  	0D0A0D0A0D0A
 
 	iwdg_feed();
-	Debug_Serial.println("正反转模式计算行程回执 <Calculate_travel_Receipt>");
+	Info_Println("正反转模式计算行程回执 <Calculate_travel_Receipt>");
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
@@ -1082,7 +1082,7 @@ void Receipt::Calculate_travel_Receipt(unsigned char send_times,unsigned char Wa
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("LoRa parameter receipt...");
+	Info_Println("LoRa parameter receipt...");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -1109,12 +1109,12 @@ void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E0
 	iwdg_feed();
 	if (E00Bstatus == Auto_Report)
 	{
-		Debug_Serial.println("卷膜开度自动上报 <Opening_Control_Receipt>");
+		Info_Println("卷膜开度自动上报 <Opening_Control_Receipt>");
 		
 	}
 	else
 	{
-		Debug_Serial.println("卷膜开度设置回执 <Opening_Control_Receipt>");
+		Info_Println("卷膜开度设置回执 <Opening_Control_Receipt>");
 	}
 	
 	Debug_Serial.flush();
@@ -1183,7 +1183,7 @@ void Receipt::Opening_Control_Receipt(unsigned char send_times, unsigned char E0
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("LoRa parameter receipt...");
+	Info_Println("LoRa parameter receipt...");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -1210,7 +1210,7 @@ void Receipt::Rolling_ch_Status_Receipt(unsigned char send_times,unsigned char c
 
 
 	iwdg_feed();
-	Debug_Serial.println("卷膜路数状态回执 <Rolling_ch_Status_Receipt>");
+	Info_Println("卷膜路数状态回执 <Rolling_ch_Status_Receipt>");
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
@@ -1247,7 +1247,7 @@ void Receipt::Rolling_ch_Status_Receipt(unsigned char send_times,unsigned char c
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("LoRa parameter receipt...");
+	Info_Println("LoRa parameter receipt...");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -1256,7 +1256,7 @@ void Receipt::Rolling_ch_Status_Receipt(unsigned char send_times,unsigned char c
 		LoRa_Serial.write(&ReceiptFrame[0], ReceiptLength);
 		delayMicroseconds(SEND_DATA_DELAY * 1000);
 	}
-	Debug_Serial.println("");
+	Info_Println("");
 }
 
 
@@ -1275,7 +1275,7 @@ void Receipt::TimesSet_ClearEleCurrent_Receipt(unsigned char send_times, unsigne
 // 示例数据    	FE       	E00D   	0x05   	C003        	00         	01    	00    	00  	0D0A0D0A0D0A
 
 	iwdg_feed();
-	Debug_Serial.println("卷膜电流倍数设置回执 <TimesSet_ClearEleCurrent_Receipt>");
+	Info_Println("卷膜电流倍数设置回执 <TimesSet_ClearEleCurrent_Receipt>");
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
@@ -1309,7 +1309,7 @@ void Receipt::TimesSet_ClearEleCurrent_Receipt(unsigned char send_times, unsigne
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("LoRa parameter receipt...");
+	Info_Println("LoRa parameter receipt...");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -1318,7 +1318,7 @@ void Receipt::TimesSet_ClearEleCurrent_Receipt(unsigned char send_times, unsigne
 		LoRa_Serial.write(&ReceiptFrame[0], ReceiptLength);
 		delayMicroseconds(SEND_DATA_DELAY * 1000);
 	}
-	Debug_Serial.println("");
+	Info_Println("");
 }
 
 
@@ -1329,13 +1329,13 @@ void Receipt::TimesSet_ClearEleCurrent_Receipt(unsigned char send_times, unsigne
  */
 void Receipt::All_Opening_Status_Receipt(unsigned char send_times)
 {
-// 字节索引    	0        	1-2    	3      	4-5         	6          	7     	8-15           	16-23      	24  	10-15       
-// 数据域     	frameHead	frameId	dataLen	DeviceTypeId	isBroadcast	ZoneId	current_opening	MotorStatus	CRC8	frameEnd    
-// 长度（byte）	1        	2      	1      	2           	1          	1     	8              	8          	1   	6           
-// 示例数据    	FE       	E00D   	0x14   	C003        	00         	01    	000000         	00000      	00  	0D0A0D0A0D0A
+//   字节索引    	0        	1-2    	3       	4-5         	6          	7     	8-15           	16-23      	23-38	39  	40-45       
+//   数据域     	frameHead	frameId	dataLen 	DeviceTypeId	isBroadcast	ZoneId	current_opening	MotorStatus	AI   	CRC8	frameEnd    
+//   长度（byte）	1        	2      	1       	2           	1          	1     	8              	8          	16   	1   	6           
+//   示例数据    	FE       	E00D   	0x24（36）	C003        	00         	01    	000000         	00000      	     	00  	0D0A0D0A0D0A
 
 	iwdg_feed();
-	Debug_Serial.println("卷膜开度状态全回执 <All_Opening_Status_Receipt>");
+	Info_Println("卷膜开度状态全回执");
 	Debug_Serial.flush();
 	unsigned char ReceiptFrame[50] = { 0x00 };
 	unsigned char ReceiptLength = 0;
@@ -1347,7 +1347,7 @@ void Receipt::All_Opening_Status_Receipt(unsigned char send_times)
 	ReceiptFrame[ReceiptLength++] = 0xFE; //帧头
 	ReceiptFrame[ReceiptLength++] = 0xE0; //帧ID
 	ReceiptFrame[ReceiptLength++] = 0x0E; //
-	ReceiptFrame[ReceiptLength++] = 0x14; //数据长度
+	ReceiptFrame[ReceiptLength++] = 0x24; //数据长度
 
 	/*设备类型*/
 	ReceiptFrame[ReceiptLength++] = highByte(DEVICE_TYPE_ID);
@@ -1380,6 +1380,16 @@ void Receipt::All_Opening_Status_Receipt(unsigned char send_times)
 		else
 			ReceiptFrame[ReceiptLength++] = 0xFE;//表示不存在的路数
 	}
+
+	/* AI */
+	unsigned short AI_data = 0;
+	for (unsigned char i = 0; i < 8; i++)
+	{
+		AI_data = Modbus_Coil.Get_which_AI(Pos_Nega_mode.Read_AI_Relation_Way(i));
+		// Serial.println(String("AI_data = ") + AI_data);
+		ReceiptFrame[ReceiptLength++] = (AI_data >> 8) & 0xFF;
+		ReceiptFrame[ReceiptLength++] = AI_data & 0xFF;
+	}
 	
 	/*CRC8*/
 	ReceiptFrame[ReceiptLength++] = GetCrc8(&ReceiptFrame[4], ReceiptFrame[3]);
@@ -1388,7 +1398,7 @@ void Receipt::All_Opening_Status_Receipt(unsigned char send_times)
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("LoRa parameter receipt...");
+	Info_Println("LoRa parameter receipt...");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < send_times; i++)
@@ -1397,7 +1407,7 @@ void Receipt::All_Opening_Status_Receipt(unsigned char send_times)
 		LoRa_Serial.write(&ReceiptFrame[0], ReceiptLength);
 		delayMicroseconds(SEND_DATA_DELAY * 1000);
 	}
-	Debug_Serial.println("");
+	Info_Println("");
 }
 
 
@@ -1488,7 +1498,7 @@ void Receipt::OnLine_Receipt(bool use_random_wait, unsigned char times)
 //   长度（byte）	1        	2      	1      	2           	8       	1   	6            
 //   示例数据    	FE       	E002   	0A     	C003        	0000    	D6  	0D0A0D 0A0D0A
 
-	Debug_Serial.println("上线状态报告 <Working_Parameter_Receipt>");
+	Info_Println("上线状态报告 <Working_Parameter_Receipt>");
 	unsigned char ReceiptFrame[23] = { 0 };
 	unsigned char ReceiptLength = 0;
 	// unsigned char RandomSeed;
@@ -1529,7 +1539,7 @@ void Receipt::OnLine_Receipt(bool use_random_wait, unsigned char times)
 	for (unsigned char i = 0; i < 6; i++)
 		i % 2 == 0 ? ReceiptFrame[ReceiptLength++] = 0x0D : ReceiptFrame[ReceiptLength++] = 0x0A;
 
-	Debug_Serial.println("LoRa parameter receipt...");
+	Info_Println("LoRa parameter receipt...");
 	Print_Debug(&ReceiptFrame[0], ReceiptLength);
 
 	for (unsigned char i = 0; i < times; i++)
@@ -1555,7 +1565,7 @@ void Receipt::Print_Debug(unsigned char *base_addr, unsigned char len)
 		Debug_Serial.print(base_addr[i], HEX);
 		Debug_Serial.print(" ");
 	}
-	Debug_Serial.println();
+	Info_Println();
 }
 
 /* 卷膜流程中的状态信息投递任务，开发者根据传入的状态来提供具体事项，如将状态上报给服务器 */
@@ -1584,8 +1594,9 @@ void Film_Status_Msg_Delivery_Task(film_u8 ch, film_m_sta sta)
 		default: Debug_Serial.println("Unknow_Status,未知状态!!!"); break;
 	}
 
-	Message_Receipt.Rolling_ch_Status_Receipt(2, ch, sta);
-	Message_Receipt.Opening_Control_Receipt(1,Auto_Report);
+	// Message_Receipt.Rolling_ch_Status_Receipt(1, ch, sta);
+	// Message_Receipt.Opening_Control_Receipt(1,Auto_Report);
+	Message_Receipt.All_Opening_Status_Receipt(1);
 }
 
 // /* 电机状态 */

@@ -153,12 +153,12 @@ bool Modbus_Coils::Set_Coil_DefaultValue(void)
 	{
 		// unsigned char *_empty = NULL;
 		Modbus_Coil.Modbus_Realization();//设置输出线圈状态，modbus实现
-		Debug_Serial.println("Set Coil DefaultValue Success. <Set_Coil_DefaultValue>");
+		Info_Println("Set Coil DefaultValue Success.");
 		return true;
 	}
 	else
 	{
-		Debug_Serial.println("Set Coil DefaultValue Failure! <Set_Coil_DefaultValue>");
+		Error_Println("Set Coil DefaultValue Failure!");
 		return false;
 	}
 }
@@ -185,7 +185,7 @@ bool Modbus_Coils::Set_Coil_InitValue(void)
 	{
 		// unsigned char *_empty = NULL;
 		Modbus_Coil.Modbus_Realization();//设置输出线圈状态，modbus实现
-		Debug_Serial.println("PLC_V1 DO外设引脚初始化成功<Set_Coil_InitValue>");
+		Info_Println("PLC_V1 DO外设引脚初始化成功");
 		return true;
 	}
 	
@@ -264,10 +264,10 @@ void Modbus_Coils::Modbus_Realization(unsigned char* modbusPacket, int Length)
  */
 bool Modbus_Coils::Init_DO_1to8(unsigned char num)
 {
-	Debug_Serial.println("开始设置线圈值<Init_DO_1to8>");
+	Info_Println("开始设置线圈值<Init_DO_1to8>");
 	unsigned char n1 = 0;unsigned char n2 = 1; unsigned char count = 0;
 	String DO_Init_1 = String(num, BIN);/* String DO_Init_2 = String(DO_Init[1], BIN);*/
-	Debug_Serial.println(String("DO_Init_1 = ") + DO_Init_1); /*Serial.println(String("DO_Init_2 = ") + DO_Init_2);*/
+	Debug_Println(String("DO_Init_1 = ") + DO_Init_1); /*Serial.println(String("DO_Init_2 = ") + DO_Init_2);*/
 	if (DO_Init_1.length() == 8)
 	{
 		if (mb.Coil(KCZJ1_COIL, (DO_Init_1.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_1.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
@@ -364,10 +364,10 @@ bool Modbus_Coils::Init_DO_1to8(unsigned char num)
 
 	if (count == 8)
 	{
-		Debug_Serial.println("设置线圈值成功<Init_DO_1to8>");
+		Info_Println("设置线圈值成功");
 		return true;
 	}
-	Debug_Serial.println("设置线圈值失败<Init_DO_1to8>");
+	Error_Println("设置线圈值失败");
 	return false;
 }
 
@@ -378,10 +378,10 @@ bool Modbus_Coils::Init_DO_1to8(unsigned char num)
  */
 bool Modbus_Coils::Init_DO_9to16(unsigned char num)
 {
-	Debug_Serial.println("开始设置线圈值<Init_DO_9to16>");
+	Info_Println("开始设置线圈值<Init_DO_9to16>");
 	unsigned char n1 = 0;unsigned char n2 = 1; unsigned char count = 0;
 	String DO_Init_2 = String(num, BIN);
-	Debug_Serial.println(String("DO_Init_2 = ") + DO_Init_2);
+	Debug_Println(String("DO_Init_2 = ") + DO_Init_2);
 	if (DO_Init_2.length() == 8)
 	{
 		if (mb.Coil(KCZJ9_COIL, (DO_Init_2.substring(n1, n2) > String(0) ? 0xFF00 : 0x0000)) == true)	{count++;}n1++;n2++/*Serial.println((DO_Init_2.substring(n++, n) > String(0) ? 0xFF00 : 0x0000), HEX)*/;
@@ -478,10 +478,10 @@ bool Modbus_Coils::Init_DO_9to16(unsigned char num)
 
 	if (count == 4)
 	{
-		Debug_Serial.println("设置线圈值成功<Init_DO_9to16>");
+		Info_Println("设置线圈值成功<Init_DO_9to16>");
 		return true;
 	}
-	Debug_Serial.println("设置线圈值失败<Init_DO_9to16>");
+	Error_Println("设置线圈值失败<Init_DO_9to16>");
 	return false;
 }
 
@@ -493,7 +493,7 @@ bool Modbus_Coils::Init_DO_9to16(unsigned char num)
 bool Modbus_Coils::Init_DO_17to24(unsigned char num)
 {
 	num = num + 0;
-	Debug_Serial.println("<Init_DO_9to16>");
+	Info_Println();
 	return true;
 }
 
@@ -505,7 +505,7 @@ bool Modbus_Coils::Init_DO_17to24(unsigned char num)
 bool Modbus_Coils::Init_DO_25to32(unsigned char num)
 {
 	num = num + 0;
-	Debug_Serial.println("<Init_DO_9to16>");
+	Info_Println();
 	return true;
 }
 
@@ -517,7 +517,7 @@ bool Modbus_Coils::Init_DO_25to32(unsigned char num)
 bool Modbus_Coils::Init_DO_33to40(unsigned char num)
 {
 	num = num + 0;
-	Debug_Serial.println("<Init_DO_9to16>");
+	Info_Println();
 	return true;
 }
 
@@ -529,7 +529,7 @@ bool Modbus_Coils::Init_DO_33to40(unsigned char num)
 bool Modbus_Coils::Init_DO_41to48(unsigned char num)
 {
 	num = num + 0;
-	Debug_Serial.println("<Init_DO_9to16>");
+	Info_Println();
 	return true;
 }
 
@@ -541,7 +541,7 @@ bool Modbus_Coils::Init_DO_41to48(unsigned char num)
 bool Modbus_Coils::Init_DO_49to56(unsigned char num)
 {
 	num = num + 0;
-	Debug_Serial.println("<Init_DO_49to56>");
+	Info_Println();
 	return true;
 }
 
@@ -552,7 +552,7 @@ bool Modbus_Coils::Init_DO_49to56(unsigned char num)
  */
 bool Modbus_Coils::Init_AO_1to8()
 {
-	Debug_Serial.println("<Init_AO_1to8>");
+	Info_Println();
 	return true;
 }
 
@@ -845,13 +845,13 @@ void Set_Way_Motor(unsigned char ch, unsigned char status)
 	{
 		if (!Pos_Nega_mode.Read_WayIS_Reverse((ch-1)))
 		{
-			Debug_Serial.println(String("第") + ch + "路为Film_Forward,目标正常");
+			Info_Println(String("第") + ch + "路为Film_Forward,目标正常");
 			Set_DO_relay((2*(ch-1)),ON);
 			Set_DO_relay(((2*(ch-1))+1),OFF);
 		}
 		else
 		{
-			Debug_Serial.println(String("第") + ch + "路为Film_Forward,目标反向");
+			Info_Println(String("第") + ch + "路为Film_Forward,目标反向");
 			Set_DO_relay((2*(ch-1)),OFF);
 			Set_DO_relay(((2*(ch-1))+1),ON);
 		}
@@ -860,13 +860,13 @@ void Set_Way_Motor(unsigned char ch, unsigned char status)
 	{
 		if (!Pos_Nega_mode.Read_WayIS_Reverse((ch-1)))
 		{
-			Debug_Serial.println(String("第") + ch + "路为Film_Reversal,目标正常");
+			Info_Println(String("第") + ch + "路为Film_Reversal,目标正常");
 			Set_DO_relay((2*(ch-1)),OFF);
 			Set_DO_relay(((2*(ch-1))+1),ON);
 		}
 		else
 		{
-			Debug_Serial.println(String("第") + ch + "路为Film_Reversal,目标反向");
+			Info_Println(String("第") + ch + "路为Film_Reversal,目标反向");
 			Set_DO_relay((2*(ch-1)),ON);
 			Set_DO_relay(((2*(ch-1))+1),OFF);
 		}
@@ -878,7 +878,7 @@ void Set_Way_Motor(unsigned char ch, unsigned char status)
 	}
 	else
 	{
-		Debug_Serial.println("异常电机工作状态设置!!! <Set_Way_Motor>");
+		Error_Println("异常电机工作状态设置!!! <Set_Way_Motor>");
 		Set_DO_relay((2*(ch-1)),OFF);
 		Set_DO_relay(((2*(ch-1))+1),OFF);
 	}
@@ -907,7 +907,7 @@ void Set_DO_relay(unsigned char way, bool value)
 		case 9:digitalWrite(KCZJ10, value);value>0?mb.Coil(KCZJ10_COIL,0x0000):mb.Coil(KCZJ10_COIL,0xff00); break;
 		case 10:digitalWrite(KCZJ11, value);value>0?mb.Coil(KCZJ11_COIL,0x0000):mb.Coil(KCZJ11_COIL,0xff00); break;
 		case 11:digitalWrite(KCZJ12, value);value>0?mb.Coil(KCZJ12_COIL,0x0000):mb.Coil(KCZJ12_COIL,0xff00); break;
-		default:/*强制停止*/	Serial.println("异常!!强制停止");		break;
+		default:Error_Println("异常!!强制停止");break;
 	}
 }
 

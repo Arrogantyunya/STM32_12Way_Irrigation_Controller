@@ -11,8 +11,8 @@
 						
  @return	: Operation returns 1 as normal, operation error returns 0.
  */
-__attribute__((weak)) bt_u8 BT_MEM_Write_Bytes(bt_u8 base_addr, bt_u8 *buf, bt_u8 len) { return 1; }
-__attribute__((weak)) bt_u8 BT_MEM_Read_Bytes(bt_u8 base_addr, bt_u8 *buf, bt_u8 len) { return 1; }
+__attribute__((weak)) bt_u8 BT_MEM_Write_Bytes(bt_u32 base_addr, bt_u8 *buf, bt_u32 len) { return 1; }
+__attribute__((weak)) bt_u8 BT_MEM_Read_Bytes(bt_u32 base_addr, bt_u8 *buf, bt_u32 len) { return 1; }
 
 /**
  @brief		: Save the periodic query value for the query software version.

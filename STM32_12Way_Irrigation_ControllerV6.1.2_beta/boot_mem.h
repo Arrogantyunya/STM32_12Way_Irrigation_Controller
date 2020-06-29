@@ -3,7 +3,7 @@
 
 #include "boot_config.h"
 
-#define BT_STORE_OFFSET_ADDR						200
+#define BT_STORE_OFFSET_ADDR						1000
 
 #if (BT_DP_SAVE_BASE_ADDR - BT_APP_RUN_ADDR)
 #define BT_STORE_SIZE										(40 + 1) //bytes

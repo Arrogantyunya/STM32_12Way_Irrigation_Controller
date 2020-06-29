@@ -4,7 +4,7 @@
 #include "film_config.h"
 
 /* 卷膜库储存基地址，需要开发者来设置该基地址 */
-#define FILM_MEM_BASE_ADDR                          150U
+#define FILM_MEM_BASE_ADDR                          2000U
 
 #define FILM_MEM_CHANNEL                            (MOTOR_CHANNEL - 1U)
 
@@ -106,8 +106,8 @@ typedef enum{
     FILM_MEM_FLAG_RESET_MODE = 0x01U
 }film_flag_mode;
 
-film_mem_err Film_MEM_Save_Param(film_u32 w_base_addr, film_u8 *w_buf);
-film_mem_err Film_MEM_Read_Param(film_u32 r_base_addr, film_u8 *r_buf);
+// film_mem_err Film_MEM_Save_Param(film_u32 w_base_addr, film_u8 *w_buf);
+// film_mem_err Film_MEM_Read_Param(film_u32 r_base_addr, film_u8 *r_buf);
 film_mem_err Film_MEM_Save_Param_CH(film_u32 w_base_addr, film_u8 *w_buf, film_u8 ch);
 film_mem_err Film_MEM_Read_Param_CH(film_u32 r_base_addr, film_u8 *r_buf, film_u8 ch);
 
