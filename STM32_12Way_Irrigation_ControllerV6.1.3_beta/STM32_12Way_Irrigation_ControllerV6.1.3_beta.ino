@@ -1,8 +1,8 @@
 // Visual Micro is in vMicro>General>Tutorial Mode
 // 
 /*
-    Name:       STM32_12Way_Irrigation_ControllerV6.1.1_beta.ino
-    Created:	2020/6/22 09:01:47
+    Name:       STM32_12Way_Irrigation_ControllerV6.1.3_beta.ino
+    Created:	2020/7/1 11:01:47
     Author:     刘家辉
 */
 
@@ -64,13 +64,13 @@
 #define Print_test				true	//打印测试
 /* 替换宏 */
 #define Software_version_high 	0x06 	//软件版本的高位
-#define Software_version_low 	0x12 	//软件版本的低位
+#define Software_version_low 	0x13 	//软件版本的低位
 #define Hardware_version_high 	0x02 	//硬件版本的高位
 #define Hardware_version_low 	0x00	//硬件版本的低位
 #define Init_Area				0x01	//初始区域ID
 #define Waiting_Collection_Time 2000	//等待采集的时间（ms）
 
-unsigned char SoftVer[2] = {6,12};
+unsigned char SoftVer[2] = {6,13};
 
 
 //全局变量

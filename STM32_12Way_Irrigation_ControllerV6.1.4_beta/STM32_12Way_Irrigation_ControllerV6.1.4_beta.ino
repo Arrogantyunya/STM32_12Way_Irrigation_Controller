@@ -1,8 +1,8 @@
 // Visual Micro is in vMicro>General>Tutorial Mode
 // 
 /*
-    Name:       STM32_12Way_Irrigation_ControllerV6.1.1_beta.ino
-    Created:	2020/6/22 09:01:47
+    Name:       STM32_12Way_Irrigation_ControllerV6.1.3_beta.ino
+    Created:	2020/7/1 11:01:47
     Author:     刘家辉
 */
 
@@ -64,13 +64,13 @@
 #define Print_test				true	//打印测试
 /* 替换宏 */
 #define Software_version_high 	0x06 	//软件版本的高位
-#define Software_version_low 	0x12 	//软件版本的低位
-#define Hardware_version_high 	0x02 	//硬件版本的高位
+#define Software_version_low 	0x14 	//软件版本的低位
+#define Hardware_version_high 	0x023 	//硬件版本的高位
 #define Hardware_version_low 	0x00	//硬件版本的低位
 #define Init_Area				0x01	//初始区域ID
 #define Waiting_Collection_Time 2000	//等待采集的时间（ms）
 
-unsigned char SoftVer[2] = {6,12};
+unsigned char SoftVer[2] = {6,13};
 
 
 //全局变量
@@ -250,7 +250,7 @@ void setup()
 	}
 	LORA_SYNC = LoRa_Para_Config.Read_LoRa_SYNC();
 	Info_Println("LORA_SYNC = " + LORA_SYNC);
-	LoRa_MHL9LF.Parameter_Init(false);//LORA参数设置
+	// LoRa_MHL9LF.Parameter_Init(false);//LORA参数设置
 	LoRa_Para_Config.Save_LoRa_Config_Flag();//保存LORA参数配置完成标志位
 #endif
 
@@ -351,6 +351,9 @@ void setup()
 	Info_Println("All configuration items are initialized. Welcome to use!!!  ~(*^__^*)~ ");//所有的设置项初始化完成，欢迎使用
 	Debug_Serial.println("");
 
+	Info_Println("All configuration items are initialized. Welcome to use!!!  ~(*^__^*)~ ");//所有的设置项初始化完成，欢迎使用
+	Debug_Serial.println("");
+
 	InitState.Save_WorkInterval(0x00,0x0A);//10秒
 	InitState.Save_StopInterval(0x00,0x0A);//20秒
 
@@ -398,8 +401,8 @@ void loop()
 
 	Project_Debug();//调试模式
 
-	Film_Auto_Open_Task();
 	Film_Switch_Task();
+	Film_Auto_Open_Task();
 
 	// BT_Cycle_Query_SV_and_DP();
 }
