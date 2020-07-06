@@ -9,7 +9,7 @@
 
 #define FILM_DETECT_START_TIME                3U //启动限位检测时间
 
-#define FILM_LOWER_CUR_VALUE                  150 //电流值下限，用来判断电机是否在运动，单位mA
+#define FILM_LOWER_CUR_VALUE                  100 //电流值下限，用来判断电机是否在运动，单位mA
 
 #define FILM_DEFAULT_LOW_CUR_VALUE            140 //经验值，应用的电机的空转最小电流值
 #define FILM_DEFAULT_CUR_VALUE                1000 //读取的电流值异常，默认的经验电流值，单位mA

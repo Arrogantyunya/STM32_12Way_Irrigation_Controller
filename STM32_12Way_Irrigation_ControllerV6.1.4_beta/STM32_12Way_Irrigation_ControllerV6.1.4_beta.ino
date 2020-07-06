@@ -351,9 +351,6 @@ void setup()
 	Info_Println("All configuration items are initialized. Welcome to use!!!  ~(*^__^*)~ ");//所有的设置项初始化完成，欢迎使用
 	Debug_Serial.println("");
 
-	Info_Println("All configuration items are initialized. Welcome to use!!!  ~(*^__^*)~ ");//所有的设置项初始化完成，欢迎使用
-	Debug_Serial.println("");
-
 	InitState.Save_WorkInterval(0x00,0x0A);//10秒
 	InitState.Save_StopInterval(0x00,0x0A);//20秒
 
