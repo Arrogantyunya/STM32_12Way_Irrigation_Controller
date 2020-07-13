@@ -64,13 +64,13 @@
 #define Print_test				true	//打印测试
 /* 替换宏 */
 #define Software_version_high 	0x06 	//软件版本的高位
-#define Software_version_low 	0x14 	//软件版本的低位
+#define Software_version_low 	0x16 	//软件版本的低位
 #define Hardware_version_high 	0x03 	//硬件版本的高位
 #define Hardware_version_low 	0x00	//硬件版本的低位
 #define Init_Area				0x01	//初始区域ID
 #define Waiting_Collection_Time 2000	//等待采集的时间（ms）
 
-unsigned char SoftVer[2] = {6,13};
+unsigned char SoftVer[2] = {6,15};
 
 
 //全局变量
@@ -356,6 +356,7 @@ void setup()
 
 	if (!Pos_Nega_mode.Read_A00D_Seted())
 	{
+		Info_Println("初始化电流倍数...");
 		Pos_Nega_mode.Save_EleCurrent_Times(10);
 		Pos_Nega_mode.Save_A00D_Seted(true);
 	}
