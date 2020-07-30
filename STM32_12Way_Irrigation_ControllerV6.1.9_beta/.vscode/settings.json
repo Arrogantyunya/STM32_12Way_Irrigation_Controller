@@ -1,0 +1,21 @@
+{
+    "files.associations": {
+        "algorithm": "cpp",
+        "xhash": "cpp",
+        "xtree": "cpp",
+        "xutility": "cpp",
+        "list": "cpp",
+        "array": "cpp",
+        "string": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "functional": "cpp",
+        "system_error": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "xlocmon": "cpp",
+        "xtr1common": "cpp",
+        "xlocale": "cpp"
+    }
+}
