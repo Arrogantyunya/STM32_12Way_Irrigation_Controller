@@ -60,13 +60,13 @@
 #define DO_CHANGE_REPORT		true	//DO状态改变上报
 #define DO_OPEN_REPORT			true	//DO某路开启就启动高频率状态上报
 #define EEPROM_RESET			false 	//重置EEPROM的所有值【测试使用】
-#define EEPROM_AT24C128_TEST 	true	//测试AT24C128芯片
-#define Print_test				true	//打印测试
+#define EEPROM_AT24C128_TEST 	false	//测试AT24C128芯片
+#define Print_test				false	//打印测试
 /* 替换宏 */
 #define Software_version_high 	0x06 	//软件版本的高位
-#define Software_version_low 	0x19 	//软件版本的低位
+#define Software_version_low 	0x19 	//软件版本的低位，然后这就是V6.1.9
 #define Hardware_version_high 	0x03 	//硬件版本的高位
-#define Hardware_version_low 	0x00	//硬件版本的低位
+#define Hardware_version_low 	0x00	//硬件版本的低位，然后这就是V3.0.0
 #define Init_Area				0x01	//初始区域ID
 #define Waiting_Collection_Time 2000	//等待采集的时间（ms）
 
@@ -130,7 +130,7 @@ void setup()
 	RS485_Serial.begin(9600);//485的串口
 
 #if Print_test
-	/* File :D:\刘家辉\代码\STM32_12Way_Irrigation_Controller\STM32_12Way_Irrigation_ControllerV6.0.0_beta\STM32_12Way_Irrigation_ControllerV6.0.0_beta.ino */
+	/* File :D:\xxx\代码\STM32_12Way_Irrigation_Controller\STM32_12Way_Irrigation_ControllerV6.0.0_beta\STM32_12Way_Irrigation_ControllerV6.0.0_beta.ino */
 	Debug_Serial.println(String("File :") + __FILE__);
 	/* Data :Jun 19 2020 *//* 显示的是编译的日期 */
 	Debug_Serial.println(String("Data :") + __DATE__);
@@ -149,68 +149,7 @@ void setup()
 #endif
 
 #if	EEPROM_AT24C128_TEST
-	// film_mem_err Film_MEM_Save_Param(film_u32 w_base_addr, film_u8 *w_buf);
-	// film_mem_err Film_MEM_Read_Param(film_u32 r_base_addr, film_u8 *r_buf);
-	// film_mem_err Film_MEM_Save_Param_CH(film_u32 w_base_addr, film_u8 *w_buf, film_u8 ch);
-	// film_mem_err Film_MEM_Read_Param_CH(film_u32 r_base_addr, film_u8 *r_buf, film_u8 ch);
-
-	// unsigned char run_open_val = 0;	unsigned char now_open_val;
-	// for (unsigned int a = 0; a < 20; a++)
-	// {
-	// 	Set_DO_relay(0,ON);
-	// 	Set_DO_relay(1,OFF);
-	// 	delay(300);
-
-	// 	for (unsigned char i = 0; i < 4; i++)
-	// 	{
-	// 		run_open_val += i; 
-	// 		Debug_Serial.println(run_open_val);
-	// 		if (Film_MEM_Save_Param_CH(FILM_MEM_RUN_OPEN_BASE_ADDR, &run_open_val, i+1))
-	// 			Debug_Serial.println("pppppppppppp<>");
-
-	// 		//delay(100);
-	// 	}
-	// 	Set_DO_relay(0,OFF);
-	// 	Set_DO_relay(1,ON);
-	// 	delay(300);
-	// 	for (unsigned char i = 0; i < 4; i++)
-	// 	{
-	// 		if (Film_MEM_Read_Param_CH(FILM_MEM_RUN_OPEN_BASE_ADDR, &now_open_val, i+1))
-	// 			Debug_Serial.println("qqqqqqqqqqqqqqqq<>");			
-	// 	}
-	// }
-	// Debug_Serial.println("test ojbk<>");
-	// while (1)
-	// {
-	// 	iwdg_feed();
-	// }
-
-
-	// unsigned char BUFF[10000] = {0x00};
-
-	// for (size_t i = 0; i < 10; i++)
-	// {
-	// 	for (size_t a = 0; a < 10000; a++)
-	// 	{
-	// 		BUFF[a] = BUFF[a]+10;
-	// 	}
-	// 	if(Film_MEM_Write_Buffer(150,&BUFF[0],10000) == FILM_MEM_OK)
-	// 		Debug_Serial.println("[Debug]EEPROM_AT24C128_Test Success");
-	// 	else
-	// 		Debug_Serial.println("[Debug]EEPROM_AT24C128_Test Fail");
-
-	// 	delay(1000);
-	// }
-
-	// if(EEPROM_Operation.EEPROM_AT24C128_Test())
-	// 	Debug_Serial.println("[Debug]EEPROM_AT24C128_Test Success");
-	// else
-	// 	Debug_Serial.println("[Debug]EEPROM_AT24C128_Test Fail");
-
-	// if(EEPROM_Operation.EEPROM_AT24C128_Reset())
-	// 	Debug_Serial.println("[Debug]EEPROM_AT24C128_Reset Success");
-	// else
-	// 	Debug_Serial.println("[Debug]EEPROM_AT24C128_Reset Fail");
+	
 #endif
 
 	Some_Peripheral.Peripheral_GPIO_Config();	//设置继电器，数字输入，模拟输入等外设引脚的模式，以及初始化状态
@@ -568,27 +507,27 @@ void Change_status_report(void)
 	if (DOStatus_Change || DIStatus_Change || One_Cycle_Complete)
 	{
 		unsigned long Now = millis();
-		if(Waiting_Collection)
+		if(Waiting_Collection)//后面这个Waiting_Collection永远是flase，也就是进入不了这个if，就不需要关注这段代码，这段代码是之前为了等待电流模块数据稳定再去采集，后面发现没这个必要
 		{
 			while (millis() - Now < 2000)
 			{
 				LoRa_Command_Analysis.Receive_LoRa_Cmd();//从网关接收LoRa数据
-				// if (Device_Mode == Solenoid_mode)//电磁阀模式
-				// {
-				// 	Solenoid_mode_DO_ON();//灌溉分时打开
-				// }
-				// else if(Device_Mode == Delay_mode)//延时开启模式（）
-				// {
-				// 	Delay_mode_DO_ON();//延时DO开启
-				// }
-				// else if (Device_Mode == Forward_Reverse_mode)//正反转模式
-				// {
-				// 	Forward_Reverse_DO_ON();//正反转DO开启
-				// }
-				// else
-				// {
+				if (Device_Mode == Solenoid_mode)//电磁阀模式
+				{
+					Solenoid_mode_DO_ON();//灌溉分时打开
+				}
+				else if(Device_Mode == Delay_mode)//延时开启模式（）
+				{
+					Delay_mode_DO_ON();//延时DO开启
+				}
+				else if (Device_Mode == Forward_Reverse_mode)//正反转模式
+				{
+					Forward_Reverse_DO_ON();//正反转DO开启
+				}
+				else
+				{
 					
-				// }
+				}
 				// Serial.println("Waiting_Collection......");
 				// delay(500);
 			}
